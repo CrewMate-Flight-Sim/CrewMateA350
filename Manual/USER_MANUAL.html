@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>USER_MANUAL.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="crewmatea350--user-manual">CrewmateA350 — User Manual</h1>
+<p><strong>CrewmateA350</strong> is a virtual First Officer companion for the <strong>Airbus A350</strong> in Microsoft Flight Simulator. It listens to your voice, responds with audio callouts, runs automated cockpit flows, and guides you through interactive checklists — just like a real crew member.</p>
+<hr>
+<div style="text-align: center;">
+  <img src="../crewmate.png" alt="Crewmate avatar" width="800">
+</div>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#tutorial">Tutorial</a></li>
+<li><a href="#voice-commands">Voice Commands</a></li>
+<li><a href="#tips--troubleshooting">Tips &amp; Troubleshooting</a></li>
+</ol>
+<hr>
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="requirements">Requirements</h3>
+<ul>
+<li>Install <strong>an English</strong> Windows speech recognition language pack (Settings → Time &amp; language → Speech). Regional variants (e.g. US, UK, Australia, India) are supported — whichever English recognizer Windows exposes. If several English packs are installed, the active engine follows Windows’ installed-recognizer order.</li>
+<li>To use the trainer app, set your Display Language to EN‑US while training (you can change it back afterward).</li>
+</ul>
+<h3 id="voice-modes">Voice Modes</h3>
+<p>CrewmateA350 supports two voice recognition modes:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>How it works</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Continuous</strong></td>
+<td>The microphone is always listening. Speak naturally.</td>
+</tr>
+<tr>
+<td><strong>Push-to-Talk (PTT)</strong></td>
+<td>Not implemented yet.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="volume--voice-sensitivity">Volume &amp; Voice Sensitivity</h3>
+<ul>
+<li><strong>Sound Volume</strong> — Controls how loud the FO's audio callouts are (0–100).</li>
+<li><strong>Voice Sensitivity</strong> — Lower settings are more tolerant of variations (may increase false positives); higher settings are stricter.</li>
+</ul>
+<hr>
+<h2 id="tutorial">Tutorial</h2>
+<h3 id="assumptions">Assumptions</h3>
+<p>This tutorial assumes you are parked at the gate with engines off. You are the Captain and PF (Pilot Flying); CrewMate acts as PM (Pilot Monitoring).</p>
+<h3 id="typical-preflight-timeline-example">Typical preflight timeline (example)</h3>
+<ul>
+<li>60 min: Cockpit door and curtains opened.</li>
+<li>58 min: PM takes their seat.</li>
+<li>55 min: PM starts preliminary cockpit preparation.</li>
+<li>45 min: PM departs for external walkaround. PF starts cockpit preparation.
+<img src="Images/COCKPIT PREPARATION FLOW PATTERN.png" alt="Cockpit Preparation flow pattern"></li>
+<li>33 min: PM returns and starts cockpit preparation on his side.</li>
+<li>25 min: PF conducts the departure briefing (enter takeoff data in the Takeoff Performance window).</li>
+<li>20 min: PF calls for the COCKPIT PREPARATION checklist.</li>
+<li>1 min: CrewMate closes the cockpit door. PF and PM perform before start flow, after that PF calls for the BEFORE START checklist.</li>
+</ul>
+<p><img src="Images/BEFORE START FLOW PATTERN.png" alt="Before Start flow pattern"></p>
+<h3 id="pushback-and-engine-start">Pushback and Engine Start</h3>
+<ul>
+<li>Announce each engine start (e.g., “Starting engine one”).</li>
+<li>When ignition is set to NORMAL, PF and PM will start the AFTER START flow pattern. If anti‑ice will be used, flaps may be left as required.</li>
+<li>On hand signal from ground personnel, call for the AFTER START checklist.</li>
+</ul>
+<p><img src="Images/AFTER START FLOW PATTERN.png" alt="After Start flow pattern"></p>
+<h3 id="taxi">Taxi</h3>
+<ul>
+<li>PM announces when the cabin is ready.</li>
+<li>Check flight controls at a convenient time before or during taxi (this is done before arming the autobrake).</li>
+<li>Control check sequence: Full Up, Full Down, Full Left, Full Right, Rudder Full Left, Rudder Full Right.</li>
+<li>After the controls check, PM performs the TAXI flow pattern.</li>
+<li>After T.O. CONFIG pushbutton is pressed and a cabin report is received, PF calls for the TAXI checklist.</li>
+</ul>
+<p><img src="Images/TAXI FLOW PATTERN.png" alt="Taxi flow pattern"></p>
+<h3 id="lineup--takeoff">Line‑up &amp; Takeoff</h3>
+<ul>
+<li>PF calls for the Line‑up flow.</li>
+<li>When line‑up clearance is received and the Line‑up flow pattern is complete, PF calls for the LINE‑UP checklist.</li>
+<li>When cleared for takeoff, announce “TAKEOFF.”</li>
+</ul>
+<p><img src="Images/LINE-UP FLOW PATTERN.png" alt="Line‑up flow pattern"></p>
+<h3 id="acceleration">Acceleration</h3>
+<ul>
+<li>The After‑Takeoff flow is triggered when flaps are retracted to zero.</li>
+</ul>
+<p><img src="Images/ACCELERATION FLOW PATTERN.png" alt="Acceleration flow pattern"></p>
+<h3 id="climb-to-10000-ft">Climb to 10,000 ft</h3>
+<p><img src="Images/AT 10 000 FT AAL FLOW PATTERN.png" alt="10,000 ft flow pattern"></p>
+<h3 id="descent-preparation">Descent Preparation</h3>
+<ul>
+<li>PF should insert landing data in the Landing Performance window.</li>
+</ul>
+<p><img src="Images/PF DESCENT PREP ITEMS.png" alt="PF Descent preparation items"></p>
+<h3 id="10k-descent">10k Descent</h3>
+<p><img src="Images/AT 10 000 FT AAL DES FLOW PATTERN.png" alt="10k descent flow pattern"></p>
+<h3 id="approach">Approach</h3>
+<ul>
+<li>After passing the transition level call for &quot;set altimeters/QNH&quot;, complete the APPROACH checklist.</li>
+</ul>
+<h3 id="landing">Landing</h3>
+<ul>
+<li>When LDG CONF is set and a cabin report is received, call for the LANDING checklist.</li>
+<li>PF announces “Continue” at minima or “Go‑around - flaps” as appropriate.</li>
+</ul>
+<h3 id="after-landing">After Landing</h3>
+<ul>
+<li>Disarming the ground spoilers will trigger the After‑Landing flow.</li>
+<li>If anti‑ice is used, flaps may remain at LDG CONF per procedure.</li>
+</ul>
+<p><img src="Images/AFTER LANDING FLOW PATTERN.png" alt="After landing flow pattern"></p>
+<h3 id="parking">Parking</h3>
+<ul>
+<li>Turn off taxi lights when turning into the gate, or ask the PM to confirm.</li>
+<li>Shutting down the engines will trigger the Parking flow.</li>
+<li>After the Parking flow pattern completes, PM calls for the SHUTDOWN checklist.</li>
+</ul>
+<p><img src="Images/PARKING FLOW PATTERN.png" alt="Parking flow pattern"></p>
+<h3 id="securing-the-aircraft">Securing the Aircraft</h3>
+<ul>
+<li>After the last passenger leaves (if securing the aircraft), call for the SECURE AIRCRAFT checklist.</li>
+</ul>
+<hr>
+<h2 id="voice-commands">Voice Commands</h2>
+<p>Speak these phrases clearly during flight. The FO uses partial matching — you don't need to be word‑perfect, but include the key phrase.</p>
+<h3 id="preflight-timer">Preflight Timer</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Let's prepare the aircraft&quot;</td>
+<td>Starts the preflight countdown timer to help you track preparation time.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ground-engineer">Ground Engineer</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Ground from cockpit&quot;</td>
+<td>Ground Engineer will ask whats your request</td>
+</tr>
+<tr>
+<td>&quot;Cockpit to ground&quot;</td>
+<td>Ground Engineer will ask whats your request</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gear">Gear</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;gear down&quot;</td>
+<td>Lowers the landing gear. <strong>Speed must be at or below 255 knots.</strong></td>
+</tr>
+<tr>
+<td>&quot;gear up&quot;</td>
+<td>Raises the landing gear.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="flaps">Flaps</h3>
+<p>The FO will confirm speed limits before moving flaps while airborne.</p>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>Flap Setting</th>
+<th>Max Speed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;flaps zero&quot;</td>
+<td>Flaps 0 (retracted)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>&quot;flaps one&quot;</td>
+<td>Flaps 1</td>
+<td>255 kts (A350‑900) / 260 kts (A350‑1000)</td>
+</tr>
+<tr>
+<td>&quot;flaps two&quot;</td>
+<td>Flaps 2</td>
+<td>212 kts / 219 kts</td>
+</tr>
+<tr>
+<td>&quot;flaps three&quot;</td>
+<td>Flaps 3</td>
+<td>195 kts / 206 kts</td>
+</tr>
+<tr>
+<td>&quot;flaps full&quot;</td>
+<td>Flaps Full</td>
+<td>186 kts / 192 kts</td>
+</tr>
+</tbody>
+</table>
+<h3 id="engine-antiice">Engine Anti‑Ice</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Engine anti ice on&quot;</td>
+<td>Turns on engine anti‑ice for both engines.</td>
+</tr>
+<tr>
+<td>&quot;Engine anti ice off&quot;</td>
+<td>Turns off engine anti‑ice.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="wing-antiice">Wing Anti‑Ice</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Wing anti ice on&quot;</td>
+<td>Turns on wing anti‑ice.</td>
+</tr>
+<tr>
+<td>&quot;Wing anti ice off&quot;</td>
+<td>Turns off wing anti‑ice.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lights-landing--taxi--nose--strobe">Lights (Landing / Taxi / Nose / Strobe)</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Landing lights on&quot;</td>
+<td>Turns on landing lights.</td>
+</tr>
+<tr>
+<td>&quot;Landing lights off&quot;</td>
+<td>Turns off landing lights.</td>
+</tr>
+<tr>
+<td>&quot;Taxi lights on&quot;</td>
+<td>Turns on nose taxi light.</td>
+</tr>
+<tr>
+<td>&quot;Taxi lights off&quot;</td>
+<td>Turns off nose taxi light.</td>
+</tr>
+<tr>
+<td>&quot;Takeoff light on&quot;</td>
+<td>Turns on nose takeoff light.</td>
+</tr>
+<tr>
+<td>&quot;Strobe lights on&quot;</td>
+<td>Turns on strobes.</td>
+</tr>
+<tr>
+<td>&quot;Strobe lights auto&quot;</td>
+<td>Sets strobes to AUTO.</td>
+</tr>
+<tr>
+<td>&quot;Strobe lights off&quot;</td>
+<td>Turns off strobes.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="flight-director">Flight Director</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Flight Director on&quot;</td>
+<td>Activates the Flight Director.</td>
+</tr>
+<tr>
+<td>&quot;Flight Director off&quot;</td>
+<td>Deactivates the Flight Director.</td>
+</tr>
+<tr>
+<td>&quot;Flight Director off bird on&quot;</td>
+<td>Deactivates FD and selects TRK/FPA on the autopilot.</td>
+</tr>
+<tr>
+<td>&quot;Bird on&quot;</td>
+<td>Selects TRK/FPA on the autopilot.</td>
+</tr>
+<tr>
+<td>&quot;Bird off&quot;</td>
+<td>Deselects TRK/FPA on the autopilot.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="autopilot">Autopilot</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Autopilot on&quot;</td>
+<td>Engages Autopilot 1.</td>
+</tr>
+<tr>
+<td>&quot;Set speed <strong>_ or speed select _</strong>&quot;</td>
+<td>Sets commanded speed.</td>
+</tr>
+<tr>
+<td>&quot;Set heading <strong>_ or heading select __</strong>&quot;</td>
+<td>Sets commanded heading.</td>
+</tr>
+<tr>
+<td>&quot;Set altitude <strong>_</strong> or altitude select <strong>_</strong> or set flight level <strong>_ or flight level select _</strong>&quot;</td>
+<td>Sets commanded altitude.</td>
+</tr>
+<tr>
+<td>&quot;Pull speed&quot;</td>
+<td>Pulls speed knob to select selected speed.</td>
+</tr>
+<tr>
+<td>&quot;Pull speed ___&quot;</td>
+<td>Pulls speed knob and sets the commanded speed.</td>
+</tr>
+<tr>
+<td>&quot;Manage speed&quot;</td>
+<td>Pushes speed knob to select managed speed.</td>
+</tr>
+<tr>
+<td>&quot;Pull heading&quot;</td>
+<td>Pulls heading knob to select selected heading.</td>
+</tr>
+<tr>
+<td>&quot;Pull heading ___&quot;</td>
+<td>Pulls heading knob and sets the commanded heading.</td>
+</tr>
+<tr>
+<td>&quot;Manage nav&quot;</td>
+<td>Pushes heading knob to select LNAV.</td>
+</tr>
+<tr>
+<td>&quot;Altitude <strong>_</strong> pull or Flight level ___ pull&quot;</td>
+<td>Sets commanded altitude and pulls altitude knob.</td>
+</tr>
+<tr>
+<td>&quot;Altitude <strong>_</strong> manage or Flight level ___ manage&quot;</td>
+<td>Sets commanded altitude and pushes altitude knob.</td>
+</tr>
+<tr>
+<td>&quot;Altitude pull or Flight level pull&quot;</td>
+<td>Pulls altitude knob.</td>
+</tr>
+<tr>
+<td>&quot;Altitude manage or Flight level manage&quot;</td>
+<td>Pushes altitude knob.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="flight-controls-check">Flight Controls Check</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Flight controls check&quot;</td>
+<td>Starts the flight controls flow: Up, Down, Left, Right, Rudder Left, Rudder Right</td>
+</tr>
+</tbody>
+</table>
+<h3 id="launching-flows-by-voice">Launching Flows by Voice</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>Flow launched</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Clear left&quot; or &quot;Left side clear&quot;</td>
+<td>Clear Left flow</td>
+</tr>
+<tr>
+<td>&quot;Runway entry procedure&quot; or &quot;Clear to line up&quot;</td>
+<td>Before Takeoff flow</td>
+</tr>
+</tbody>
+</table>
+<h3 id="launching-checklists-by-voice">Launching Checklists by Voice</h3>
+<table>
+<thead>
+<tr>
+<th>Say</th>
+<th>Checklist launched</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Cockpit preparation checklist&quot;</td>
+<td>Cockpit Preparation</td>
+</tr>
+<tr>
+<td>&quot;Before start checklist&quot;</td>
+<td>Before Start</td>
+</tr>
+<tr>
+<td>&quot;After start checklist&quot;</td>
+<td>After Start</td>
+</tr>
+<tr>
+<td>&quot;Taxi checklist&quot;</td>
+<td>Taxi</td>
+</tr>
+<tr>
+<td>&quot;Lineup checklist&quot;</td>
+<td>Line Up</td>
+</tr>
+<tr>
+<td>&quot;Approach checklist&quot;</td>
+<td>Approach</td>
+</tr>
+<tr>
+<td>&quot;Landing checklist&quot;</td>
+<td>Landing</td>
+</tr>
+<tr>
+<td>&quot;Parking checklist&quot;</td>
+<td>Parking</td>
+</tr>
+<tr>
+<td>&quot;Secure aircraft checklist&quot;</td>
+<td>Secure Aircraft</td>
+</tr>
+<tr>
+<td>&quot;Departure change checklist&quot;</td>
+<td>Departure Change Checklist</td>
+</tr>
+<tr>
+<td>&quot;Stop checklist&quot; or &quot;Abort checklist&quot; or &quot;Cancel checklist&quot;</td>
+<td>Aborts the active checklist</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="tips--troubleshooting">Tips &amp; Troubleshooting</h2>
+<p><strong>The FO isn't hearing me</strong></p>
+<ul>
+<li>Check that your microphone is selected and working.</li>
+<li>Adjust the <strong>Voice Sensitivity</strong> setting.</li>
+</ul>
+<p><strong>The FO keeps repeating the challenge</strong></p>
+<ul>
+<li>Your response didn't match the expected phrase. Listen to the challenge and use one of the phrases listed in this manual (voice matching can be tuned in settings).</li>
+<li>If a physical switch must be set first (e.g., parking brake), set it in the cockpit before responding.</li>
+</ul>
+<p><strong>How do I stop a checklist mid‑way?</strong></p>
+<ul>
+<li>Say <strong>&quot;Stop checklist&quot;</strong>, <strong>&quot;Abort checklist&quot;</strong>, or <strong>&quot;Cancel checklist&quot;</strong> at any time.</li>
+</ul>
+<p><strong>Can I run flows and checklists manually without voice?</strong></p>
+<ul>
+<li>Yes. Both can be triggered from the <strong>Flows</strong> and <strong>Checklist</strong> panels in the app UI.</li>
+</ul>
+<hr>
+
+</body>
+</html>
