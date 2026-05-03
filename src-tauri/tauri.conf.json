@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "crewmatea350",
+  "productName": "CrewMateA350",
   "version": "0.3.2",
   "identifier": "crewmatea350",
   "build": {
