@@ -6,7 +6,8 @@ import {
   formatShortcutForDisplay,
   getContinuousShortcutTransition,
   getPttStateTransition,
-  normalizePttShortcut
+  normalizePttShortcut,
+  PTT_RELEASE_MUTE_DELAY_MS
 } from "../src/voice/pushToTalkState.ts"
 
 describe("voice shortcut state", () => {
@@ -15,7 +16,7 @@ describe("voice shortcut state", () => {
     assert.equal(formatShortcutForDisplay(DEFAULT_PTT_SHORTCUT), "Ctrl+Shift+M")
   })
 
-  it("unmutes on press and mutes on release", () => {
+  it("unmutes on press and marks release without immediate mute", () => {
     const firstPress = getPttStateTransition(false, "Pressed")
     assert.deepEqual(firstPress, { isPressed: true, voiceEnabled: true })
 
@@ -23,7 +24,7 @@ describe("voice shortcut state", () => {
     assert.deepEqual(repeatedPress, { isPressed: true })
 
     const release = getPttStateTransition(repeatedPress.isPressed, "Released")
-    assert.deepEqual(release, { isPressed: false, voiceEnabled: false })
+    assert.deepEqual(release, { isPressed: false })
 
     const secondPress = getPttStateTransition(release.isPressed, "Pressed")
     assert.deepEqual(secondPress, { isPressed: true, voiceEnabled: true })
@@ -32,6 +33,10 @@ describe("voice shortcut state", () => {
   it("ignores release when the shortcut was not held", () => {
     const release = getPttStateTransition(false, "Released")
     assert.deepEqual(release, { isPressed: false })
+  })
+
+  it("uses a one second post-release mute delay in PTT mode", () => {
+    assert.equal(PTT_RELEASE_MUTE_DELAY_MS, 1000)
   })
 
   it("toggles listening once per shortcut press in continuous mode", () => {

@@ -6,6 +6,7 @@ export type PttStateTransition = {
 }
 
 export const DEFAULT_PTT_SHORTCUT = "CommandOrControl+Shift+M"
+export const PTT_RELEASE_MUTE_DELAY_MS = 1000
 
 const oldDefaultShortcuts = new Set(["CommandOrControl+Shift+Space", "M"])
 
@@ -28,7 +29,7 @@ export const formatShortcutForDisplay = (shortcut: string): string =>
 
 export const getPttStateTransition = (isPressed: boolean, state: PttShortcutState): PttStateTransition => {
   if (state === "Released") {
-    return isPressed ? { isPressed: false, voiceEnabled: false } : { isPressed: false }
+    return { isPressed: false }
   }
 
   return isPressed ? { isPressed } : { isPressed: true, voiceEnabled: true }

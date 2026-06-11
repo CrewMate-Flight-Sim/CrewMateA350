@@ -6,7 +6,8 @@ import { useSettingsStore, type VoiceMode } from "@/store/settingsStore"
 import {
   getContinuousShortcutTransition,
   getPttStateTransition,
-  normalizePttShortcut
+  normalizePttShortcut,
+  PTT_RELEASE_MUTE_DELAY_MS
 } from "@/voice/pushToTalkState"
 
 const registerVoiceShortcut = async (
@@ -34,17 +35,33 @@ const registerVoiceShortcut = async (
   }
 }
 
+type PttMuteScheduler = {
+  clearPendingMute: () => void
+  scheduleMute: () => void
+}
+
 const handleShortcutEvent = (
   voiceMode: VoiceMode,
   isPressedRef: RefObject<boolean>,
   setVoiceEnabled: (enabled: boolean) => void,
-  state: "Pressed" | "Released"
+  state: "Pressed" | "Released",
+  pttMuteScheduler?: PttMuteScheduler
 ) => {
   if (voiceMode === "ptt") {
-    const transition = getPttStateTransition(isPressedRef.current, state)
+    const wasPressed = isPressedRef.current
+    const transition = getPttStateTransition(wasPressed, state)
     isPressedRef.current = transition.isPressed
-    if (transition.voiceEnabled !== undefined) {
-      setVoiceEnabled(transition.voiceEnabled)
+
+    if (state === "Pressed") {
+      pttMuteScheduler?.clearPendingMute()
+      if (transition.voiceEnabled !== undefined) {
+        setVoiceEnabled(transition.voiceEnabled)
+      }
+      return
+    }
+
+    if (wasPressed) {
+      pttMuteScheduler?.scheduleMute()
     }
     return
   }
@@ -66,6 +83,7 @@ export function usePushToTalk() {
   const pttShortcut = useSettingsStore((state) => state.pttShortcut)
   const setVoiceEnabled = useSettingsStore((state) => state.setVoiceEnabled)
   const isPressedRef = useRef(false)
+  const muteDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!hydrated) {
@@ -77,12 +95,31 @@ export function usePushToTalk() {
     let registered = false
     let cancelled = false
 
+    const clearPendingMute = () => {
+      if (muteDelayRef.current) {
+        clearTimeout(muteDelayRef.current)
+        muteDelayRef.current = null
+      }
+    }
+
+    const scheduleMute = () => {
+      clearPendingMute()
+      muteDelayRef.current = setTimeout(() => {
+        muteDelayRef.current = null
+        setVoiceEnabled(false)
+      }, PTT_RELEASE_MUTE_DELAY_MS)
+    }
+
     if (voiceMode === "ptt") {
+      clearPendingMute()
       setVoiceEnabled(false)
     }
 
     registerVoiceShortcut(shortcut, (event) => {
-      handleShortcutEvent(voiceMode, isPressedRef, setVoiceEnabled, event.state)
+      handleShortcutEvent(voiceMode, isPressedRef, setVoiceEnabled, event.state, {
+        clearPendingMute,
+        scheduleMute
+      })
     }).then((success) => {
       registered = success
       if (cancelled && success) {
@@ -95,6 +132,7 @@ export function usePushToTalk() {
     return () => {
       cancelled = true
       isPressedRef.current = false
+      clearPendingMute()
 
       if (voiceMode === "ptt") {
         setVoiceEnabled(false)

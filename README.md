@@ -41,7 +41,7 @@
 Choose **Voice Mode** in Settings:
 
 - **Continuous** — click the mic button or press `Ctrl+Shift+M` to start and stop listening. The mic stays on until you toggle it off.
-- **Push to talk (PTT)** — hold `Ctrl+Shift+M` to listen; release to mute. The mic starts muted and works globally, even when MSFS has focus.
+- **Push to talk (PTT)** — hold `Ctrl+Shift+M` to listen; release to mute after a 1 second tail so trailing speech is captured. The mic starts muted and works globally, even when MSFS has focus.
 
 ## Voice Commands (Examples)
 
