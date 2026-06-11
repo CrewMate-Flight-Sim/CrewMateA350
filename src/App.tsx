@@ -15,6 +15,7 @@ import { useBaroSync } from "@/hooks/useBaroSync"
 import { useCallouts } from "@/hooks/useCallouts"
 import { useCloseConfirm } from "@/hooks/useCloseConfirm"
 import { usePreflightTimer } from "@/hooks/usePreflightTimer"
+import { usePushToTalk } from "@/hooks/usePushToTalk"
 import { useSimConnection } from "@/hooks/useSimConnection"
 import { useSpeechCommands } from "@/hooks/useSpeechCommands"
 import { useVoiceHints } from "@/hooks/useVoiceHints"
@@ -33,12 +34,15 @@ function App() {
   const connected = status === "connected"
 
   const voiceEnabled = useSettingsStore((state) => state.voiceEnabled)
+  const voiceMode = useSettingsStore((state) => state.voiceMode)
+  const pttShortcut = useSettingsStore((state) => state.pttShortcut)
   const setVoiceEnabled = useSettingsStore((state) => state.setVoiceEnabled)
   const takeoffVr = usePerformanceStore((state) => state.takeoff.vr)
 
   useCallouts(takeoffVr)
   useAutoFlows()
   usePreflightTimer()
+  usePushToTalk()
   const { recognizedText, isValidCommand, isUnrecognized, speechKey, speechEngineError } = useSpeechCommands({
     voiceEnabled
   })
@@ -55,7 +59,7 @@ function App() {
   // Sync mute state to the sidecar on startup — persisted voiceEnabled may be false
   // but the sidecar always starts unmuted.
   useEffect(() => {
-    invoke("set_muted", { muted: !voiceEnabled }).catch(() => {})
+    invoke("set_muted", { muted: voiceMode === "ptt" || !voiceEnabled }).catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -79,6 +83,8 @@ function App() {
                 voiceEnabled={voiceEnabled}
                 onToggleVoice={() => setVoiceEnabled(!voiceEnabled)}
                 voiceDisabled={false}
+                voiceMode={voiceMode}
+                pttShortcut={pttShortcut}
               />
               <TextBar
                 text={recognizedText}

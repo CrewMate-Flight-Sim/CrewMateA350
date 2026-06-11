@@ -8,6 +8,9 @@
     "opener:default",
     "log:default",
     "dialog:default",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
     "core:window:allow-close",
     "core:window:allow-show",
     "window-state:default"

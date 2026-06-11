@@ -7,18 +7,22 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/comp
 import { cn } from "@/lib/utils"
 import { useFlowStore } from "@/store/flowStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
+import type { VoiceMode } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
+import { formatShortcutForDisplay } from "@/voice/pushToTalkState"
 import { openLandingWindow, openSettingsWindow, openTakeoffWindow } from "@/windows/windowsHandler"
 
 type IconToolbarProps = {
   voiceEnabled: boolean
   onToggleVoice: () => void
   voiceDisabled: boolean
+  voiceMode: VoiceMode
+  pttShortcut: string
 }
 
 const baseBtn = "w-9 h-9 p-0 bg-transparent border border-slate-700/50 transition"
 
-export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: IconToolbarProps) {
+export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled, voiceMode, pttShortcut }: IconToolbarProps) {
   const [alwaysOnTop, setAlwaysOnTop] = useState(false)
 
   const timerRunning = usePreflightTimerStore((s) => s.isRunning)
@@ -38,6 +42,10 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: Icon
     (telemetry?.mixture2 ?? 0) >= 0.5
 
   const timeDisplay = String(Math.floor(remainingSeconds / 60)).padStart(2, "0")
+  const isPushToTalk = voiceMode === "ptt"
+  const voiceTooltip = isPushToTalk
+    ? `Hold ${formatShortcutForDisplay(pttShortcut)} to talk`
+    : `Press ${formatShortcutForDisplay(pttShortcut)} to start/stop listening`
 
   const handleToggleAlwaysOnTop = async () => {
     const newValue = !alwaysOnTop
@@ -55,14 +63,19 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: Icon
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              onClick={onToggleVoice}
+              onClick={isPushToTalk ? undefined : onToggleVoice}
               disabled={voiceDisabled}
-              className={cn(baseBtn, "hover:bg-cyan-400/10", voiceEnabled && "border-red-400 hover:border-red-400")}
+              className={cn(
+                baseBtn,
+                "hover:bg-cyan-400/10",
+                voiceEnabled && "border-red-400 hover:border-red-400",
+                isPushToTalk && "cursor-default"
+              )}
             >
               {voiceEnabled ? <Mic className="w-5 h-5 text-red-400" /> : <MicOff className="w-5 h-5 text-cyan-300" />}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{voiceEnabled ? "Stop Listening" : "Start Listening"}</TooltipContent>
+          <TooltipContent side="bottom">{voiceTooltip}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
