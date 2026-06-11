@@ -3,6 +3,8 @@ import { emit, listen } from "@tauri-apps/api/event"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+import { DEFAULT_PTT_SHORTCUT, normalizePttShortcut } from "@/voice/pushToTalkState"
+
 export type LightsControlMode = "virtual" | "user"
 export type VoiceMode = "continuous" | "ptt"
 
@@ -48,8 +50,8 @@ export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
       voiceEnabled: false,
-      voiceMode: "continuous",
-      pttShortcut: "CommandOrControl+Shift+Space",
+      voiceMode: "ptt",
+      pttShortcut: DEFAULT_PTT_SHORTCUT,
       soundPack: "Jenny",
       geSoundPack: "GE_Christopher",
       soundVolume: 100,
@@ -68,9 +70,17 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       },
       setVoiceMode: (mode) => {
-        set({ voiceMode: mode })
+        if (mode === "ptt") {
+          set({ voiceMode: mode, voiceEnabled: false })
+          invoke("set_muted", { muted: true }).catch(() => {})
+        } else {
+          set({ voiceMode: mode })
+        }
         if (!isUpdatingFromEvent) {
-          emit("settings-changed", { voiceMode: mode })
+          emit("settings-changed", {
+            voiceMode: mode,
+            ...(mode === "ptt" ? { voiceEnabled: false } : {})
+          })
         }
       },
       setPttShortcut: (shortcut) => {
@@ -140,8 +150,31 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: "voice-settings",
+      version: 1,
+      migrate: (persistedState, version) => {
+        const state = persistedState as Partial<SettingsStore>
+        const migrated = {
+          ...state,
+          pttShortcut: normalizePttShortcut(state.pttShortcut ?? DEFAULT_PTT_SHORTCUT)
+        }
+
+        if (version < 1) {
+          migrated.voiceMode = "ptt"
+          migrated.voiceEnabled = false
+        }
+
+        return migrated as SettingsStore
+      },
       onRehydrateStorage: () => (state) => {
         if (state) {
+          const normalizedShortcut = normalizePttShortcut(state.pttShortcut)
+          if (normalizedShortcut !== state.pttShortcut) {
+            useSettingsStore.setState({ pttShortcut: normalizedShortcut })
+          }
+          if (state.voiceMode === "ptt" && state.voiceEnabled) {
+            useSettingsStore.setState({ voiceEnabled: false })
+            invoke("set_muted", { muted: true }).catch(() => {})
+          }
           const safeThreshold = normalizeThreshold(state.confidenceThreshold)
           if (safeThreshold !== state.confidenceThreshold) {
             useSettingsStore.setState({ confidenceThreshold: safeThreshold })

@@ -10,9 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { useSettingsStore, type VoiceMode } from "@/store/settingsStore"
-
-const formatShortcutForDisplay = (shortcut: string) =>
-  shortcut.replace(/^CommandOrControl\+/i, "Ctrl+").replace(/^CmdOrCtrl\+/i, "Ctrl+")
+import { formatShortcutForDisplay } from "@/voice/pushToTalkState"
 
 export function SettingsWindow() {
   const [availableSoundPacks, setAvailableSoundPacks] = useState<string[]>([])
@@ -227,13 +225,13 @@ export function SettingsWindow() {
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-600 text-white">
               <SelectItem value="continuous">Continuous</SelectItem>
-              <SelectItem value="ptt">Push to talk</SelectItem>
+              <SelectItem value="ptt">Shortcut toggle</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="grid grid-cols-[110px_1fr] items-center gap-3">
-          <Label className="text-sm text-slate-300">PTT Shortcut</Label>
+          <Label className="text-sm text-slate-300">Voice Shortcut</Label>
           <span className="w-56 rounded-md border border-slate-600 bg-slate-900/50 px-3 py-2 text-sm font-mono text-cyan-300">
             {formatShortcutForDisplay(pttShortcut)}
           </span>

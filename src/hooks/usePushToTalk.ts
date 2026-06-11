@@ -1,42 +1,44 @@
-import { Channel, invoke } from "@tauri-apps/api/core"
+import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-shortcut"
 import { useEffect, useRef } from "react"
 
+import { useSettingsHydrated } from "@/hooks/useSettingsHydrated"
 import { useSettingsStore } from "@/store/settingsStore"
+import { getShortcutToggleTransition, normalizePttShortcut } from "@/voice/pushToTalkState"
 
-type ShortcutState = "Pressed" | "Released"
+const registerVoiceShortcut = async (
+  shortcut: string,
+  handler: (event: { state: "Pressed" | "Released" }) => void
+): Promise<boolean> => {
+  try {
+    if (await isRegistered(shortcut)) {
+      await unregister(shortcut)
+    }
 
-type ShortcutEvent = {
-  id: number
-  shortcut: string
-  state: ShortcutState
+    await register(shortcut, handler)
+
+    if (await isRegistered(shortcut)) {
+      return true
+    }
+
+    console.error(
+      `Voice shortcut "${shortcut}" was not registered. It may already be used by another application.`
+    )
+    return false
+  } catch (error) {
+    console.error(`Failed to register voice shortcut "${shortcut}":`, error)
+    return false
+  }
 }
-
-const registerShortcut = async (shortcut: string, onEvent: (event: ShortcutEvent) => void): Promise<void> => {
-  const handler = new Channel<ShortcutEvent>()
-  handler.onmessage = onEvent
-
-  await invoke("plugin:global-shortcut|register", {
-    shortcuts: [shortcut],
-    handler
-  })
-}
-
-const unregisterShortcut = async (shortcut: string): Promise<void> => {
-  await invoke("plugin:global-shortcut|unregister", {
-    shortcuts: [shortcut]
-  })
-}
-
-export const normalizePttShortcut = (shortcut: string): string => shortcut.replace(/^CmdOrCtrl\+/i, "CommandOrControl+")
 
 export function usePushToTalk() {
+  const hydrated = useSettingsHydrated()
   const voiceMode = useSettingsStore((state) => state.voiceMode)
   const pttShortcut = useSettingsStore((state) => state.pttShortcut)
   const setVoiceEnabled = useSettingsStore((state) => state.setVoiceEnabled)
   const isPressedRef = useRef(false)
 
   useEffect(() => {
-    if (voiceMode !== "ptt") {
+    if (!hydrated || voiceMode !== "ptt") {
       isPressedRef.current = false
       return
     }
@@ -47,29 +49,24 @@ export function usePushToTalk() {
 
     setVoiceEnabled(false)
 
-    registerShortcut(shortcut, (event) => {
-      if (event.state === "Pressed" && !isPressedRef.current) {
-        isPressedRef.current = true
-        setVoiceEnabled(true)
-        return
+    registerVoiceShortcut(shortcut, (event) => {
+      const transition = getShortcutToggleTransition(
+        isPressedRef.current,
+        useSettingsStore.getState().voiceEnabled,
+        event.state
+      )
+      isPressedRef.current = transition.isPressed
+      if (transition.voiceEnabled !== undefined) {
+        setVoiceEnabled(transition.voiceEnabled)
       }
-
-      if (event.state === "Released" && isPressedRef.current) {
-        isPressedRef.current = false
-        setVoiceEnabled(false)
+    }).then((success) => {
+      registered = success
+      if (cancelled && success) {
+        unregister(shortcut).catch((error) => {
+          console.error(`Failed to unregister voice shortcut "${shortcut}":`, error)
+        })
       }
     })
-      .then(() => {
-        registered = true
-        if (cancelled) {
-          unregisterShortcut(shortcut).catch((error) => {
-            console.error(`Failed to unregister push-to-talk shortcut "${shortcut}":`, error)
-          })
-        }
-      })
-      .catch((error) => {
-        console.error(`Failed to register push-to-talk shortcut "${shortcut}":`, error)
-      })
 
     return () => {
       cancelled = true
@@ -78,9 +75,9 @@ export function usePushToTalk() {
 
       if (!registered) return
 
-      unregisterShortcut(shortcut).catch((error) => {
-        console.error(`Failed to unregister push-to-talk shortcut "${shortcut}":`, error)
+      unregister(shortcut).catch((error) => {
+        console.error(`Failed to unregister voice shortcut "${shortcut}":`, error)
       })
     }
-  }, [pttShortcut, setVoiceEnabled, voiceMode])
+  }, [hydrated, pttShortcut, setVoiceEnabled, voiceMode])
 }

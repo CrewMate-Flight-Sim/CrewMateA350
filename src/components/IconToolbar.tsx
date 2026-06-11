@@ -9,6 +9,7 @@ import { useFlowStore } from "@/store/flowStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
 import type { VoiceMode } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
+import { formatShortcutForDisplay } from "@/voice/pushToTalkState"
 import { openLandingWindow, openSettingsWindow, openTakeoffWindow } from "@/windows/windowsHandler"
 
 type IconToolbarProps = {
@@ -20,9 +21,6 @@ type IconToolbarProps = {
 }
 
 const baseBtn = "w-9 h-9 p-0 bg-transparent border border-slate-700/50 transition"
-
-const formatShortcutForDisplay = (shortcut: string) =>
-  shortcut.replace(/^CommandOrControl\+/i, "Ctrl+").replace(/^CmdOrCtrl\+/i, "Ctrl+")
 
 export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled, voiceMode, pttShortcut }: IconToolbarProps) {
   const [alwaysOnTop, setAlwaysOnTop] = useState(false)
@@ -46,7 +44,7 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled, voiceM
   const timeDisplay = String(Math.floor(remainingSeconds / 60)).padStart(2, "0")
   const isPushToTalk = voiceMode === "ptt"
   const voiceTooltip = isPushToTalk
-    ? `Hold ${formatShortcutForDisplay(pttShortcut)} to talk`
+    ? `Press ${formatShortcutForDisplay(pttShortcut)} to start/stop listening`
     : voiceEnabled
       ? "Stop Listening"
       : "Start Listening"
