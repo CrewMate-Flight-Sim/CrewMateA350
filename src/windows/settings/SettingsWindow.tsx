@@ -225,7 +225,7 @@ export function SettingsWindow() {
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-600 text-white">
               <SelectItem value="continuous">Continuous</SelectItem>
-              <SelectItem value="ptt">Shortcut toggle</SelectItem>
+              <SelectItem value="ptt">Push to talk</SelectItem>
             </SelectContent>
           </Select>
         </div>

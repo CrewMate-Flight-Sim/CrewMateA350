@@ -26,14 +26,10 @@ export const normalizePttShortcut = (shortcut: string): string => {
 export const formatShortcutForDisplay = (shortcut: string): string =>
   normalizePttShortcut(shortcut).replace(/^CommandOrControl\+/i, "Ctrl+")
 
-export const getShortcutToggleTransition = (
-  isPressed: boolean,
-  voiceEnabled: boolean,
-  state: PttShortcutState
-): PttStateTransition => {
+export const getPttStateTransition = (isPressed: boolean, state: PttShortcutState): PttStateTransition => {
   if (state === "Released") {
-    return { isPressed: false }
+    return isPressed ? { isPressed: false, voiceEnabled: false } : { isPressed: false }
   }
 
-  return isPressed ? { isPressed } : { isPressed: true, voiceEnabled: !voiceEnabled }
+  return isPressed ? { isPressed } : { isPressed: true, voiceEnabled: true }
 }

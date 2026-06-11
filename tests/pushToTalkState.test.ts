@@ -4,7 +4,7 @@ import { describe, it } from "node:test"
 import {
   DEFAULT_PTT_SHORTCUT,
   formatShortcutForDisplay,
-  getShortcutToggleTransition,
+  getPttStateTransition,
   normalizePttShortcut
 } from "../src/voice/pushToTalkState.ts"
 
@@ -14,18 +14,23 @@ describe("voice shortcut state", () => {
     assert.equal(formatShortcutForDisplay(DEFAULT_PTT_SHORTCUT), "Ctrl+Shift+M")
   })
 
-  it("toggles listening once per shortcut press", () => {
-    const firstPress = getShortcutToggleTransition(false, false, "Pressed")
+  it("unmutes on press and mutes on release", () => {
+    const firstPress = getPttStateTransition(false, "Pressed")
     assert.deepEqual(firstPress, { isPressed: true, voiceEnabled: true })
 
-    const repeatedPress = getShortcutToggleTransition(firstPress.isPressed, firstPress.voiceEnabled, "Pressed")
+    const repeatedPress = getPttStateTransition(firstPress.isPressed, "Pressed")
     assert.deepEqual(repeatedPress, { isPressed: true })
 
-    const release = getShortcutToggleTransition(repeatedPress.isPressed, firstPress.voiceEnabled, "Released")
-    assert.deepEqual(release, { isPressed: false })
+    const release = getPttStateTransition(repeatedPress.isPressed, "Released")
+    assert.deepEqual(release, { isPressed: false, voiceEnabled: false })
 
-    const secondPress = getShortcutToggleTransition(release.isPressed, firstPress.voiceEnabled, "Pressed")
-    assert.deepEqual(secondPress, { isPressed: true, voiceEnabled: false })
+    const secondPress = getPttStateTransition(release.isPressed, "Pressed")
+    assert.deepEqual(secondPress, { isPressed: true, voiceEnabled: true })
+  })
+
+  it("ignores release when the shortcut was not held", () => {
+    const release = getPttStateTransition(false, "Released")
+    assert.deepEqual(release, { isPressed: false })
   })
 
   it("normalizes old persisted shortcut aliases", () => {

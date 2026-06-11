@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react"
 
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated"
 import { useSettingsStore } from "@/store/settingsStore"
-import { getShortcutToggleTransition, normalizePttShortcut } from "@/voice/pushToTalkState"
+import { getPttStateTransition, normalizePttShortcut } from "@/voice/pushToTalkState"
 
 const registerVoiceShortcut = async (
   shortcut: string,
@@ -50,11 +50,7 @@ export function usePushToTalk() {
     setVoiceEnabled(false)
 
     registerVoiceShortcut(shortcut, (event) => {
-      const transition = getShortcutToggleTransition(
-        isPressedRef.current,
-        useSettingsStore.getState().voiceEnabled,
-        event.state
-      )
+      const transition = getPttStateTransition(isPressedRef.current, event.state)
       isPressedRef.current = transition.isPressed
       if (transition.voiceEnabled !== undefined) {
         setVoiceEnabled(transition.voiceEnabled)

@@ -44,7 +44,7 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled, voiceM
   const timeDisplay = String(Math.floor(remainingSeconds / 60)).padStart(2, "0")
   const isPushToTalk = voiceMode === "ptt"
   const voiceTooltip = isPushToTalk
-    ? `Press ${formatShortcutForDisplay(pttShortcut)} to start/stop listening`
+    ? `Hold ${formatShortcutForDisplay(pttShortcut)} to talk`
     : voiceEnabled
       ? "Stop Listening"
       : "Start Listening"
