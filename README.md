@@ -36,6 +36,13 @@
 - Microsoft Flight Simulator 2020 or 2024
 - Inibuilds A350
 
+## Voice Modes
+
+Choose **Voice Mode** in Settings:
+
+- **Continuous** — click the mic button to start and stop listening. The mic stays on until you toggle it off.
+- **Push to talk (PTT)** — hold `Ctrl+Shift+M` to listen; release to mute. The mic starts muted and works globally, even when MSFS has focus.
+
 ## Voice Commands (Examples)
 
 <details>
