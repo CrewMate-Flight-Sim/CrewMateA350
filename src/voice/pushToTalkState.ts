@@ -33,3 +33,15 @@ export const getPttStateTransition = (isPressed: boolean, state: PttShortcutStat
 
   return isPressed ? { isPressed } : { isPressed: true, voiceEnabled: true }
 }
+
+export const getContinuousShortcutTransition = (
+  isPressed: boolean,
+  voiceEnabled: boolean,
+  state: PttShortcutState
+): PttStateTransition => {
+  if (state === "Released") {
+    return { isPressed: false }
+  }
+
+  return isPressed ? { isPressed } : { isPressed: true, voiceEnabled: !voiceEnabled }
+}

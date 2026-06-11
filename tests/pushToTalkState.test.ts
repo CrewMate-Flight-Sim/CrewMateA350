@@ -4,6 +4,7 @@ import { describe, it } from "node:test"
 import {
   DEFAULT_PTT_SHORTCUT,
   formatShortcutForDisplay,
+  getContinuousShortcutTransition,
   getPttStateTransition,
   normalizePttShortcut
 } from "../src/voice/pushToTalkState.ts"
@@ -31,6 +32,20 @@ describe("voice shortcut state", () => {
   it("ignores release when the shortcut was not held", () => {
     const release = getPttStateTransition(false, "Released")
     assert.deepEqual(release, { isPressed: false })
+  })
+
+  it("toggles listening once per shortcut press in continuous mode", () => {
+    const firstPress = getContinuousShortcutTransition(false, false, "Pressed")
+    assert.deepEqual(firstPress, { isPressed: true, voiceEnabled: true })
+
+    const repeatedPress = getContinuousShortcutTransition(firstPress.isPressed, firstPress.voiceEnabled!, "Pressed")
+    assert.deepEqual(repeatedPress, { isPressed: true })
+
+    const release = getContinuousShortcutTransition(repeatedPress.isPressed, firstPress.voiceEnabled!, "Released")
+    assert.deepEqual(release, { isPressed: false })
+
+    const secondPress = getContinuousShortcutTransition(release.isPressed, firstPress.voiceEnabled!, "Pressed")
+    assert.deepEqual(secondPress, { isPressed: true, voiceEnabled: false })
   })
 
   it("normalizes old persisted shortcut aliases", () => {

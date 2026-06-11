@@ -1,9 +1,13 @@
 import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-shortcut"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, type RefObject } from "react"
 
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated"
-import { useSettingsStore } from "@/store/settingsStore"
-import { getPttStateTransition, normalizePttShortcut } from "@/voice/pushToTalkState"
+import { useSettingsStore, type VoiceMode } from "@/store/settingsStore"
+import {
+  getContinuousShortcutTransition,
+  getPttStateTransition,
+  normalizePttShortcut
+} from "@/voice/pushToTalkState"
 
 const registerVoiceShortcut = async (
   shortcut: string,
@@ -30,6 +34,32 @@ const registerVoiceShortcut = async (
   }
 }
 
+const handleShortcutEvent = (
+  voiceMode: VoiceMode,
+  isPressedRef: RefObject<boolean>,
+  setVoiceEnabled: (enabled: boolean) => void,
+  state: "Pressed" | "Released"
+) => {
+  if (voiceMode === "ptt") {
+    const transition = getPttStateTransition(isPressedRef.current, state)
+    isPressedRef.current = transition.isPressed
+    if (transition.voiceEnabled !== undefined) {
+      setVoiceEnabled(transition.voiceEnabled)
+    }
+    return
+  }
+
+  const transition = getContinuousShortcutTransition(
+    isPressedRef.current,
+    useSettingsStore.getState().voiceEnabled,
+    state
+  )
+  isPressedRef.current = transition.isPressed
+  if (transition.voiceEnabled !== undefined) {
+    setVoiceEnabled(transition.voiceEnabled)
+  }
+}
+
 export function usePushToTalk() {
   const hydrated = useSettingsHydrated()
   const voiceMode = useSettingsStore((state) => state.voiceMode)
@@ -38,7 +68,7 @@ export function usePushToTalk() {
   const isPressedRef = useRef(false)
 
   useEffect(() => {
-    if (!hydrated || voiceMode !== "ptt") {
+    if (!hydrated) {
       isPressedRef.current = false
       return
     }
@@ -47,14 +77,12 @@ export function usePushToTalk() {
     let registered = false
     let cancelled = false
 
-    setVoiceEnabled(false)
+    if (voiceMode === "ptt") {
+      setVoiceEnabled(false)
+    }
 
     registerVoiceShortcut(shortcut, (event) => {
-      const transition = getPttStateTransition(isPressedRef.current, event.state)
-      isPressedRef.current = transition.isPressed
-      if (transition.voiceEnabled !== undefined) {
-        setVoiceEnabled(transition.voiceEnabled)
-      }
+      handleShortcutEvent(voiceMode, isPressedRef, setVoiceEnabled, event.state)
     }).then((success) => {
       registered = success
       if (cancelled && success) {
@@ -67,7 +95,10 @@ export function usePushToTalk() {
     return () => {
       cancelled = true
       isPressedRef.current = false
-      setVoiceEnabled(false)
+
+      if (voiceMode === "ptt") {
+        setVoiceEnabled(false)
+      }
 
       if (!registered) return
 

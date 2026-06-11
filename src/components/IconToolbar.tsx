@@ -45,9 +45,7 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled, voiceM
   const isPushToTalk = voiceMode === "ptt"
   const voiceTooltip = isPushToTalk
     ? `Hold ${formatShortcutForDisplay(pttShortcut)} to talk`
-    : voiceEnabled
-      ? "Stop Listening"
-      : "Start Listening"
+    : `Press ${formatShortcutForDisplay(pttShortcut)} to start/stop listening`
 
   const handleToggleAlwaysOnTop = async () => {
     const newValue = !alwaysOnTop
