@@ -2,5 +2,13 @@
   "identifier": "desktop-capability",
   "platforms": ["macOS", "windows", "linux"],
   "windows": ["main", "landing", "takeoff", "settings"],
-  "permissions": ["core:window:allow-close", "window-state:default", "updater:default", "core:window:allow-show"]
+  "permissions": [
+    "core:window:allow-close",
+    "window-state:default",
+    "updater:default",
+    "core:window:allow-show",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister"
+  ]
 }

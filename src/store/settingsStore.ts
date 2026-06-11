@@ -4,12 +4,13 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 export type LightsControlMode = "virtual" | "user"
+export type VoiceMode = "continuous" | "ptt"
 
 const defaultLightsControlMode: LightsControlMode = "user"
 
 interface SettingsStore {
   voiceEnabled: boolean
-  voiceMode: "continuous" | "ptt"
+  voiceMode: VoiceMode
   pttShortcut: string
   soundPack: string
   geSoundPack: string
@@ -21,7 +22,7 @@ interface SettingsStore {
   confidenceThreshold: number
   postLandingShutdownEnabled: boolean
   setVoiceEnabled: (enabled: boolean) => void
-  setVoiceMode: (mode: "continuous" | "ptt") => void
+  setVoiceMode: (mode: VoiceMode) => void
   setPttShortcut: (shortcut: string) => void
   setSoundPack: (pack: string) => void
   setGeSoundPack: (pack: string) => void
@@ -48,7 +49,7 @@ export const useSettingsStore = create<SettingsStore>()(
     (set) => ({
       voiceEnabled: false,
       voiceMode: "continuous",
-      pttShortcut: "CmdOrCtrl+Shift+Space",
+      pttShortcut: "CommandOrControl+Shift+Space",
       soundPack: "Jenny",
       geSoundPack: "GE_Christopher",
       soundVolume: 100,

@@ -103,6 +103,7 @@ pub fn run() {
                 .with_denylist(&["takeoff", "landing", "settings"])
                 .build(),
         )
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let _ = app

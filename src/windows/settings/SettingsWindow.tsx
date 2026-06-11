@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
 import { getCurrentWindow } from "@tauri-apps/api/window"
-import { FolderOpen, Volume2, Option } from "lucide-react"
+import { FolderOpen, Mic, Volume2, Option } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
-import { useSettingsStore } from "@/store/settingsStore"
+import { useSettingsStore, type VoiceMode } from "@/store/settingsStore"
+
+const formatShortcutForDisplay = (shortcut: string) =>
+  shortcut.replace(/^CommandOrControl\+/i, "Ctrl+").replace(/^CmdOrCtrl\+/i, "Ctrl+")
 
 export function SettingsWindow() {
   const [availableSoundPacks, setAvailableSoundPacks] = useState<string[]>([])
@@ -28,6 +31,9 @@ export function SettingsWindow() {
   const setSoundVolume = useSettingsStore((s) => s.setSoundVolume)
   const confidenceThreshold = useSettingsStore((s) => s.confidenceThreshold)
   const setConfidenceThreshold = useSettingsStore((s) => s.setConfidenceThreshold)
+  const voiceMode = useSettingsStore((s) => s.voiceMode)
+  const setVoiceMode = useSettingsStore((s) => s.setVoiceMode)
+  const pttShortcut = useSettingsStore((s) => s.pttShortcut)
   const outputDevice = useSettingsStore((s) => s.outputDevice)
   const setOutputDevice = useSettingsStore((s) => s.setOutputDevice)
   const inputDevice = useSettingsStore((s) => s.inputDevice)
@@ -210,6 +216,28 @@ export function SettingsWindow() {
           max={100}
           step={1}
         />
+
+        <SectionHeader icon={<Mic className="h-3 w-3 text-cyan-400 shrink-0" />} label="Voice" />
+
+        <div className="grid grid-cols-[110px_1fr] items-center gap-3">
+          <Label className="text-sm text-slate-300">Voice Mode</Label>
+          <Select value={voiceMode} onValueChange={(value) => setVoiceMode(value as VoiceMode)}>
+            <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900 border-slate-600 text-white">
+              <SelectItem value="continuous">Continuous</SelectItem>
+              <SelectItem value="ptt">Push to talk</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-[110px_1fr] items-center gap-3">
+          <Label className="text-sm text-slate-300">PTT Shortcut</Label>
+          <span className="w-56 rounded-md border border-slate-600 bg-slate-900/50 px-3 py-2 text-sm font-mono text-cyan-300">
+            {formatShortcutForDisplay(pttShortcut)}
+          </span>
+        </div>
 
         <SectionHeader icon={<Option className="h-3 w-3 text-cyan-400 shrink-0" />} label="Options" />
 
