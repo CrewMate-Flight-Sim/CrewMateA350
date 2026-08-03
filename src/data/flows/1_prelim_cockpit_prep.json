@@ -156,6 +156,12 @@
       }
     },
     {
+      "label": "Stby Compass Light",
+      "read": "(L:INI_LIGHTS_STBY_COMPASS)",
+      "on": "0 (>L:INI_LIGHTS_STBY_COMPASS)",
+      "expect": 0
+    },
+    {
       "label": "Fire Test",
       "read": "(L:INI_FIRE_TEST)",
       "on": "1 (>L:INI_FIRE_TEST)",

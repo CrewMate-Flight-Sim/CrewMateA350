@@ -31,7 +31,7 @@ export async function setLOC(position: number) {
 
 export async function setAPPR(position: number) {
   try {
-    const expression = `${position} (>L:INI_APPROACH_BUTTON)`
+    const expression = `${position} (>L:AP7_BUTTON)`
     await simvarSet(expression)
   } catch (error) {
     console.error("Error setting approach (LVAR):", error)

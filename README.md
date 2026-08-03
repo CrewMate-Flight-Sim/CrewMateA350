@@ -24,7 +24,7 @@
 
 ## Installation and Usage
 
-- EN-US voice Language Package needs to be installed (OS can be set to any display language)
+- **English** speech recognition must be installed in Windows (Settings → Time & language → Speech). Any regional English pack Windows offers (United States, United Kingdom, Australia, India, etc.) works — not US-only. If multiple English recognizers are installed, which one loads follows Windows’ order.
 - To use the speech trainer, the OS Display Language needs to be set to EN-US
 
 1. Install the .msi package

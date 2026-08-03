@@ -14,6 +14,8 @@ import type { Check, ChecklistItem, ValidationRule } from "@/types/checklist"
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+const SILENT_COMPLETION_DELAY_MS = 2000
+
 async function waitForSoundFinished() {
   while (await isSoundPlaying()) {
     await sleep(100)
@@ -405,10 +407,12 @@ export async function executeChecklist(checklistId: string): Promise<void> {
         useChecklistStore.getState().setStepIndex(i)
         const passed = await executeSilentItem(checklist.items[i], i, signal)
         if (!passed) allPassed = false
+        checkAbort(signal)
       }
 
       if (allPassed) {
         await waitForSoundFinished()
+        await sleep(SILENT_COMPLETION_DELAY_MS)
         await playSound(checklist.completion)
         await waitForSoundFinished()
         useChecklistStore.getState().setExecutionState("completed")
@@ -422,6 +426,7 @@ export async function executeChecklist(checklistId: string): Promise<void> {
         checkAbort(signal)
         store.setStepIndex(i)
         await executeNormalItem(checklist.items[i], i, signal)
+        checkAbort(signal)
       }
 
       // Completion sequence

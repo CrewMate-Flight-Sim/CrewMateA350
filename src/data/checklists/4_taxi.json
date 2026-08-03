@@ -12,21 +12,24 @@
           "checks": [
             { "type": "simvar", "var": "(A:FLAPS HANDLE INDEX, number)", "expected": 1 },
             { "type": "simvar", "var": "(L:TO_FLAPS_CONF)", "expected": 2 }
-          ]
+          ],
+          "copilot_response": "config_1_plus_f.ogg"
         },
         {
           "when": { "responses": ["config two"] },
           "checks": [
             { "type": "simvar", "var": "(A:FLAPS HANDLE INDEX, number)", "expected": 2 },
             { "type": "simvar", "var": "(L:TO_FLAPS_CONF)", "expected": 3 }
-          ]
+          ],
+          "copilot_response": "config_2.ogg"
         },
         {
           "when": { "responses": ["config three"] },
           "checks": [
             { "type": "simvar", "var": "(A:FLAPS HANDLE INDEX, number)", "expected": 3 },
             { "type": "simvar", "var": "(L:TO_FLAPS_CONF)", "expected": 5 }
-          ]
+          ],
+          "copilot_response": "config_3.ogg"
         },
         {
           "when": { "responses": ["set and checked"] }

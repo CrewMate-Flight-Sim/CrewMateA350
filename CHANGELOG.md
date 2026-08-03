@@ -1,16 +1,19 @@
 # Changelog
 
-## [0.3.2] - 2026-04-XX
+## [0.3.2] - 2026-05-02
 
 - Added First Officer flight controls check - @alexlenh
 - Added "before start procedure" voice command to start the before-start flow on demand - @alexlenh
 - Fixed descent callout at 10,000 ft sometimes saying the wrong call (FL 100 vs ten thousand) for the active transition level - @alexlenh
 - Fixed Cockpit Preparation "Seatbelts on" check looking at the wrong switch position - @alexlenh
 - Fixed Departure Change Flap Settings always reporting incorrect when the flaps were actually set - @marxio09dio
-- Fixed Chrono not actually starting during the packs-on flow - @alexlenh
 - Fixed Fire Test in the preliminary cockpit flow waiting for verification on a momentary press - @alexlenh
 - Improved battery voltage check sequence speed (~halved per-step delays) - @alexlenh
 - Changed Before Start at the preflight timer to a reminder — the flow can now be started by voice when you're ready instead of auto-running - @alexlenh
+- Remove incorrect "XX Checklist completed" sound when a checklist is canceled - @marxio09dio
+- Copilot will turn on the Dome LIghts on the shutdown flow when dusk, dawn, night - @marxio09dio
+- Fix "arm approach" command not arming APPR mode - @marxio09dio
+- Add a small delay on "Landing checklist completed" playback - @marxio09dio
 
 ## [0.3.1] - 2026-04-22
 

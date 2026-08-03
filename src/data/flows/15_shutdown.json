@@ -69,7 +69,16 @@
       "on": "0 (>L:INI_TCAS_STBY_STATE)",
       "expect": 0
     },
-
+    {
+      "label": "Dome on",
+      "read": "(L:INI_CKPT_LT_DOME)",
+      "on": "100 (>L:INI_CKPT_LT_DOME)",
+      "expect": 100,
+      "only_if": {
+        "read": "(E:TIME OF DAY)",
+        "one_of": [0, 2, 3]
+      }
+    },
     {
       "label": "HUD Cover",
       "read": "(L:INI_HUD_COVER_RIGHT)",

@@ -21,7 +21,7 @@
 
 ### Requirements
 
-- The EN‑US voice package must be installed to use the voice engine.
+- Install **an English** Windows speech recognition language pack (Settings → Time & language → Speech). Regional variants (e.g. US, UK, Australia, India) are supported — whichever English recognizer Windows exposes. If several English packs are installed, the active engine follows Windows’ installed-recognizer order.
 - To use the trainer app, set your Display Language to EN‑US while training (you can change it back afterward).
 
 ### Voice Modes
