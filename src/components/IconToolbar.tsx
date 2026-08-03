@@ -104,7 +104,7 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: Icon
               <PlaneTakeoff className="w-5 h-5 text-emerald-400" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Takeoff Performance</TooltipContent>
+          <TooltipContent side="bottom">Takeoff Plan</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -113,7 +113,7 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: Icon
               <PlaneLanding className="w-5 h-5 text-violet-400" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Landing Performance</TooltipContent>
+          <TooltipContent side="bottom">Landing Plan</TooltipContent>
         </Tooltip>
 
         <Tooltip>

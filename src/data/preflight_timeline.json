@@ -1,18 +1,18 @@
 [
   {
-    "minuteMark": 60,
+    "minuteMark": 55,
     "label": "Arrive at aircraft",
     "type": "flow",
     "flowId": "open_curtains"
   },
   {
-    "minuteMark": 58,
+    "minuteMark": 53,
     "label": "FO sits down and opens table",
     "type": "flow",
     "flowId": "table_open"
   },
   {
-    "minuteMark": 55,
+    "minuteMark": 50,
     "label": "Preliminary cockpit preparation",
     "type": "flow",
     "flowId": "prelim_cockpit_prep"
