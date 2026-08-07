@@ -1,5 +1,6 @@
 import { simvarSet } from "@/API/simvarApi"
 import { buildPassingAltitudeSequence } from "@/hooks/useCallouts"
+import { delay } from "@/lib/utils"
 import { abortChecklist, executeChecklist } from "@/services/checklistRunner"
 import { executeFlow } from "@/services/flowRunner"
 import { playSound, playSoundSequence } from "@/services/playSounds"
@@ -36,12 +37,11 @@ import { setFlaps } from "./commands/flaps"
 import { flightControlsCheck } from "./commands/flight_controls_check"
 import { setGearHandle } from "./commands/gear"
 import { executeGoAround } from "./commands/goAround"
-import { disconnectAllGround, setACU, setASU, setGPU } from "./commands/groundServices"
+import { callPushback, disconnectAllGround, setACU, setASU, setGPU } from "./commands/groundServices"
 import { setLandingLights, setStrobeLights, setTaxiLights } from "./commands/lights"
 import { setSeatBelts } from "./commands/seat_belts"
 import { setWipers } from "./commands/wipers"
 
-const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 const randomDelay = (min: number, max: number) => delay(min + Math.random() * (max - min))
 
 const gePack = () => useSettingsStore.getState().geSoundPack
@@ -212,7 +212,7 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
     playSound("check.ogg")
     setIgnKnob(2)
     playSound("starting_engine_2.ogg")
-    await new Promise((resolve) => setTimeout(resolve, 4000))
+    await delay(4000)
     startEngine2(1)
   },
 
@@ -302,6 +302,9 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
   continue: () => playSound("check.ogg"),
 
   // ── Ground engineer ───────────────────────────────────────────────────────
+  pushback_request: async () => {
+    await callPushback()
+  },
   ground_call: async () => {
     await randomDelay(2000, 6000)
     await playSound("go_ahead.ogg", { pack: gePack() })

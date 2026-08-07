@@ -438,6 +438,7 @@ namespace VoiceSidecar
             [118] = "connect_acu",
             [119] = "disconnect_acu",
             [120] = "disconnect_all_ground",
+            [124] = "pushback_request",
         };
 
         private static VoiceCommand? DispatchDiscrete(int pid, string raw)

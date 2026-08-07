@@ -1,6 +1,7 @@
 import { listen } from "@tauri-apps/api/event"
 
 import { simvarGet, simvarSet } from "@/API/simvarApi"
+import { delay } from "@/lib/utils"
 import { getChecklistById } from "@/services/checklistLoader"
 import { isSoundPlaying, playSound, playSoundSequence } from "@/services/playSounds"
 import { useChecklistStore } from "@/store/checklistStore"
@@ -10,15 +11,11 @@ import { useTelemetryStore } from "@/store/telemetryStore"
 import { useVoiceHintProgressStore } from "@/store/voiceHintProgressStore"
 import type { Check, ChecklistItem, ValidationRule } from "@/types/checklist"
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-
 const SILENT_COMPLETION_DELAY_MS = 2000
 
 async function waitForSoundFinished() {
   while (await isSoundPlaying()) {
-    await sleep(100)
+    await delay(100)
   }
 }
 
@@ -89,7 +86,7 @@ async function readSimVar(expression: string): Promise<number | null> {
       console.warn(`[ChecklistRunner] Failed to read simvar "${expression}":`, err)
       return null
     }
-    await sleep(150)
+    await delay(150)
   }
   console.warn(`[ChecklistRunner] readSimVar("${expression}") → null after retries`)
   return null
@@ -250,7 +247,7 @@ async function executeNormalItem(item: ChecklistItem, index: number, signal: Abo
           await playSound(item.incorrect)
           await waitForSoundFinished()
         }
-        await sleep(2000) // wait a beat before rechecking
+        await delay(2000) // wait a beat before rechecking
       }
     }
     setStepStatus(index, "complete")
@@ -314,8 +311,6 @@ async function executeNormalItem(item: ChecklistItem, index: number, signal: Abo
         await playSound(rule.copilot_response)
         await waitForSoundFinished()
       }
-
-      break
     }
 
     // ── Takeoff confirmation playback ─────────────────────────────────────
@@ -412,7 +407,7 @@ export async function executeChecklist(checklistId: string): Promise<void> {
 
       if (allPassed) {
         await waitForSoundFinished()
-        await sleep(SILENT_COMPLETION_DELAY_MS)
+        await delay(SILENT_COMPLETION_DELAY_MS)
         await playSound(checklist.completion)
         await waitForSoundFinished()
         useChecklistStore.getState().setExecutionState("completed")

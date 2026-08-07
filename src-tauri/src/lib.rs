@@ -37,7 +37,7 @@ fn get_in_cockpit() -> bool {
 
 #[tauri::command]
 fn get_speech_engine_error(state: tauri::State<'_, SpeechBridgeState>) -> Option<String> {
-    state.0.last_error()
+    state.inner().0.last_error()
 }
 
 #[tauri::command]
@@ -52,13 +52,13 @@ fn set_confidence_threshold(state: tauri::State<'_, SpeechBridgeState>, threshol
         0.85
     };
     let json = format!(r#"{{"confidenceThreshold":{:.3}}}"#, safe_threshold);
-    state.0.send_config(&json);
+    state.inner().0.send_config(&json);
 }
 
 #[tauri::command]
 fn set_muted(state: tauri::State<'_, SpeechBridgeState>, muted: bool) {
     let json = format!(r#"{{"muted":{}}}"#, muted);
-    state.0.send_config(&json);
+    state.inner().0.send_config(&json);
 }
 
 mod windows;
@@ -92,7 +92,7 @@ enum WorkerRequest {
 
 use std::sync::OnceLock;
 
-static SPEECH_BRIDGE_STATE: OnceLock<Arc<SpeechBridge>> = OnceLock::new();
+pub static SPEECH_BRIDGE_STATE: OnceLock<Arc<SpeechBridge>> = OnceLock::new();
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -116,16 +116,6 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_prevent_default::debug())
         .setup(|app| {
-            // Set up panic hook to ensure copilot_speech.exe is killed on crash
-            let prev_hook = std::panic::take_hook();
-            std::panic::set_hook(Box::new(move |panic_info| {
-                // Kill the sidecar process before unwinding
-                if let Some(speech) = SPEECH_BRIDGE_STATE.get() {
-                    speech.shutdown();
-                }
-                prev_hook(panic_info);
-            }));
-
             // Initialize speech recognition sidecar
             let speech = Arc::new(SpeechBridge::new(app.handle().clone()));
             SPEECH_BRIDGE_STATE.set(speech.clone()).ok();
@@ -165,7 +155,7 @@ pub fn run() {
                 .target(tauri_plugin_log::Target::new(
                     tauri_plugin_log::TargetKind::Folder {
                         path: logs_dir,
-                        file_name: Some("crewmateinia310".to_string()),
+                        file_name: Some("crewmateinia350".to_string()),
                     },
                 ))
                 .level(log::LevelFilter::Info)
@@ -175,7 +165,7 @@ pub fn run() {
                 .plugin(log_plugin)
                 .expect("Failed to initialize logging plugin");
 
-            log::info!("Crewmate INI A310 application loaded...");
+            log::info!("Crewmate INI A350 application loaded...");
 
             if let Err(e) = setup_app_data_directories(app.handle()) {
                 log::error!("Failed to setup app data directories: {}", e);
@@ -187,6 +177,7 @@ pub fn run() {
 
             if let Some(window) = app.get_webview_window("main") {
                 let window_for_closure = window.clone();
+                let speech_for_close = SPEECH_BRIDGE_STATE.get().cloned();
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                         if should_close.load(Ordering::SeqCst) {
@@ -194,6 +185,11 @@ pub fn run() {
                         }
                         api.prevent_close();
                         let _ = window_for_closure.emit("close-requested", ());
+                    }
+                    if let tauri::WindowEvent::Destroyed = event {
+                        if let Some(speech) = speech_for_close.as_ref() {
+                            speech.shutdown();
+                        }
                     }
                 });
             }

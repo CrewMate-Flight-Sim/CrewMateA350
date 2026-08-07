@@ -3,6 +3,12 @@
   "name": "Open Curtains",
   "steps": [
     {
+      "label": "Jetway Toggle",
+      "read": "(A:JETWAY MOVING, bool)",
+      "on": "(>K:TOGGLE_JETWAY)",
+      "expect": 1
+    },
+    {
       "label": "Cockpit Door Open",
       "read": "(L:INI_COCKPIT_DOOR)",
       "on": "1 (>L:INI_COCKPIT_DOOR)",

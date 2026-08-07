@@ -36,7 +36,8 @@ export const playSoundSequence = async (filenames: string[], options?: PlaySound
     const state = useSettingsStore.getState()
     const soundPack = options?.pack ?? state.soundPack
     const volume = options?.volume ?? state.soundVolume / 100
-    await invoke("play_sound_sequence", { filenames, pack: soundPack, volume })
+    const files = filenames.map((filename) => ({ filename, pack: soundPack }))
+    await invoke("play_sound_sequence", { files, volume })
   } catch (error) {
     console.error("Error playing sound sequence via backend:", error)
   }

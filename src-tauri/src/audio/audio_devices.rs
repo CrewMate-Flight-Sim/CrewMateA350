@@ -110,7 +110,8 @@ pub fn set_output_device(app_handle: AppHandle, device: Option<String>) -> Resul
         .map_err(|e| format!("Failed to create audio player for device: {}", e))?;
 
     let state = app_handle.state::<crate::audio::audio_commands::AudioPlayerState>();
-    if let Ok(mut guard) = state.0.lock() {
+    if let Ok(mut guard) = state.inner().0.lock() {
+        let _ = guard.stop();
         *guard = new_player;
         return Ok(());
     }
@@ -122,6 +123,6 @@ pub fn set_output_device(app_handle: AppHandle, device: Option<String>) -> Resul
 pub fn set_input_device(app_handle: AppHandle, device: Option<String>) -> Result<(), String> {
     log::info!("set_input_device called: {:?}", device);
     let state = app_handle.state::<crate::SpeechBridgeState>();
-    state.0.restart_with_device(device);
+    state.inner().0.restart_with_device(device);
     Ok(())
 }

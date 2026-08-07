@@ -55,7 +55,7 @@ const simVars: { key: string; expression: string }[] = [
   { key: "mixture1", expression: "(L:INI_MIXTURE_RATIO1_HANDLE)" },
   { key: "mixture2", expression: "(L:INI_MIXTURE_RATIO2_HANDLE)" },
   { key: "spoilersArmed", expression: "(L:INI_SPOILERS_ARMED)" },
-  { key: "fcu_alt", expression: "(L:INI_ALTITUDE_DIAL)" },
+  { key: "fcu_alt", expression: "(L:INI_ALTITUDE_MEM_DIAL)" },
   { key: "cptBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_1)" },
   { key: "foBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_2)" },
   { key: "stbBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_3)" },
@@ -68,7 +68,9 @@ const simVars: { key: string; expression: string }[] = [
   { key: "foTerrOn", expression: "(L:INI_TERR_ON_FO)" },
   { key: "foWxr2On", expression: "(L:INI_WXR2_ON)" },
   { key: "autobrakeLevel", expression: "(L:INI_AUTOBRAKE_LEVEL)" },
-  { key: "thrlvrclb", expression: "(L:INI_LEVER_IN_CL)" }
+  { key: "thrlvrclb", expression: "(L:INI_LEVER_IN_CL)" },
+  { key: "flapssetting", expression: "(L:TO_FLAPS_CONF)" },
+  { key: "iniFoCrono", expression: "(L:INI_FO_CHRONO)" }
 ]
 
 const RETRY_INTERVAL_MS = 5000

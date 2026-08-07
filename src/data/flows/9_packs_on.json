@@ -20,6 +20,7 @@
       "read": "(L:INI_FO_CHRONO_BUTTON)",
       "on": "1 (>L:INI_FO_CHRONO_BUTTON)",
       "expect": 1,
+      "wait_ms": 1000,
       "skip_verify": true
     },
     {

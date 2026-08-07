@@ -1,7 +1,7 @@
 import { emit } from "@tauri-apps/api/event"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { Info } from "lucide-react"
-import { useEffect } from "react"
+import { useCallback, useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,12 +14,36 @@ const selectCls =
 
 export function LandingWindow() {
   const { landing, setLandingData } = usePerformanceStore()
+  const missedRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getCurrentWindow()
       .show()
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    const input = missedRef.current
+    if (!input) return
+    const handler = (e: WheelEvent) => e.preventDefault()
+    input.addEventListener("wheel", handler, { passive: false })
+    return () => input.removeEventListener("wheel", handler)
+  }, [])
+
+  const handleMissedWheel = useCallback(
+    (e: React.WheelEvent<HTMLInputElement>) => {
+      const step = 100
+      const min = 1000
+      const max = 20000
+      const input = missedRef.current
+      const current = input?.value ? Number(input.value) : 0
+      const next = Math.round((e.deltaY > 0 ? current - step : current + step) / step) * step
+      const clamped = Math.max(min, Math.min(max, next))
+      setLandingData({ missedAltitude: clamped })
+      emit("landing-updated", { ...landing, missedAltitude: clamped })
+    },
+    [landing, setLandingData]
+  )
 
   const handleChange = (name: string, value: string | number) => {
     setLandingData({ [name]: value } as Partial<typeof landing>)
@@ -55,6 +79,7 @@ export function LandingWindow() {
             Missed App (ft)
           </Label>
           <Input
+            ref={missedRef}
             type="number"
             min={1000}
             max={20000}
@@ -62,6 +87,10 @@ export function LandingWindow() {
             name="missedAltitude"
             value={landing.missedAltitude}
             onChange={handleNumberInput}
+            onWheel={(e) => {
+              e.preventDefault()
+              handleMissedWheel(e)
+            }}
             className="h-8 bg-slate-900/50 border-slate-600 text-white text-xs font-mono text-center px-1 focus-visible:ring-cyan-500"
             placeholder="4000"
           />

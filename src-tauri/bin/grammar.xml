@@ -623,6 +623,7 @@
       <item>disconnect air conditioning<tag>out.pid="119";</tag></item>
       <item>disconnect all<tag>out.pid="120";</tag></item>
       <item>disconnect all services<tag>out.pid="120";</tag></item>
+      <item>we are ready for pushback<tag>out.pid="124";</tag></item>
     </one-of>
   </rule>
 

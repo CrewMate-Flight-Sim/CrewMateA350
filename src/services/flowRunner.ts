@@ -1,15 +1,15 @@
 import { simvarGet, simvarSet } from "@/API/simvarApi"
+import { delay } from "@/lib/utils"
 import { getFlowById, resolveFlow } from "@/services/flowLoader"
 import { playSound, isSoundPlaying } from "@/services/playSounds"
 import { useFlowStore } from "@/store/flowStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { useSettingsStore } from "@/store/settingsStore"
+import { useTelemetryStore } from "@/store/telemetryStore"
 import { useVoiceHintProgressStore } from "@/store/voiceHintProgressStore"
 import type { Flow } from "@/types/flow"
 import type { FlowStep } from "@/types/flow"
 import type { FlowConditionValue } from "@/types/flow"
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 function getRandomDelay(): number {
   // Random delay between 500ms and 1500ms
@@ -20,7 +20,7 @@ let abortController: AbortController | null = null
 
 async function waitForSoundFinished() {
   while (await isSoundPlaying()) {
-    await sleep(100)
+    await delay(100)
   }
 }
 
@@ -34,7 +34,7 @@ async function abortableSleep(ms: number, signal: AbortSignal) {
   while (elapsed < ms) {
     checkAbort(signal)
     const chunk = Math.min(interval, ms - elapsed)
-    await sleep(chunk)
+    await delay(chunk)
     elapsed += chunk
   }
 }
@@ -50,7 +50,7 @@ async function readValue(expression: string): Promise<number | null> {
       console.warn(`[FlowRunner] Failed to read "${expression}":`, err)
       return null
     }
-    await sleep(150)
+    await delay(150)
   }
   return null
 }
@@ -135,35 +135,65 @@ async function shouldExecuteStep(step: FlowStep): Promise<boolean> {
 }
 
 // Post-landing silent timer (announces when it expires)
-let postLandingTimerExpiresAt: number | null = null
-let postLandingTimerTimeoutId: ReturnType<typeof setTimeout> | null = null
+// Driven by the simulator chrono (INI_FO_CHRONO) count-up instead of an internal clock.
+// The chrono button is pressed by the callouts hook 2 seconds after the 70-knot callout.
+// The chrono counts up in seconds; when it reaches 300 (5 minutes) the timer expires.
+const CHRONO_5_MINUTES = 300
 
-function isPostLandingTimerActive(): boolean {
-  return postLandingTimerExpiresAt !== null && Date.now() < postLandingTimerExpiresAt
+let postLandingTimerActive = false
+let postLandingTimerSoundPlayed = false
+let postLandingChronoTimeoutId: ReturnType<typeof setTimeout> | null = null
+
+export function isPostLandingTimerActive(): boolean {
+  return postLandingTimerActive
 }
 
 function clearPostLandingTimer(): void {
-  if (postLandingTimerTimeoutId) {
-    clearTimeout(postLandingTimerTimeoutId as unknown as number)
-    postLandingTimerTimeoutId = null
+  if (postLandingChronoTimeoutId) {
+    clearTimeout(postLandingChronoTimeoutId as unknown as number)
+    postLandingChronoTimeoutId = null
   }
-  postLandingTimerExpiresAt = null
+  postLandingTimerActive = false
+  postLandingTimerSoundPlayed = false
 }
 
-function startPostLandingTimer(delayMinutes: number): void {
-  clearPostLandingTimer()
-  const safeMinutes = Math.max(1, Math.floor(delayMinutes))
-  const delayMs = safeMinutes * 60 * 1000
-  postLandingTimerExpiresAt = Date.now() + delayMs
-  postLandingTimerTimeoutId = setTimeout(async () => {
-    postLandingTimerExpiresAt = null
-    postLandingTimerTimeoutId = null
+async function checkPostLandingChrono(): Promise<void> {
+  if (postLandingTimerSoundPlayed) return
+
+  const telemetry = useTelemetryStore.getState().telemetry
+  if (!telemetry) return
+
+  const chronoValue = telemetry.iniFoCrono
+  if (typeof chronoValue !== "number") return
+
+  if (chronoValue > 0 && chronoValue < CHRONO_5_MINUTES) {
+    postLandingTimerActive = true
+  } else if (chronoValue >= CHRONO_5_MINUTES) {
+    postLandingTimerActive = false
+    postLandingTimerSoundPlayed = true
+    try {
+      await simvarSet("1 (>L:INI_FO_CHRONO_BUTTON)")
+    } catch (err) {
+      console.error("[FlowRunner] Failed to fire INI_FO_CHRONO_BUTTON:", err)
+    }
     try {
       await playSound("five_minutes.ogg")
     } catch (err) {
       console.error("[FlowRunner] Failed to play post-landing expiry announcement:", err)
     }
-  }, delayMs)
+  }
+}
+
+async function pollPostLandingChrono(): Promise<void> {
+  await checkPostLandingChrono()
+  if (!postLandingTimerSoundPlayed) {
+    postLandingChronoTimeoutId = setTimeout(pollPostLandingChrono, 1000)
+  }
+}
+
+export function startPostLandingTimer(): void {
+  clearPostLandingTimer()
+  postLandingChronoTimeoutId = setTimeout(pollPostLandingChrono, 1000)
 }
 
 export async function executeFlow(flowId: string): Promise<void> {
@@ -197,14 +227,6 @@ export async function executeFlow(flowId: string): Promise<void> {
   const flow: Flow = await resolveFlow(rawFlow)
 
   store.setFlow(flow)
-
-  // If this is the after-landing flow, start the silent post-landing timer
-  if (flow.id === "after_landing") {
-    const settings = useSettingsStore.getState()
-    if (settings.postLandingShutdownEnabled) {
-      startPostLandingTimer(5)
-    }
-  }
 
   abortController = new AbortController()
   const { signal } = abortController
@@ -284,7 +306,7 @@ export async function executeFlow(flowId: string): Promise<void> {
         let verified = false
         for (let attempt = 0; attempt < 5; attempt++) {
           checkAbort(signal)
-          if (!step.skip_delay) await sleep(300)
+          if (!step.skip_delay) await delay(300)
           const newValue = await readValue(step.read)
           if (matchesValue(newValue, expectedValue)) {
             verified = true

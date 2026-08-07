@@ -117,7 +117,7 @@ pub async fn open_settings_window(app_handle: AppHandle) -> Result<(), String> {
 pub async fn close_app(app_handle: tauri::AppHandle) {
     // Shutdown speech bridge before closing
     if let Some(speech_state) = app_handle.try_state::<SpeechBridgeState>() {
-        speech_state.0.shutdown();
+        speech_state.inner().0.shutdown();
     }
 
     // Set the flag to allow closing without showing the dialog

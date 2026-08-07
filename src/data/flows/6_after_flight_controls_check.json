@@ -3,52 +3,60 @@
   "name": "Taxi",
   "steps": [
     {
-      "label": "Elevator Full Up",
-      "read": "(A:ELEVATOR DEFLECTION PCT, Percent Over 100)",
-      "on": "-16384 (>K:ELEVATOR_SET)",
-      "expect": 1
+      "label": "Controls check start",
+      "read": "(L:INI_PREFERRED_SEAT)",
+      "on": "1 (>L:INI_PREFERRED_SEAT)",
+      "expect": 1,
+      "skip_delay": true
     },
     {
-      "label": "Elevator Neutral",
+      "label": "Elevator Full Up",
       "read": "(A:ELEVATOR DEFLECTION PCT, Percent Over 100)",
-      "on": "0 (>K:ELEVATOR_SET)",
-      "expect": 0
+      "on": "-16383 (>K:ELEVATOR_SET)",
+      "expect": 1,
+      "wait_ms": 1500
     },
     {
       "label": "Elevator Full Down",
       "read": "(A:ELEVATOR DEFLECTION PCT, Percent Over 100)",
-      "on": "16384 (>K:ELEVATOR_SET)",
-      "expect": -0.57
+      "on": "16383 (>K:ELEVATOR_SET)",
+      "expect": -0.57,
+      "wait_ms": 3000
     },
     {
       "label": "Elevator Neutral",
       "read": "(A:ELEVATOR DEFLECTION PCT, Percent Over 100)",
       "on": "0 (>K:ELEVATOR_SET)",
-      "expect": 0
+      "expect": 0,
+      "wait_ms": 1500
     },
     {
       "label": "Aileron Full Left",
       "read": "(A:AILERON LEFT DEFLECTION PCT, Percent Over 100)",
       "on": "16383 (>K:AILERON_SET)",
-      "expect": -1
-    },
-    {
-      "label": "Aileron Neutral",
-      "read": "(A:AILERON LEFT DEFLECTION PCT, Percent Over 100)",
-      "on": "0 (>K:AILERON_SET)",
-      "expect": 0
+      "expect": -1,
+      "wait_ms": 1500
     },
     {
       "label": "Aileron Full Right",
       "read": "(A:AILERON RIGHT DEFLECTION PCT, Percent Over 100)",
-      "on": "-16384 (>K:AILERON_SET)",
-      "expect": 1
+      "on": "-16383 (>K:AILERON_SET)",
+      "expect": 1,
+      "wait_ms": 1500
     },
     {
       "label": "Aileron Neutral",
       "read": "(A:AILERON RIGHT DEFLECTION PCT, Percent Over 100)",
       "on": "0 (>K:AILERON_SET)",
-      "expect": 0
+      "expect": 0,
+      "wait_ms": 1500
+    },
+    {
+      "label": "Controls check end",
+      "read": "(L:INI_PREFERRED_SEAT)",
+      "on": "0 (>L:INI_PREFERRED_SEAT)",
+      "expect": 0,
+      "skip_delay": true
     },
     {
       "label": "Terrain Display",
@@ -67,7 +75,7 @@
       "read": "(L:PUSH_ECAM_TOCONFIG)",
       "on": "1 (>L:PUSH_ECAM_TOCONFIG)",
       "expect": 1,
-      "hold_ms": 2000,
+      "hold_ms": 1500,
       "skip_verify": true
     }
   ]

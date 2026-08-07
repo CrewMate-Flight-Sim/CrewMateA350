@@ -100,9 +100,21 @@
       }
     },
     {
+      "label": "FO LS",
+      "read": "(L:INI_LS_FO)",
+      "on": "0 (>L:INI_LS_FO)",
+      "expect": 0
+    },
+    {
       "label": "Set Chocks",
       "read": "(L:INI_CHOCKS_ENABLED)",
       "on": "1 (>L:INI_CHOCKS_ENABLED)",
+      "expect": 1
+    },
+    {
+      "label": "Jetway Toggle",
+      "read": "(A:JETWAY MOVING, bool)",
+      "on": "(>K:TOGGLE_JETWAY)",
       "expect": 1
     }
   ]

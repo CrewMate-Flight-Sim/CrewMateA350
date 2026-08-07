@@ -1,4 +1,7 @@
+import { gsxClient } from "@/API/gsxApi"
 import { simvarSet } from "@/API/simvarApi"
+
+gsxClient.connect()
 
 export async function setGPU(on: boolean) {
   try {
@@ -31,5 +34,13 @@ export async function disconnectAllGround() {
     await simvarSet("0 (>L:INI_ACU_AVAIL)")
   } catch (error) {
     console.error("Error disconnecting all ground services (LVAR):", error)
+  }
+}
+
+export async function callPushback() {
+  try {
+    await gsxClient.triggerService("Departure")
+  } catch (error) {
+    console.error("Error calling GSX Pushback (Remote API):", error)
   }
 }

@@ -71,7 +71,7 @@
       "read": "(L:INI_GEN_EXT_A_ONLINE)",
       "on": "1 (>L:INI_GEN_EXT_A_ONLINE)",
       "expect": 1,
-      "wait_ms": 20000
+      "wait_ms": 40000
     },
     {
       "label": "IRS 1 NAV",
