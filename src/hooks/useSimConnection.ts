@@ -27,6 +27,7 @@ const simVars: { key: string; expression: string }[] = [
   { key: "landingGear", expression: "(A:GEAR HANDLE POSITION,Position)" },
   { key: "brakeLeftPosition", expression: "(A:BRAKE LEFT POSITION,Number)" },
   { key: "parkingBrake", expression: "(A:BRAKE PARKING INDICATOR,Bool)" },
+  { key: "taxiLight", expression: "(L:INI_LIGHTS_NOSE)" },
   { key: "brakeRightPosition", expression: "(A:BRAKE RIGHT POSITION,Number)" },
   { key: "aileronPosition", expression: "(A:AILERON POSITION,Position)" },
   { key: "elevatorPosition", expression: "(A:ELEVATOR POSITION,Position)" },
@@ -70,7 +71,7 @@ const simVars: { key: string; expression: string }[] = [
   { key: "autobrakeLevel", expression: "(L:INI_AUTOBRAKE_LEVEL)" },
   { key: "thrlvrclb", expression: "(L:INI_LEVER_IN_CL)" },
   { key: "flapssetting", expression: "(L:TO_FLAPS_CONF)" },
-  { key: "iniFoCrono", expression: "(L:INI_FO_CHRONO)" }
+  { key: "a350FoCrono", expression: "(L:INI_FO_CHRONO)" }
 ]
 
 const RETRY_INTERVAL_MS = 5000

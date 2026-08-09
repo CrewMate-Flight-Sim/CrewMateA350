@@ -11,17 +11,38 @@ import { useTelemetryStore } from "@/store/telemetryStore"
 import { useVoiceHintProgressStore } from "@/store/voiceHintProgressStore"
 import type { Check, ChecklistItem, ValidationRule } from "@/types/checklist"
 
-const SILENT_COMPLETION_DELAY_MS = 2000
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
 
-async function waitForSoundFinished() {
-  while (await isSoundPlaying()) {
-    await delay(100)
-  }
+const SIMVAR = { READ_RETRIES: 5, READ_RETRY_DELAY: 150 }
+const SILENT_COMPLETION_DELAY_MS = 2000
+const AUTO_CHECK_RETRY_DELAY = 2000
+
+const NUMBER_WORD_PATTERN = `(?:zero|one|two|three|four|five|six|seven|eight|nine|niner|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand)`
+const NUMBER_WORDS_RE = new RegExp(`\\b${NUMBER_WORD_PATTERN}(?:[\\s-]+${NUMBER_WORD_PATTERN}){0,3}\\b`, "i")
+
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+async function waitForSoundFinished(): Promise<void> {
+  while (await isSoundPlaying()) await delay(100)
 }
 
-function checkAbort(signal: AbortSignal) {
+async function playSyncSound(soundFile: string): Promise<void> {
+  await waitForSoundFinished()
+  await playSound(soundFile)
+  await waitForSoundFinished()
+}
+
+function checkAbort(signal: AbortSignal): void {
   if (signal.aborted) throw new Error("Checklist aborted")
 }
+
+// ---------------------------------------------------------------------------
+// Speech input
+// ---------------------------------------------------------------------------
 
 async function waitForSpeechResponse(signal: AbortSignal): Promise<string | null> {
   if (signal.aborted) return null
@@ -50,10 +71,6 @@ async function waitForSpeechResponse(signal: AbortSignal): Promise<string | null
   })
 }
 
-// Pre-compiled regex for spelled-out number words used in baro/feet confirmation.
-const NUMBER_WORD = `(?:zero|one|two|three|four|five|six|seven|eight|nine|niner|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand)`
-const NUMBER_WORDS_RE = new RegExp(`\\b${NUMBER_WORD}(?:[\\s-]+${NUMBER_WORD}){0,3}\\b`, "i")
-
 function matchesResponse(spoken: string, token: string): boolean {
   if (token === "*") return true
   if (token === "#2") return /\b\d{2}\b/.test(spoken)
@@ -66,6 +83,10 @@ function matchesAnyResponse(spoken: string, responses: string[]): boolean {
   return responses.some((r) => matchesResponse(spoken, r))
 }
 
+// ---------------------------------------------------------------------------
+// SimVar / store readers
+// ---------------------------------------------------------------------------
+
 function getStoreValue(storePath: string): string | undefined {
   const state = usePerformanceStore.getState() as unknown as Record<string, Record<string, string>>
   const [section, key] = storePath.split(".")
@@ -73,7 +94,7 @@ function getStoreValue(storePath: string): string | undefined {
 }
 
 async function readSimVar(expression: string): Promise<number | null> {
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < SIMVAR.READ_RETRIES; attempt++) {
     try {
       const value = await simvarGet(expression)
       if (value !== null) {
@@ -86,23 +107,23 @@ async function readSimVar(expression: string): Promise<number | null> {
       console.warn(`[ChecklistRunner] Failed to read simvar "${expression}":`, err)
       return null
     }
-    await delay(150)
+    await delay(SIMVAR.READ_RETRY_DELAY)
   }
   console.warn(`[ChecklistRunner] readSimVar("${expression}") → null after retries`)
   return null
 }
 
-// ─── Core check runner ────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Check evaluation
+// ---------------------------------------------------------------------------
 
 async function runChecks(checks: Check[], signal: AbortSignal): Promise<boolean> {
   for (const check of checks) {
     let pass = false
 
     if (check.type === "any") {
-      pass = false
       for (const group of check.groups ?? []) {
-        const groupOk = await runChecks(group, signal)
-        if (groupOk) {
+        if (await runChecks(group, signal)) {
           pass = true
           break
         }
@@ -137,8 +158,7 @@ async function runChecks(checks: Check[], signal: AbortSignal): Promise<boolean>
     }
 
     if (check.type === "store") {
-      const val = getStoreValue(check.store!)
-      pass = val === check.equals
+      pass = getStoreValue(check.store!) === check.equals
     }
 
     if (!pass) {
@@ -152,8 +172,6 @@ async function runChecks(checks: Check[], signal: AbortSignal): Promise<boolean>
   return true
 }
 
-// ─── Rule matching ────────────────────────────────────────────────────────────
-
 async function findPassingRule(
   validations: ValidationRule[],
   spoken: string,
@@ -164,14 +182,10 @@ async function findPassingRule(
   let bestLen = -1
 
   for (const rule of validations) {
-    const w = rule.when
-
-    if (w.responses) {
-      for (const token of w.responses) {
-        if (matchesResponse(spoken, token) && token.length > bestLen) {
-          bestLen = token.length
-          bestMatch = rule
-        }
+    for (const token of rule.when.responses ?? []) {
+      if (matchesResponse(spoken, token) && token.length > bestLen) {
+        bestLen = token.length
+        bestMatch = rule
       }
     }
   }
@@ -187,7 +201,6 @@ async function findPassingRule(
   for (const rule of validations) {
     const w = rule.when
     const conditionMet = (w.store && getStoreValue(w.store.path) === w.store.equals) || w.always === true
-
     if (!conditionMet) continue
 
     const ok = await runChecks(rule.checks ?? [], signal)
@@ -196,257 +209,290 @@ async function findPassingRule(
 
   return null
 }
-// ─── Abort controller ─────────────────────────────────────────────────────────
 
-let abortController: AbortController | null = null
+// ---------------------------------------------------------------------------
+// Checklist runner
+// ---------------------------------------------------------------------------
 
-// ─── Silent-mode execution ────────────────────────────────────────────────────
+class ChecklistRunner {
+  private abortController: AbortController | null = null
 
-async function executeSilentItem(item: ChecklistItem, index: number, signal: AbortSignal): Promise<boolean> {
-  const { setStepStatus } = useChecklistStore.getState()
-  setStepStatus(index, "active")
-  checkAbort(signal)
+  // ── Public API ────────────────────────────────────────────────────────────
 
-  if (item.validations && item.validations.length > 0) {
-    // Pass empty string for spoken — silent mode has no speech, only always/store conditions apply
-    const rule = await findPassingRule(item.validations, "", signal)
+  abort(): void {
+    this.abortController?.abort()
+    this.abortController = null
+  }
 
-    if (!rule) {
-      const incorrectSound = item.incorrect
-      if (incorrectSound) {
-        await waitForSoundFinished()
-        await playSound(incorrectSound)
-        await waitForSoundFinished()
+  async execute(checklistId: string): Promise<void> {
+    if (this.abortController) {
+      this.abortController.abort()
+      this.abortController = null
+    }
+
+    const store = useChecklistStore.getState()
+    const checklist = getChecklistById(checklistId)
+    if (!checklist) {
+      store.setError(`Checklist "${checklistId}" not found`)
+      return
+    }
+
+    store.setChecklist(checklist)
+
+    this.abortController = new AbortController()
+    const { signal } = this.abortController
+
+    const silent = checklist.mode === "silent"
+
+    try {
+      await this.triggerChecklistMenu()
+
+      if (silent) {
+        const allPassed = await this.runSilentItems(checklist.items, signal)
+        if (allPassed) {
+          await this.playSilentCompletion(checklist.completion)
+          store.setExecutionState("completed")
+          this.onChecklistCompleted(checklist.id)
+        } else {
+          store.setExecutionState("error")
+        }
+      } else {
+        await this.runItems(checklist.items, signal)
+        await playSyncSound(checklist.completion)
+        store.setExecutionState("completed")
+        this.onChecklistCompleted(checklist.id)
       }
-      setStepStatus(index, "failed")
-      return false
+    } catch (err) {
+      const message = String(err)
+      if (message.includes("aborted")) {
+        store.setExecutionState("aborted")
+      } else {
+        store.setError(message)
+      }
+    } finally {
+      this.abortController = null
+    }
+  }
+
+  // ── MCDU integration ──────────────────────────────────────────────────────
+
+  private async triggerChecklistMenu(): Promise<void> {
+    await simvarSet(`1 (>L:INI_MCDU2_CL_MENU)`)
+  }
+
+  // ── Silent-mode item iteration ────────────────────────────────────────────
+  // No speech is expected; each item is judged purely on always/store rules.
+
+  private async runSilentItems(items: ChecklistItem[], signal: AbortSignal): Promise<boolean> {
+    let allPassed = true
+    for (let i = 0; i < items.length; i++) {
+      checkAbort(signal)
+      useChecklistStore.getState().setStepIndex(i)
+      const passed = await this.runSilentItem(items[i], i, signal)
+      if (!passed) allPassed = false
+      checkAbort(signal)
+    }
+    return allPassed
+  }
+
+  private async runSilentItem(item: ChecklistItem, index: number, signal: AbortSignal): Promise<boolean> {
+    const { setStepStatus } = useChecklistStore.getState()
+    setStepStatus(index, "active")
+    checkAbort(signal)
+
+    if (item.validations?.length) {
+      // Empty spoken string — silent mode has no speech, only always/store conditions apply
+      const rule = await findPassingRule(item.validations, "", signal)
+
+      if (!rule) {
+        if (item.incorrect) await playSyncSound(item.incorrect)
+        setStepStatus(index, "failed")
+        return false
+      }
     }
 
     setStepStatus(index, "complete")
     return true
   }
 
-  setStepStatus(index, "complete")
-  return true
-}
+  private async playSilentCompletion(completionSound: string): Promise<void> {
+    await waitForSoundFinished()
+    await delay(SILENT_COMPLETION_DELAY_MS)
+    await playSound(completionSound)
+    await waitForSoundFinished()
+  }
 
-// ─── Normal-mode execution ────────────────────────────────────────────────────
+  // ── Normal-mode item iteration ────────────────────────────────────────────
 
-async function executeNormalItem(item: ChecklistItem, index: number, signal: AbortSignal): Promise<void> {
-  const { setStepStatus } = useChecklistStore.getState()
-  setStepStatus(index, "active")
+  private async runItems(items: ChecklistItem[], signal: AbortSignal): Promise<void> {
+    for (let i = 0; i < items.length; i++) {
+      checkAbort(signal)
+      useChecklistStore.getState().setStepIndex(i)
+      await this.executeItem(items[i], i, signal)
+      checkAbort(signal)
+    }
+  }
 
-  if (!item.challenge) {
+  private async executeItem(item: ChecklistItem, index: number, signal: AbortSignal): Promise<void> {
+    const { setStepStatus } = useChecklistStore.getState()
+    setStepStatus(index, "active")
+
+    if (!item.challenge) {
+      await this.runAutoCheckItem(item, signal)
+      setStepStatus(index, "complete")
+      return
+    }
+
+    const aborted = await this.runInteractiveItem(item, signal)
+    if (aborted) return // status left as "active"; execution is stopping anyway
+
+    if (item.copilot_response) {
+      await playSyncSound(item.copilot_response)
+    }
+
+    setStepStatus(index, "complete")
+  }
+
+  // ── Auto-check phase (no challenge, validations only) ─────────────────────
+
+  private async runAutoCheckItem(item: ChecklistItem, signal: AbortSignal): Promise<void> {
     if (item.validations?.length) {
       while (true) {
         checkAbort(signal)
-        const rule = await findPassingRule(item.validations, "", signal)
-        if (rule) break
-        if (item.incorrect) {
-          await waitForSoundFinished()
-          await playSound(item.incorrect)
-          await waitForSoundFinished()
-        }
-        await delay(2000) // wait a beat before rechecking
+        if (await findPassingRule(item.validations, "", signal)) break
+        if (item.incorrect) await playSyncSound(item.incorrect)
+        await delay(AUTO_CHECK_RETRY_DELAY)
       }
     }
-    setStepStatus(index, "complete")
-    return
   }
 
-  const responseList = item.response ?? []
-  const hold = () => useSettingsStore.getState().holdOnIncorrect
+  // ── Normal interactive phase (challenge → speech response → confirmations) ─
+  // Note: unlike a plain pass/fail item, a validated response here still falls
+  // through to play takeoff/baro confirmation audio afterward — validation
+  // success does not short-circuit the rest of the item.
 
-  while (true) {
-    checkAbort(signal)
+  // Returns true if the item ended because the checklist was aborted.
+  private async runInteractiveItem(item: ChecklistItem, signal: AbortSignal): Promise<boolean> {
+    const responseList = item.response ?? []
+    const hold = () => useSettingsStore.getState().holdOnIncorrect
 
-    await waitForSoundFinished()
-    await playSound(item.challenge)
-    await waitForSoundFinished()
-    checkAbort(signal)
-
-    // ── Wait for a matching spoken response ───────────────────────────────
-    let spoken: string | null = null
     while (true) {
-      spoken = await waitForSpeechResponse(signal)
-      if (spoken === null) return // aborted
+      checkAbort(signal)
+      await playSyncSound(item.challenge!)
+      checkAbort(signal)
+
+      const spoken = await this.waitForValidResponse(item, responseList, signal)
+      if (spoken === null) return true // aborted
+      checkAbort(signal)
+
+      if (item.validations?.length) {
+        const rule = await findPassingRule(item.validations, spoken, signal)
+
+        if (!rule) {
+          await playSyncSound(item.incorrect ?? "are_you_sure.ogg")
+          if (hold()) continue
+          else break
+        }
+
+        if (rule.copilot_response) {
+          await playSyncSound(rule.copilot_response)
+        }
+      }
+
+      if (item.takeoff_confirmation) {
+        await this.playTakeoffConfirmation()
+      }
+
+      if (item.baro_confirmation) {
+        await this.playBaroConfirmation(spoken)
+      }
+
+      break
+    }
+
+    return false
+  }
+
+  // Waits for a spoken response, filtering out takeoff-speed and baro/feet
+  // confirmations that don't yet contain the required content.
+  private async waitForValidResponse(
+    item: ChecklistItem,
+    responseList: string[],
+    signal: AbortSignal
+  ): Promise<string | null> {
+    while (true) {
+      const spoken = await waitForSpeechResponse(signal)
+      if (spoken === null) return null
 
       if (responseList.length === 0 || matchesAnyResponse(spoken, responseList)) {
-        const s = spoken.toLowerCase().trim()
-
-        // ── A350 Safeword Bypasses ──
-        if (item.takeoff_confirmation && !s.includes("set and checked")) {
+        if (item.takeoff_confirmation && !spoken.includes("set and checked")) {
           const { thrustSetting } = usePerformanceStore.getState().takeoff
-          const hasV1 = /\bv\s*1\b/.test(s) || /\bv\s*one\b/i.test(s)
-          const hasVR = /\bv\s*r\b/.test(s) || /\bv\s*rotate\b/i.test(s)
-          const hasV2 = /\bv\s*2\b/.test(s) || /\bv\s*two\b/i.test(s)
-          const hasThrust = thrustSetting === "flex" ? /\bflex\b/i.test(s) : /\btoga\b/i.test(s)
+          const hasV1 = /\bv\s*1\b/.test(spoken) || /\bv\s*one\b/i.test(spoken)
+          const hasVR = /\bv\s*r\b/.test(spoken) || /\bv\s*rotate\b/i.test(spoken)
+          const hasV2 = /\bv\s*2\b/.test(spoken) || /\bv\s*two\b/i.test(spoken)
+          const hasThrust = thrustSetting === "flex" ? /\bflex\b/i.test(spoken) : /\btoga\b/i.test(spoken)
           if (!(hasV1 && hasVR && hasV2 && hasThrust)) continue
         }
 
         const expectsFeet = responseList.some((r) => r.toLowerCase().includes("feet"))
-        if ((item.baro_confirmation || expectsFeet) && !s.includes("set and checked")) {
-          if (!(/\b\d{2,4}\b/.test(s) || NUMBER_WORDS_RE.test(s))) continue
+        if ((item.baro_confirmation || expectsFeet) && !spoken.includes("set and checked")) {
+          if (!(/\b\d{2,4}\b/.test(spoken) || NUMBER_WORDS_RE.test(spoken))) continue
         }
 
-        break
+        return spoken
       }
     }
-
-    const s = spoken!
-    checkAbort(signal)
-
-    // ── Run validations ───────────────────────────────────────────────────
-    if (item.validations?.length) {
-      const rule = await findPassingRule(item.validations, s, signal)
-
-      if (!rule) {
-        await playSound(item.incorrect ?? "are_you_sure.ogg")
-        await waitForSoundFinished()
-        if (hold()) continue
-        else break
-      }
-
-      if (rule.copilot_response) {
-        await playSound(rule.copilot_response)
-        await waitForSoundFinished()
-      }
-    }
-
-    // ── Takeoff confirmation playback ─────────────────────────────────────
-    if (item.takeoff_confirmation) {
-      const { v1, vr, v2, thrustSetting } = usePerformanceStore.getState().takeoff
-      const t = useTelemetryStore.getState().telemetry
-      const digits = (n: number) =>
-        String(Math.round(n))
-          .split("")
-          .map((d) => `${d}.ogg`)
-
-      const filenames: string[] = ["v_one.ogg", ...digits(v1), "v_r.ogg", ...digits(vr), "v_2.ogg", ...digits(v2)]
-
-      if (thrustSetting === "flex") {
-        const flexTemp = t?.iniFlexTemperature ?? 0
-        filenames.push("flex.ogg", ...digits(flexTemp))
-      } else {
-        filenames.push("TOGA.ogg")
-      }
-
-      await playSoundSequence(filenames)
-    }
-
-    // ── Baro confirmation ─────────────────────────────────────────────────
-    if (item.baro_confirmation) {
-      const t = useTelemetryStore.getState().telemetry
-      if (t !== null) {
-        const spokenMatch = s.match(/\b(\d{3,4})\b/)
-        const spokenNum = spokenMatch ? parseInt(spokenMatch[1], 10) : null
-        const isHpa = spokenNum !== null ? spokenNum >= 920 && spokenNum <= 1060 : t.cptBaro === 1
-        const value = isHpa
-          ? Math.round(t.captAltimeterSettingMB ?? 0)
-          : Math.round((t.captAltimeterSettingHG ?? 0) * 100)
-        const filenames = [
-          ...String(value)
-            .split("")
-            .map((d) => `${d}.ogg`),
-          "set.ogg"
-        ]
-        await playSoundSequence(filenames)
-      }
-    }
-
-    break
   }
 
-  if (item.copilot_response) {
-    await waitForSoundFinished()
-    await playSound(item.copilot_response)
-    await waitForSoundFinished()
-  }
+  private async playTakeoffConfirmation(): Promise<void> {
+    const { v1, vr, v2, thrustSetting } = usePerformanceStore.getState().takeoff
+    const t = useTelemetryStore.getState().telemetry
+    const digits = (n: number) =>
+      String(Math.round(n))
+        .split("")
+        .map((d) => `${d}.ogg`)
 
-  setStepStatus(index, "complete")
-}
+    const filenames: string[] = ["v_one.ogg", ...digits(v1), "v_r.ogg", ...digits(vr), "v_2.ogg", ...digits(v2)]
 
-// ─── Public API ───────────────────────────────────────────────────────────────
-
-export async function executeChecklist(checklistId: string): Promise<void> {
-  const store = useChecklistStore.getState()
-
-  if (abortController) {
-    abortController.abort()
-    abortController = null
-  }
-
-  const checklist = getChecklistById(checklistId)
-  if (!checklist) {
-    store.setError(`Checklist "${checklistId}" not found`)
-    return
-  }
-
-  store.setChecklist(checklist)
-
-  abortController = new AbortController()
-  const { signal } = abortController
-
-  // A350 Silent mode logic
-  const silent = checklist.mode === "silent"
-
-  try {
-    // Top snippet LVAR trigger
-    await simvarSet(`1 (>L:INI_MCDU2_CL_MENU)`)
-
-    if (silent) {
-      let allPassed = true
-
-      for (let i = 0; i < checklist.items.length; i++) {
-        checkAbort(signal)
-        useChecklistStore.getState().setStepIndex(i)
-        const passed = await executeSilentItem(checklist.items[i], i, signal)
-        if (!passed) allPassed = false
-        checkAbort(signal)
-      }
-
-      if (allPassed) {
-        await waitForSoundFinished()
-        await delay(SILENT_COMPLETION_DELAY_MS)
-        await playSound(checklist.completion)
-        await waitForSoundFinished()
-        useChecklistStore.getState().setExecutionState("completed")
-        useVoiceHintProgressStore.getState().recordChecklistCompleted(checklist.id)
-      } else {
-        useChecklistStore.getState().setExecutionState("error")
-      }
+    if (thrustSetting === "flex") {
+      const flexTemp = t?.iniFlexTemperature ?? 0
+      filenames.push("flex.ogg", ...digits(flexTemp))
     } else {
-      // Standard execution flow
-      for (let i = 0; i < checklist.items.length; i++) {
-        checkAbort(signal)
-        store.setStepIndex(i)
-        await executeNormalItem(checklist.items[i], i, signal)
-        checkAbort(signal)
-      }
-
-      // Completion sequence
-      await waitForSoundFinished()
-      await playSound(checklist.completion)
-      await waitForSoundFinished()
-
-      store.setExecutionState("completed")
-      useVoiceHintProgressStore.getState().recordChecklistCompleted(checklist.id)
+      filenames.push("TOGA.ogg")
     }
-  } catch (err) {
-    const message = String(err)
-    if (message.includes("aborted")) {
-      store.setExecutionState("aborted")
-    } else {
-      store.setError(message)
-    }
-  } finally {
-    abortController = null
+
+    await playSoundSequence(filenames)
+  }
+
+  private async playBaroConfirmation(spoken: string): Promise<void> {
+    const t = useTelemetryStore.getState().telemetry
+    if (t === null) return
+
+    const spokenMatch = spoken.match(/\b(\d{3,4})\b/)
+    const spokenNum = spokenMatch ? parseInt(spokenMatch[1], 10) : null
+    const isHpa = spokenNum !== null ? spokenNum >= 920 && spokenNum <= 1060 : t.cptBaro === 1
+    const value = isHpa ? Math.round(t.captAltimeterSettingMB ?? 0) : Math.round((t.captAltimeterSettingHG ?? 0) * 100)
+    const filenames = [
+      ...String(value)
+        .split("")
+        .map((d) => `${d}.ogg`),
+      "set.ogg"
+    ]
+    await playSoundSequence(filenames)
+  }
+
+  // ── Completion side-effects ───────────────────────────────────────────────
+
+  private onChecklistCompleted(checklistId: string): void {
+    useVoiceHintProgressStore.getState().recordChecklistCompleted(checklistId)
   }
 }
 
-export function abortChecklist(): void {
-  if (abortController) {
-    abortController.abort()
-    abortController = null
-  }
-}
+// ---------------------------------------------------------------------------
+// Module-level singleton + public API
+// ---------------------------------------------------------------------------
+
+const runner = new ChecklistRunner()
+
+export const executeChecklist = (checklistId: string): Promise<void> => runner.execute(checklistId)
+export const abortChecklist = (): void => runner.abort()

@@ -49,6 +49,8 @@ class GsxRemoteClient {
   private cmdId = 0
   private pending = new Map<string, { resolve: () => void; reject: (e: Error) => void }>()
   private port = 8744
+  private reconnectDelay = 2000
+  private maxReconnectDelay = 30000
 
   /** Call once at app start. Safe to call again — no-ops if already connected/connecting. */
   connect(port = 8744) {
@@ -58,6 +60,7 @@ class GsxRemoteClient {
     this.ws = new WebSocket(`ws://127.0.0.1:${this.port}`)
 
     this.ws.onopen = () => {
+      this.resetReconnectDelay()
       this.send({ type: "subscribe", channels: ["state"] })
     }
 
@@ -107,6 +110,7 @@ class GsxRemoteClient {
 
     this.ws.onclose = () => {
       this.ws = null
+      this.increaseReconnectDelay()
       this.scheduleReconnect()
     }
 
@@ -120,7 +124,15 @@ class GsxRemoteClient {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null
       this.connect(this.port)
-    }, 2000)
+    }, this.reconnectDelay)
+  }
+
+  private resetReconnectDelay() {
+    this.reconnectDelay = 2000
+  }
+
+  private increaseReconnectDelay() {
+    this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay)
   }
 
   private send(obj: Record<string, unknown>) {
@@ -128,7 +140,6 @@ class GsxRemoteClient {
   }
 
   private command(verb: GsxCommandVerb, args: Record<string, unknown>): Promise<void> {
-    console.log("[GSX] command() called, state =", this.state)
     return new Promise((resolve, reject) => {
       if (!isGsxActive(this.state, this.ws)) {
         reject(new Error("gsx_not_running"))
@@ -149,10 +160,6 @@ class GsxRemoteClient {
 
   /** Request a service by its canonical id, e.g. "Departure" (pushback), "OperateJetways". */
   triggerService(id: string) {
-    // Check available services in state snapshot
-    console.log("[GSX] Available services in state:", this.state.services)
-
-    // Try passing both 'service' and canonical service ID format if needed
     return this.command("service.trigger", { service: id })
   }
 
