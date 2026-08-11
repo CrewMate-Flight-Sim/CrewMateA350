@@ -357,7 +357,7 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
     useGroundEngineerStore.getState().deactivate()
     await randomDelay(5000, 12000)
     await disconnectAllGround()
-    await playSound("gpu_off.ogg", { pack: gePack() })
+    await playSound("all_off.ogg", { pack: gePack() })
   }
 }
 

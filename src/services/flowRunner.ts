@@ -218,6 +218,10 @@ class FlowRunner {
       return
     }
 
+    if (await this.shouldPlayTimerNotPassedSound()) {
+      await playSound("five_minutes_not_passed.ogg")
+    }
+
     const flow: Flow = await resolveFlow(rawFlow)
     store.setFlow(flow)
     store.setExecutionState("running")
@@ -263,11 +267,13 @@ class FlowRunner {
   }
 
   private async shouldPlayTimerNotPassedSound(): Promise<boolean> {
+    const settings = useSettingsStore.getState()
+    if (!settings.postLandingShutdownEnabled || !this.postLandingTimer.isActive) return false
+
     const telemetry = useTelemetryStore.getState().telemetry
     if (!telemetry) return false
-    return telemetry.parkingBrake === 1 && telemetry.taxiLight === 2
+    return telemetry.parkingBrake > 0.5 && telemetry.taxiLight === 2
   }
-
   // ── Step iteration ────────────────────────────────────────────────────────
 
   private async runSteps(flow: Flow, signal: AbortSignal): Promise<void> {
@@ -399,7 +405,6 @@ class FlowRunner {
   private onFlowCompleted(flow: Flow): void {
     const voiceHints = useVoiceHintProgressStore.getState()
     voiceHints.recordFlowCompleted(flow.id)
-    if (flow.id === "shutdown") voiceHints.resetForColdGround()
   }
 
   // ── Abort / sleep helpers ─────────────────────────────────────────────────

@@ -34,6 +34,7 @@ $phrases = @{
     "asu_off"  = "ASU is disconnected"
     "acu_on"   = "ACU is connected"
     "acu_off"  = "ACU is disconnected"
+    "all_off"  = "All equipment has been disconnected"
 }
 
 # Derive folder name from voice: "en-US-JennyNeural" -> "Jenny"

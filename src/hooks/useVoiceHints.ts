@@ -65,6 +65,7 @@ export function useVoiceHints({ voiceEnabled, connected }: UseVoiceHintsOptions)
         id: "ground_engineer",
         title: "Ground engineer",
         phrases: [
+          "we are ready for pushback",
           "connect GPU",
           "disconnect GPU",
           "connect ASU",

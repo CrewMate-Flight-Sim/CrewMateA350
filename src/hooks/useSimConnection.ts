@@ -71,7 +71,8 @@ const simVars: { key: string; expression: string }[] = [
   { key: "autobrakeLevel", expression: "(L:INI_AUTOBRAKE_LEVEL)" },
   { key: "thrlvrclb", expression: "(L:INI_LEVER_IN_CL)" },
   { key: "flapssetting", expression: "(L:TO_FLAPS_CONF)" },
-  { key: "a350FoCrono", expression: "(L:INI_FO_CHRONO)" }
+  { key: "a350FoCrono", expression: "(L:INI_FO_CHRONO)" },
+  { key: "inialtimeter", expression: "(L:XMLVAR_Baro1_Mode)" }
 ]
 
 const RETRY_INTERVAL_MS = 5000
