@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback } from "react"
 
 import { simvarSet } from "@/API/simvarApi"
-import { startPostLandingTimer } from "@/services/flowRunner"
 import { playSound, isSoundPlaying } from "@/services/playSounds"
 import { useGoAroundStore } from "@/store/goAroundStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
@@ -262,9 +261,8 @@ export function useCallouts(vrSpeed: number) {
       setTimeout(() => {
         if (useSettingsStore.getState().postLandingShutdownEnabled) {
           void simvarSet("1 (>L:INI_FO_CHRONO_BUTTON)")
-          startPostLandingTimer()
         }
-      }, 3000)
+      }, 5000)
     }
 
     // Thrust set callout

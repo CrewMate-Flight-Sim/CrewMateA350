@@ -5,7 +5,7 @@ import { playSound, isSoundPlaying } from "@/services/playSounds"
 import { useFlowStore } from "@/store/flowStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { useSettingsStore } from "@/store/settingsStore"
-import { useTelemetryStore } from "@/store/telemetryStore"
+import { Telemetry, useTelemetryStore } from "@/store/telemetryStore"
 import { useVoiceHintProgressStore } from "@/store/voiceHintProgressStore"
 import type { Flow, FlowStep, FlowConditionValue } from "@/types/flow"
 
@@ -114,69 +114,58 @@ async function shouldExecuteStep(step: FlowStep): Promise<boolean> {
 // ---------------------------------------------------------------------------
 // Post-landing timer
 // ---------------------------------------------------------------------------
-// Uses the simulator chrono (L:INI_FO_CHRONO) as the sole time reference.
-// The chrono button is pressed by the callouts hook after the 70-knot callout;
-// this class polls the telemetry store until the chrono reaches 300 (5 min),
-// then fires the expiry announcement and resets the chrono button itself.
 
 class PostLandingTimer {
   private active = false
   private expired = false
   private readonly THRESHOLD = 300
-  private pollTimeoutId: ReturnType<typeof setTimeout> | null = null
+  public onReset?: () => void
 
   get isActive(): boolean {
     return this.active
   }
 
-  clear(): void {
-    if (this.pollTimeoutId !== null) {
-      clearTimeout(this.pollTimeoutId as unknown as number)
-      this.pollTimeoutId = null
-    }
-    this.active = false
-    this.expired = false
+  constructor() {
+    useTelemetryStore.subscribe((state) => {
+      this.onTelemetry(state.telemetry)
+    })
   }
 
-  start(): void {
-    this.clear()
-    this.pollTimeoutId = setTimeout(() => this.poll(), 1000)
-  }
-
-  private async poll(): Promise<void> {
-    await this.checkChrono()
-    if (!this.expired) {
-      this.pollTimeoutId = setTimeout(() => this.poll(), 1000)
-    }
-  }
-
-  private async checkChrono(): Promise<void> {
-    if (this.expired) return
-
-    const telemetry = useTelemetryStore.getState().telemetry
+  private onTelemetry(telemetry: Telemetry | null): void {
     if (!telemetry) return
-
     const chronoValue = telemetry.a350FoCrono
     if (typeof chronoValue !== "number") return
 
-    if (chronoValue > 0 && chronoValue < this.THRESHOLD) {
+    // Chrono reset to 0 — re-arm for the next landing
+    if (chronoValue <= 0) {
+      this.active = false
+      this.expired = false
+      this.onReset?.()
+      return
+    }
+
+    if (this.expired) return
+
+    if (chronoValue < this.THRESHOLD) {
       this.active = true
       return
     }
 
-    if (chronoValue >= this.THRESHOLD) {
-      this.active = false
-      this.expired = true
-      try {
-        await simvarSet("1 (>L:INI_FO_CHRONO_BUTTON)")
-      } catch (err) {
-        console.error("[FlowRunner] Failed to fire INI_FO_CHRONO_BUTTON:", err)
-      }
-      try {
-        await playSound("five_minutes.ogg")
-      } catch (err) {
-        console.error("[FlowRunner] Failed to play post-landing expiry announcement:", err)
-      }
+    this.active = false
+    this.expired = true
+    void this.fireExpiry()
+  }
+
+  private async fireExpiry(): Promise<void> {
+    try {
+      await simvarSet("1 (>L:INI_FO_CHRONO_BUTTON)")
+    } catch (err) {
+      console.error("[FlowRunner] Failed to fire INI_FO_CHRONO_BUTTON:", err)
+    }
+    try {
+      await playSound("five_minutes.ogg")
+    } catch (err) {
+      console.error("[FlowRunner] Failed to play post-landing expiry announcement:", err)
     }
   }
 }
@@ -187,7 +176,53 @@ class PostLandingTimer {
 
 class FlowRunner {
   private abortController: AbortController | null = null
+  private lastCompletedFlow: string | null = null
+  private parkingSoundPlayedThisCycle = false
   readonly postLandingTimer = new PostLandingTimer()
+
+  constructor() {
+    // Reset flags on timer reset
+    this.postLandingTimer.onReset = () => {
+      this.lastCompletedFlow = null
+      this.parkingSoundPlayedThisCycle = false
+    }
+
+    // SCENARIO 1: Real-time telemetry check (Independent of running flows)
+    useTelemetryStore.subscribe((state) => {
+      void this.checkParkingBrakeAndTaxiLight(state.telemetry)
+    })
+  }
+
+  // ── Scenario 1: Real-time telemetry monitoring ────────────────────────────
+
+  private async checkParkingBrakeAndTaxiLight(telemetry: Telemetry | null): Promise<void> {
+    if (!telemetry) return
+
+    // Check conditions: after_landing was last, timer active, brake ON, taxi light OFF (2)
+    if (
+      this.lastCompletedFlow === "after_landing" &&
+      this.postLandingTimer.isActive &&
+      !this.parkingSoundPlayedThisCycle &&
+      telemetry.parkingBrake > 0.5 &&
+      telemetry.taxiLight === 2
+    ) {
+      this.parkingSoundPlayedThisCycle = true // Play once per cycle
+      await playSound("five_minutes_not_passed.ogg")
+    }
+  }
+
+  // ── Scenario 2: Precondition Guard on Flow Execution ─────────────────────
+
+  private async checkPreconditions(flowId: string): Promise<string | null> {
+    const settings = useSettingsStore.getState()
+
+    if (settings.postLandingShutdownEnabled && this.postLandingTimer.isActive && BLOCKED_FLOWS.has(flowId)) {
+      await playSound("five_minutes_not_passed.ogg")
+      return `Cannot start ${flowId} flow - post-landing timer is still running`
+    }
+
+    return null
+  }
 
   // ── Public API ────────────────────────────────────────────────────────────
 
@@ -210,28 +245,15 @@ class FlowRunner {
       return
     }
 
+    // Scenario 2 Check: Blocks flow & plays sound if timer is running
     const preconditionError = await this.checkPreconditions(flowId)
     if (preconditionError) {
-      if (await this.shouldPlayTimerNotPassedSound()) {
-        await playSound("five_minutes_not_passed.ogg")
-      }
       return
-    }
-
-    if (await this.shouldPlayTimerNotPassedSound()) {
-      await playSound("five_minutes_not_passed.ogg")
     }
 
     const flow: Flow = await resolveFlow(rawFlow)
     store.setFlow(flow)
     store.setExecutionState("running")
-
-    if (flow.id === "after_landing") {
-      const { postLandingShutdownEnabled } = useSettingsStore.getState()
-      if (postLandingShutdownEnabled) {
-        this.postLandingTimer.start()
-      }
-    }
 
     this.abortController = new AbortController()
     const { signal } = this.abortController
@@ -256,25 +278,7 @@ class FlowRunner {
     }
   }
 
-  // ── Precondition checks ───────────────────────────────────────────────────
-
-  private async checkPreconditions(flowId: string): Promise<string | null> {
-    const settings = useSettingsStore.getState()
-    if (settings.postLandingShutdownEnabled && this.postLandingTimer.isActive && BLOCKED_FLOWS.has(flowId)) {
-      return `Cannot start ${flowId} flow - post-landing timer is still running`
-    }
-    return null
-  }
-
-  private async shouldPlayTimerNotPassedSound(): Promise<boolean> {
-    const settings = useSettingsStore.getState()
-    if (!settings.postLandingShutdownEnabled || !this.postLandingTimer.isActive) return false
-
-    const telemetry = useTelemetryStore.getState().telemetry
-    if (!telemetry) return false
-    return telemetry.parkingBrake > 0.5 && telemetry.taxiLight === 2
-  }
-  // ── Step iteration ────────────────────────────────────────────────────────
+  // ── Step iteration ────────────────────────────────────────────────--------
 
   private async runSteps(flow: Flow, signal: AbortSignal): Promise<void> {
     const { setStepIndex, setStepStatus } = useFlowStore.getState()
@@ -403,6 +407,7 @@ class FlowRunner {
   // ── Flow completion side-effects ──────────────────────────────────────────
 
   private onFlowCompleted(flow: Flow): void {
+    this.lastCompletedFlow = flow.id // Track last executed flow ID
     const voiceHints = useVoiceHintProgressStore.getState()
     voiceHints.recordFlowCompleted(flow.id)
   }
@@ -430,4 +435,3 @@ const runner = new FlowRunner()
 export const executeFlow = (flowId: string): Promise<void> => runner.execute(flowId)
 export const abortFlow = (): void => runner.abort()
 export const isPostLandingTimerActive = (): boolean => runner.postLandingTimer.isActive
-export const startPostLandingTimer = (): void => runner.postLandingTimer.start()

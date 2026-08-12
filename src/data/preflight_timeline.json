@@ -6,12 +6,6 @@
     "flowId": "open_curtains"
   },
   {
-    "minuteMark": 49,
-    "label": "FO sits down and opens table",
-    "type": "flow",
-    "flowId": "table_open"
-  },
-  {
     "minuteMark": 48,
     "label": "Preliminary cockpit preparation",
     "type": "flow",
