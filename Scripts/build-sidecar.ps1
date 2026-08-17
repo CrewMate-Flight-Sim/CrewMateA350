@@ -2,25 +2,61 @@
 
 Write-Host "Building CopilotSpeechNew sidecar..." -ForegroundColor Cyan
 
+# Locate the project dynamically by searching for its .csproj,
+# starting from the script's own directory and walking upward.
+function Find-ProjectDir {
+    param(
+        [string]$StartPath,
+        [string]$ProjectFolderName = "CopilotSpeechNew"
+    )
+
+    $current = Get-Item $StartPath
+
+    while ($null -ne $current) {
+        $candidate = Join-Path $current.FullName $ProjectFolderName
+        if (Test-Path $candidate) {
+            $csproj = Get-ChildItem -Path $candidate -Filter "*.csproj" -ErrorAction SilentlyContinue
+            if ($csproj) {
+                return $candidate
+            }
+        }
+        $current = $current.Parent
+    }
+
+    return $null
+}
+
+$projectDir = Find-ProjectDir -StartPath $PSScriptRoot
+
+if (-not $projectDir) {
+    Write-Host "Could not locate CopilotSpeechNew project directory (searched upward from $PSScriptRoot)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Found project at: $projectDir" -ForegroundColor DarkGray
+
+$repoRoot = Split-Path -Parent $projectDir
+
+Set-Location $projectDir
+
 # Build project
-Set-Location "CopilotSpeechNew"
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Build failed!" -ForegroundColor Red
-    Set-Location ".."
+    Set-Location $repoRoot
     exit 1
 }
 
-Set-Location ".."
+Set-Location $repoRoot
 
 # Create the bin directory if it doesn't exist
-$binDir = "src-tauri\bin"
+$binDir = Join-Path $repoRoot "src-tauri\bin"
 if (!(Test-Path $binDir)) {
     New-Item -ItemType Directory -Path $binDir | Out-Null
 }
 
-$publishDir = "CopilotSpeechNew\bin\Release\net8.0-windows\win-x64\publish"
+$publishDir = Join-Path $projectDir "bin\Release\net8.0-windows\win-x64\publish"
 
 # Copy executable
 Write-Host "Copying .exe..." -ForegroundColor Yellow
@@ -31,8 +67,8 @@ Write-Host "✓ Copied copilot_speech-x86_64-pc-windows-msvc.exe" -ForegroundCol
 # Copy grammar file (required at runtime next to the exe)
 Write-Host "Copying grammar.xml..." -ForegroundColor Yellow
 $grammarPublishPath = Join-Path $publishDir "grammar.xml"
-$grammarProjectPath = "CopilotSpeechNew\grammar.xml"
-$grammarLegacyPath = "CopilotSpeechNew\bin\Release\net8.0\grammar.xml"
+$grammarProjectPath = Join-Path $projectDir "grammar.xml"
+$grammarLegacyPath = Join-Path $projectDir "bin\Release\net8.0\grammar.xml"
 $grammarFound = $null
 
 if (Test-Path $grammarPublishPath) {

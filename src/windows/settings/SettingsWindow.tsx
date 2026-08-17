@@ -237,7 +237,7 @@ export function SettingsWindow() {
 
         <div className="grid grid-cols-[1fr_auto] items-center gap-3">
           <Label htmlFor="postLandingShutdownEnabled" className="text-sm text-slate-300 cursor-pointer">
-            5 minutes to allow shutting down engines
+            5 minutes cool down (for engine shutoff)
           </Label>
           <Checkbox
             id="postLandingShutdownEnabled"

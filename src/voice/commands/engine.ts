@@ -1,6 +1,6 @@
 import { simvarGet, simvarSet } from "@/API/simvarApi"
+import { delay } from "@/lib/utils"
 import { executeFlow } from "@/services/flowRunner"
-const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 export async function setIgnKnob(position: number) {
   try {
     const expression = `${position} (>L:INI_IGNITION_KNOB)`

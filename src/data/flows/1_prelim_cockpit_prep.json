@@ -71,7 +71,7 @@
       "read": "(L:INI_GEN_EXT_A_ONLINE)",
       "on": "1 (>L:INI_GEN_EXT_A_ONLINE)",
       "expect": 1,
-      "wait_ms": 20000
+      "wait_ms": 40000
     },
     {
       "label": "IRS 1 NAV",
@@ -107,6 +107,18 @@
       "label": "VHF RMP2 Volume",
       "read": "(L:INI_RMP2_1_VOLUME)",
       "on": "65 (>L:INI_RMP2_1_VOLUME)",
+      "expect": 65
+    },
+    {
+      "label": "VHF RMP2 Receive Sel",
+      "read": "(L:INI_RMP2_2_RECEIVE_SEL)",
+      "on": "1 (>L:INI_RMP2_2_RECEIVE_SEL)",
+      "expect": 1
+    },
+    {
+      "label": "VHF RMP2 Volume",
+      "read": "(L:INI_RMP2_2_VOLUME)",
+      "on": "65 (>L:INI_RMP2_2_VOLUME)",
       "expect": 65
     },
     {

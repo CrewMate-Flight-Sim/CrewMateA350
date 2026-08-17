@@ -1,4 +1,4 @@
-use std::sync::{mpsc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 mod audio;
 use audio::audio_commands::{
     get_sound_packs, is_audio_playing, play_sound, play_sound_sequence, AudioPlayerState,
@@ -13,7 +13,6 @@ use tauri_plugin_window_state::StateFlags;
 mod brigdes;
 use brigdes::speech_bridge::SpeechBridge;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 use tauri::Emitter;
 use tauri::Manager;
 
@@ -38,7 +37,7 @@ fn get_in_cockpit() -> bool {
 
 #[tauri::command]
 fn get_speech_engine_error(state: tauri::State<'_, SpeechBridgeState>) -> Option<String> {
-    state.0.last_error()
+    state.inner().0.last_error()
 }
 
 #[tauri::command]
@@ -53,13 +52,13 @@ fn set_confidence_threshold(state: tauri::State<'_, SpeechBridgeState>, threshol
         0.85
     };
     let json = format!(r#"{{"confidenceThreshold":{:.3}}}"#, safe_threshold);
-    state.0.send_config(&json);
+    state.inner().0.send_config(&json);
 }
 
 #[tauri::command]
 fn set_muted(state: tauri::State<'_, SpeechBridgeState>, muted: bool) {
     let json = format!(r#"{{"muted":{}}}"#, muted);
-    state.0.send_config(&json);
+    state.inner().0.send_config(&json);
 }
 
 mod windows;
@@ -91,11 +90,14 @@ enum WorkerRequest {
     StopStream(mpsc::Sender<Result<(), String>>),
 }
 
+use std::sync::OnceLock;
+
+pub static SPEECH_BRIDGE_STATE: OnceLock<Arc<SpeechBridge>> = OnceLock::new();
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let worker_tx = spawn_simvar_worker();
-
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_window_state::Builder::new()
@@ -116,6 +118,7 @@ pub fn run() {
         .setup(|app| {
             // Initialize speech recognition sidecar
             let speech = Arc::new(SpeechBridge::new(app.handle().clone()));
+            SPEECH_BRIDGE_STATE.set(speech.clone()).ok();
             app.manage(SpeechBridgeState(speech.clone()));
 
             // Initialize audio player
@@ -174,6 +177,7 @@ pub fn run() {
 
             if let Some(window) = app.get_webview_window("main") {
                 let window_for_closure = window.clone();
+                let speech_for_close = SPEECH_BRIDGE_STATE.get().cloned();
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                         if should_close.load(Ordering::SeqCst) {
@@ -181,6 +185,11 @@ pub fn run() {
                         }
                         api.prevent_close();
                         let _ = window_for_closure.emit("close-requested", ());
+                    }
+                    if let tauri::WindowEvent::Destroyed = event {
+                        if let Some(speech) = speech_for_close.as_ref() {
+                            speech.shutdown();
+                        }
                     }
                 });
             }
@@ -212,9 +221,11 @@ pub fn run() {
             get_in_cockpit,
             get_speech_engine_error,
             set_confidence_threshold,
-            set_muted,
             get_speech_input_devices,
-        ])
+            set_muted
+        ]);
+
+    builder
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

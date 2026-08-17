@@ -1,4 +1,5 @@
 import { simvarSet } from "@/API/simvarApi"
+import { delay } from "@/lib/utils"
 
 export async function setStartAPU(position: number) {
   try {
@@ -7,7 +8,7 @@ export async function setStartAPU(position: number) {
 
     await simvarSet(expression)
 
-    await new Promise((resolve) => setTimeout(resolve, 2000)) // 2 seconds
+    await delay(2000)
 
     await simvarSet(expression1)
   } catch (error) {

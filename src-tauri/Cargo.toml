@@ -1,6 +1,6 @@
 [package]
 name = "crewmatea350"
-version = "0.3.2"
+version = "0.3.3"
 description = "crewmatea350 app"
 authors = ["Márcio Araújo"]
 edition = "2021"

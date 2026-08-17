@@ -11,10 +11,6 @@ const N1_IDLE_MAX = 15
 const TAXI_MAX_IAS = 45
 const LINEUP_MAX_IAS = 60
 
-// Airborne phase thresholds
-const INITIAL_CLIMB_RADIO_ALT = 3000
-const SHORT_FINAL_RADIO_ALT = 2500
-
 function num(t: Telemetry | null, key: string): number | null {
   if (!t) return null
   const v = t[key]
@@ -42,10 +38,6 @@ export type ResolveVoiceHintsArgs = {
   preflightTimerRunning: boolean
 }
 
-/**
- * Ground phases progress through the typical SOP flow using lastCompleted* milestones
- * so hints stay relevant without requiring manual phase selection.
- */
 export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase | null {
   const {
     telemetry: t,
@@ -65,54 +57,97 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
   const flapsIndex = num(t, "flapsIndex") ?? 0
   const ground = isOnGround(t)
   const engOff = enginesOff(t)
+  const transitionLevel = num(t, "transitionLevel") ?? 0
+  const landingGear = num(t, "landingGear") ?? 0
+  const onStandard = num(t, "inialtimeter") === 3
 
   // ── AIRBORNE ────────────────────────────────────────────────────────────────
   if (!ground) {
     const descending = vs < -300
 
-    // Initial climb — below 3 000 ft radio altitude and not descending
-    if (radioAlt <= INITIAL_CLIMB_RADIO_ALT && !descending) {
+    // 13. Initial climb — below 3 000 ft radio altitude and not descending
+    if (
+      (lastFl === "takeoff" || lastFl === "packs_on" || lastFl === "after_takeoff") &&
+      !descending &&
+      flapsIndex > 0
+    ) {
       return {
         id: "initial_climb",
         title: "Initial climb",
         phrases: ["gear up", "flaps X", "autopilot on"]
       }
     }
-
-    // Short final — radioAlt below threshold, descending
-    if (radioAlt > 5 && radioAlt <= SHORT_FINAL_RADIO_ALT && descending) {
+    // 16. Short final — radioAlt below threshold, descending
+    if (lastCl == "approach" && radioAlt > 5 && landingGear == 1 && flapsIndex >= 3) {
       return {
-        id: "short_final",
+        id: "short_final1",
         title: "Short final",
         phrases: ["landing checklist", "go around flaps", "continue"]
       }
     }
 
-    // Descent / approach — descending and below 15 000 ft or flaps out
-    // NOTE: both conditions require descending to avoid triggering after takeoff with flaps
-    if (descending && (alt <= 15000 || flapsIndex > 0)) {
+    if (lastCl == "landing" && radioAlt > 5 && landingGear == 1 && flapsIndex >= 3) {
       return {
-        id: "descent_approach",
-        title: "Descent / approach",
-        phrases: ["set altimeters/QNH", "approach checklist", "gear down", "flaps X"]
+        id: "short_final2",
+        title: "Short final",
+        phrases: ["go around flaps", "continue"]
       }
     }
 
-    // Climb / cruise — above 3 000 ft, flaps clean, not descending
+    // 15a. Approach checklist already done — only gear/flaps left
+    if (lastCl == "approach" && alt < transitionLevel && alt <= 10000 && !onStandard) {
+      return {
+        id: "approach",
+        title: "Approach",
+        phrases: ["gear down", "flaps X"]
+      }
+    }
+
+    // 15b. Approach checklist not yet done — full prompt
+    if (descending && alt < transitionLevel && alt <= 10000 && !onStandard) {
+      return {
+        id: "approach_checklist",
+        title: "Approach",
+        phrases: ["approach checklist", "gear down", "flaps X"]
+      }
+    }
+
+    // 15b. Set altimeters — below transition level minus 1 000 ft, descending
+    if (descending && alt < transitionLevel - 1000) {
+      return {
+        id: "set_altimeters",
+        title: "Descent",
+        phrases: ["set altimeters", "set QNH"]
+      }
+    }
+
+    // 14. Climb / cruise — above 3 000 ft, flaps clean, not descending
+    // 14. Climb / cruise — phrases built from independent altitude conditions
+    const transitionAltitude = num(t, "transitionAltitude") ?? 0
+    const cruisePhrases: string[] = []
+    if (alt > transitionAltitude && !onStandard) cruisePhrases.push("set standard")
+    if (alt > 10000) cruisePhrases.push("seatbelts auto")
+
     return {
       id: "climb_cruise",
       title: "Climb / cruise",
-      phrases: ["set standard", "seatbelts off"]
+      phrases: cruisePhrases
     }
   }
 
   // ── GROUND ──────────────────────────────────────────────────────────────────
-  //
-  // Milestone chain (first match wins — ordered by latest SOP milestone)
-  //
   const slowGround = ias <= LINEUP_MAX_IAS
 
-  // After the after_landing flow has completed → show after-landing hints (on ground)
+  // 18. Parking — after the parking flow has run
+  if (lastFl === "shutdown") {
+    return {
+      id: "parking",
+      title: "Parking",
+      phrases: ["parking checklist"]
+    }
+  }
+
+  // 17. After landing — after the after_landing flow has completed (on ground)
   if (lastFl === "after_landing" && ias <= TAXI_MAX_IAS) {
     return {
       id: "after_landing_hints",
@@ -121,7 +156,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // After takeoff flow → thrust setting + stop
+  // 12. Takeoff #2 — after takeoff flow → thrust setting + stop
   if (lastFl === "takeoff" && slowGround) {
     return {
       id: "takeoff_thrust",
@@ -130,7 +165,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // After line_up checklist → say "takeoff" to start takeoff flow
+  // 11. Takeoff #1 — after line_up checklist → say "takeoff" to start takeoff flow
   if (lastCl === "line_up" && slowGround) {
     return {
       id: "call_takeoff",
@@ -139,7 +174,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // After before_takeoff (line up) flow → call lineup checklist first
+  // 10. Line up — after before_takeoff flow → call lineup checklist first
   if (lastFl === "before_takeoff" && slowGround) {
     return {
       id: "call_lineup_checklist",
@@ -148,16 +183,16 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // After taxi checklist → line-up / runway entry
-  if (lastCl === "taxi" && ias <= LINEUP_MAX_IAS) {
+  // 10. Line up — after before_takeoff flow → call lineup checklist first
+  if (lastCl === "taxi" && slowGround) {
     return {
-      id: "after_taxi",
-      title: "Line up",
-      phrases: ["runway entry procedure", "clear to line up", "lineup checklist"]
+      id: "before_to_proc",
+      title: "Before takeoff",
+      phrases: ["clear to line up", "runway entry procedure"]
     }
   }
 
-  // After flight controls check flow → only taxi checklist remains
+  // 9. Taxi #3 — after flight controls check flow → only taxi checklist remains
   if (lastFl === "after_flight_controls_check" && ias <= TAXI_MAX_IAS) {
     return {
       id: "pre_taxi",
@@ -166,34 +201,34 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // After clear_left flow → flight controls check + taxi checklist
+  // 8. Taxi #2 — after clear_left flow → flight controls check + taxi light on
   if (lastFl === "clear_left" && ias <= TAXI_MAX_IAS) {
     return {
       id: "post_clear_left",
       title: "Taxi",
-      phrases: ["flight controls check", "taxi checklist"]
+      phrases: ["flight controls check", "taxi light on"]
     }
   }
 
-  // After after_start checklist → full taxi prep sequence
+  // 7. Taxi #1 — after after_start checklist → clear left
   if (lastCl === "after_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "taxi_phase",
       title: "Taxi",
-      phrases: ["clear left", "flight controls check", "taxi checklist"]
+      phrases: ["clear left"]
     }
   }
 
-  // After after_start flow done, after_start CL not yet run → call for after start
+  // 6. After start — after_start flow done, after_start CL not yet run
   if (lastFl === "after_start" && lastCl !== "after_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "after_start_running",
       title: "After start",
-      phrases: ["after start checklist", "flight controls check"]
+      phrases: ["after start checklist"]
     }
   }
 
-  // After before_start checklist done → engine start
+  // 5. Engine start — after before_start checklist done
   if (lastCl === "before_start" && lastFl !== "after_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "engine_start",
@@ -202,36 +237,36 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // After before_start flow done, checklist not yet called → call for before start
+  // 4. Ready for before start — before_start flow done, checklist not yet called
   if (lastFl === "before_start" && lastCl !== "before_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "call_before_start_checklist",
       title: "Ready for before start",
-      phrases: ["before start checklist"]
+      phrases: ["before start checklist", "cabin crew arm slides"]
     }
   }
 
-  // After cockpit_preparation checklist → ready to call before start / arm slides
+  // 3. Before start — after cockpit_preparation checklist
   if (lastCl === "cockpit_preparation") {
     return {
       id: "post_cockpit_prep",
       title: "Before start",
-      phrases: ["before start checklist", "cabin crew arm slides"]
+      phrases: ["before start procedure", "start the apu"]
     }
   }
 
   // ── Engines off ─────────────────────────────────────────────────────────────
 
-  // Timeline running → hint cockpit preparation checklist only
+  // 2. Timer running — timeline running, engines off
   if (preflightTimerRunning && engOff) {
     return {
       id: "prep_timeline",
       title: "Prepare",
-      phrases: ["cockpit preparation checklist", "start the apu", "start apu"]
+      phrases: ["cockpit preparation checklist", "start the apu"]
     }
   }
 
-  // Cold & dark, no timeline → initial sequence
+  // 1. Prepare — cold & dark, no timeline
   if (engOff) {
     return {
       id: "prep",

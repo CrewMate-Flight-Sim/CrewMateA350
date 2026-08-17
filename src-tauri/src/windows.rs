@@ -80,9 +80,9 @@ pub async fn open_takeoff_window(app_handle: AppHandle) -> Result<(), String> {
         &app_handle,
         "takeoff",
         "src/windows/takeoff/takeoff.html",
-        "Takeoff Performance",
+        "Takeoff Plan",
         350.0,
-        230.0,
+        200.0,
         false,
     )
 }
@@ -93,9 +93,9 @@ pub async fn open_landing_window(app_handle: AppHandle) -> Result<(), String> {
         &app_handle,
         "landing",
         "src/windows/landing/landing.html",
-        "Landing Performance",
+        "Landing Plan",
         350.0,
-        200.0,
+        220.0,
         false,
     )
 }
@@ -117,7 +117,7 @@ pub async fn open_settings_window(app_handle: AppHandle) -> Result<(), String> {
 pub async fn close_app(app_handle: tauri::AppHandle) {
     // Shutdown speech bridge before closing
     if let Some(speech_state) = app_handle.try_state::<SpeechBridgeState>() {
-        speech_state.0.shutdown();
+        speech_state.inner().0.shutdown();
     }
 
     // Set the flag to allow closing without showing the dialog

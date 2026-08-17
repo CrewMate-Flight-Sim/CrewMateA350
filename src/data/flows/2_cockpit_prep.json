@@ -42,7 +42,7 @@
       "label": "Oxy Test Hatch FO",
       "read": "(L:INI_OXYTEST_BLINKER_FO)",
       "on": "1 (>L:INI_OXYTEST_BLINKER_FO)",
-      "hold_ms": 10000,
+      "hold_ms": 5000,
       "expect": 1
     },
     {

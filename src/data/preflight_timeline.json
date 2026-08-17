@@ -1,31 +1,25 @@
 [
   {
-    "minuteMark": 60,
+    "minuteMark": 50,
     "label": "Arrive at aircraft",
     "type": "flow",
     "flowId": "open_curtains"
   },
   {
-    "minuteMark": 58,
-    "label": "FO sits down and opens table",
-    "type": "flow",
-    "flowId": "table_open"
-  },
-  {
-    "minuteMark": 55,
+    "minuteMark": 48,
     "label": "Preliminary cockpit preparation",
     "type": "flow",
     "flowId": "prelim_cockpit_prep"
   },
   {
-    "minuteMark": 45,
+    "minuteMark": 44,
     "label": "PM walkaround",
     "type": "flow",
     "sound": "walkaround.ogg",
     "flowId": "table_close"
   },
   {
-    "minuteMark": 33,
+    "minuteMark": 35,
     "label": "PM back from walkaround and cockpit preparation",
     "type": "flow",
     "sound": "walkaround_completed.ogg",

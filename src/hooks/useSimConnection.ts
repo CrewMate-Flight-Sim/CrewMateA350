@@ -27,6 +27,7 @@ const simVars: { key: string; expression: string }[] = [
   { key: "landingGear", expression: "(A:GEAR HANDLE POSITION,Position)" },
   { key: "brakeLeftPosition", expression: "(A:BRAKE LEFT POSITION,Number)" },
   { key: "parkingBrake", expression: "(A:BRAKE PARKING INDICATOR,Bool)" },
+  { key: "taxiLight", expression: "(L:INI_LIGHTS_NOSE)" },
   { key: "brakeRightPosition", expression: "(A:BRAKE RIGHT POSITION,Number)" },
   { key: "aileronPosition", expression: "(A:AILERON POSITION,Position)" },
   { key: "elevatorPosition", expression: "(A:ELEVATOR POSITION,Position)" },
@@ -55,7 +56,7 @@ const simVars: { key: string; expression: string }[] = [
   { key: "mixture1", expression: "(L:INI_MIXTURE_RATIO1_HANDLE)" },
   { key: "mixture2", expression: "(L:INI_MIXTURE_RATIO2_HANDLE)" },
   { key: "spoilersArmed", expression: "(L:INI_SPOILERS_ARMED)" },
-  { key: "fcu_alt", expression: "(L:INI_ALTITUDE_DIAL)" },
+  { key: "fcu_alt", expression: "(L:INI_ALTITUDE_MEM_DIAL)" },
   { key: "cptBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_1)" },
   { key: "foBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_2)" },
   { key: "stbBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_3)" },
@@ -68,7 +69,10 @@ const simVars: { key: string; expression: string }[] = [
   { key: "foTerrOn", expression: "(L:INI_TERR_ON_FO)" },
   { key: "foWxr2On", expression: "(L:INI_WXR2_ON)" },
   { key: "autobrakeLevel", expression: "(L:INI_AUTOBRAKE_LEVEL)" },
-  { key: "thrlvrclb", expression: "(L:INI_LEVER_IN_CL)" }
+  { key: "thrlvrclb", expression: "(L:INI_LEVER_IN_CL)" },
+  { key: "flapssetting", expression: "(L:TO_FLAPS_CONF)" },
+  { key: "a350FoCrono", expression: "(L:INI_FO_CHRONO)" },
+  { key: "inialtimeter", expression: "(L:XMLVAR_Baro1_Mode)" }
 ]
 
 const RETRY_INTERVAL_MS = 5000

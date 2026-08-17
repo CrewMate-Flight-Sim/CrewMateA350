@@ -1,4 +1,5 @@
 import { simvarSet } from "@/API/simvarApi"
+import { delay } from "@/lib/utils"
 import { playSound } from "@/services/playSounds"
 import { useTelemetryStore } from "@/store/telemetryStore"
 
@@ -33,10 +34,6 @@ const soundMap: Record<number, string> = {
   2: "flaps_2.ogg",
   3: "flaps_3.ogg",
   4: "flaps_full.ogg"
-}
-
-function delay(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
 }
 
 function getA350Variant(title?: string): A350Variant | null {

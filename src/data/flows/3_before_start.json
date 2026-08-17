@@ -3,6 +3,12 @@
   "name": "Before Start",
   "steps": [
     {
+      "label": "Jetway Toggle",
+      "read": "(A:JETWAY MOVING, bool)",
+      "on": "(>K:TOGGLE_JETWAY)",
+      "expect": 1
+    },
+    {
       "label": "Cockpit Door close",
       "read": "(L:INI_COCKPIT_DOOR)",
       "on": "0 (>L:INI_COCKPIT_DOOR)",
@@ -45,9 +51,9 @@
       }
     },
     {
-      "label": "SURV MCDU",
-      "read": "(L:INI_MCDU2_SURV)",
-      "on": "1 (>L:INI_MCDU2_SURV)",
+      "label": "FPLN MCDU",
+      "read": "(L:INI_MCDU2_FPLAN)",
+      "on": "1 (>L:INI_MCDU2_FPLAN)",
       "expect": 1,
       "skip_verify": true
     },

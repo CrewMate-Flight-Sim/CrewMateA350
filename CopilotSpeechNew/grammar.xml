@@ -56,6 +56,17 @@
         <tag>out.pid="2"; out.cval=rules.HDG_SPD_FL_VALUE;</tag>
       </item>
 
+      <!-- Flight level (hundreds) -->
+      <item>
+        <item repeat="0-1">set</item>
+        <item>flight level</item>
+        <ruleref uri="#FL_HUNDREDS_VALUE" />
+        <item repeat="0-1">
+          <ruleref uri="#VERBALT" />
+        </item>
+        <tag>out.pid="2"; out.cval=rules.FL_HUNDREDS_VALUE;</tag>
+      </item>
+
       <!-- Altitude feet -->
       <item>
         <item repeat="0-1">set</item>
@@ -612,6 +623,7 @@
       <item>disconnect air conditioning<tag>out.pid="119";</tag></item>
       <item>disconnect all<tag>out.pid="120";</tag></item>
       <item>disconnect all services<tag>out.pid="120";</tag></item>
+      <item>we are ready for pushback<tag>out.pid="124";</tag></item>
     </one-of>
   </rule>
 
@@ -700,22 +712,21 @@
 
   <!-- 3-digit value: "two seven zero" → "270" -->
   <rule id="HDG_SPD_FL_VALUE">
-    <one-of>
-      <!-- Handle digit-by-digit: "one zero zero" -->
-      <item>
         <ruleref uri="#NUMBERS" />
         <tag>out.a=rules.NUMBERS;</tag>
         <ruleref uri="#NUMBERS" />
         <tag>out.b=rules.NUMBERS;</tag>
         <ruleref uri="#NUMBERS" />
         <tag>out=out.a+out.b+rules.NUMBERS;</tag>
-      </item>
+  </rule>
 
-      <!-- Handle hundreds: "one hundred" -->
-      <item>
-        <ruleref uri="#ALTV_HUNDREDS" />
-        <tag>out=rules.ALTV_HUNDREDS;</tag>
-      </item>
+    <!-- Flight level round-hundreds: "one hundred" → "100" … "four hundred" → "400" -->
+  <rule id="FL_HUNDREDS_VALUE">
+    <one-of>
+      <item>one hundred<tag>out="100";</tag></item>
+      <item>two hundred<tag>out="200";</tag></item>
+      <item>three hundred<tag>out="300";</tag></item>
+      <item>four hundred<tag>out="400";</tag></item>
     </one-of>
   </rule>
 

@@ -3,13 +3,13 @@ import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
-// @ts-expect-error process is a nodejs global
+// Typings are now natively active through the bundler engine
 const host = process.env.TAURI_DEV_HOST
 
 // Read version from package.json
 import packageJson from "./package.json"
 
-// https://vite.dev/config/
+// https://vite.dev
 export default defineConfig(async () => ({
   plugins: [react()],
 
@@ -51,7 +51,7 @@ export default defineConfig(async () => ({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src")
+      "@": path.resolve(__dirname, "src")
     }
   }
 }))
