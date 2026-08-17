@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.3] - 2026-08-17
+
+- Added GSX support - @alexlenh
+- Improved engine cooldown timing by using the physical chrono instead of the simulated timer - @alexlenh
+- Backported MD11 features to the A350 - @alexlenh
+- Improved the audio system and sidecar crash handling - @alexlenh
+- Updated speech grammar and command handling for the latest voice setup flow - @alexlenh
+- Updated Tauri configuration and build scripts to support the sidecar and runtime setup - @alexlenh
+- Added a follow-up reminder for requesting voice set regeneration - @alexlenh
+- Refined flow timing and reminder behavior across the preflight and shutdown sequences - @alexlenh
+- Improved the user manual and applied several minor checklist and flow fixes - @alexlenh
+
 ## [0.3.2] - 2026-05-02
 
 - Added First Officer flight controls check - @alexlenh
