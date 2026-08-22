@@ -198,6 +198,11 @@ class FlowRunner {
   private async checkParkingBrakeAndTaxiLight(telemetry: Telemetry | null): Promise<void> {
     if (!telemetry) return
 
+    // Respect the same setting that gates Scenario 2 — if the post-landing
+    // shutdown guard is off, don't proactively nag either.
+    const { postLandingShutdownEnabled } = useSettingsStore.getState()
+    if (!postLandingShutdownEnabled) return
+
     // Check conditions: after_landing was last, timer active, brake ON, taxi light OFF (2)
     if (
       this.lastCompletedFlow === "after_landing" &&

@@ -303,6 +303,7 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
 
   // ── Ground engineer ───────────────────────────────────────────────────────
   pushback_request: async () => {
+    if (!useGroundEngineerStore.getState().isActive) return
     useGroundEngineerStore.getState().deactivate()
     await callPushback()
   },
