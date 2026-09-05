@@ -33,6 +33,12 @@
       "expect": 1
     },
     {
+      "label": "ND SET",
+      "read": "(L:INI_MAP_MODE_FO_SWITCH)",
+      "on": "3 (>L:INI_MAP_MODE_FO_SWITCH)",
+      "expect": 3
+    },
+    {
       "label": "Oxy Test Hatch FO",
       "read": "(L:INI_OXYTEST_HATCH_FO)",
       "on": "1 (>L:INI_OXYTEST_HATCH_FO)",

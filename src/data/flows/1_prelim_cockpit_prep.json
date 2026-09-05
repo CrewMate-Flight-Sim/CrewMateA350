@@ -106,8 +106,8 @@
     {
       "label": "VHF RMP2 Volume",
       "read": "(L:INI_RMP2_1_VOLUME)",
-      "on": "65 (>L:INI_RMP2_1_VOLUME)",
-      "expect": 65
+      "on": "80 (>L:INI_RMP2_1_VOLUME)",
+      "expect": 80
     },
     {
       "label": "VHF RMP2 Receive Sel",
@@ -118,8 +118,8 @@
     {
       "label": "VHF RMP2 Volume",
       "read": "(L:INI_RMP2_2_VOLUME)",
-      "on": "65 (>L:INI_RMP2_2_VOLUME)",
-      "expect": 65
+      "on": "80 (>L:INI_RMP2_2_VOLUME)",
+      "expect": 80
     },
     {
       "label": "VHF RMP2 Receive Sel",
@@ -130,8 +130,8 @@
     {
       "label": "VHF RMP2 Volume",
       "read": "(L:INI_RMP2_8_VOLUME)",
-      "on": "65 (>L:INI_RMP2_8_VOLUME)",
-      "expect": 65
+      "on": "70 (>L:INI_RMP2_8_VOLUME)",
+      "expect": 70
     },
     {
       "label": "VHF RMP2 Receive Sel",
@@ -142,8 +142,8 @@
     {
       "label": "VHF RMP2 Volume",
       "read": "(L:INI_RMP2_9_VOLUME)",
-      "on": "65 (>L:INI_RMP2_9_VOLUME)",
-      "expect": 65
+      "on": "25 (>L:INI_RMP2_9_VOLUME)",
+      "expect": 25
     },
     {
       "label": "VHF RMP11 Receive Sel",
@@ -160,8 +160,8 @@
     {
       "label": "Dome on",
       "read": "(L:INI_CKPT_LT_DOME)",
-      "on": "100 (>L:INI_CKPT_LT_DOME)",
-      "expect": 100,
+      "on": "85 (>L:INI_CKPT_LT_DOME)",
+      "expect": 85,
       "only_if": {
         "read": "(E:TIME OF DAY)",
         "one_of": [0, 2, 3]
@@ -181,6 +181,44 @@
       "expect": 1,
       "skip_verify": true,
       "sound_on_execute": "fire_test.ogg"
+    },
+    {
+      "label": "Check HYD",
+      "read": "(L:INI_ECAM_ACTIVE_PAGE)",
+      "on": "1 (>L:PUSH_ECAM_HYD)",
+      "expect": 2
+    },
+    {
+      "label": "Check ENG",
+      "read": "(L:INI_ECAM_ACTIVE_PAGE)",
+      "on": "1 (>L:PUSH_ECAM_ENG)",
+      "expect": 1
+    },
+    {
+      "label": "Check ENG",
+      "read": "(L:INI_FADEC1_GND_POWER_STATE)",
+      "on": "1 (>L:INI_FADEC1_GND_POWER_STATE",
+      "expect": 1,
+      "skip_delay": true
+    },
+    {
+      "label": "Check ENG",
+      "read": "(L:INI_FADEC2_GND_POWER_STATE)",
+      "on": "1 (>L:INI_FADEC2_GND_POWER_STATE",
+      "expect": 1
+    },
+    {
+      "label": "Check ENG",
+      "read": "(L:INI_FADEC1_GND_POWER_STATE)",
+      "on": "0 (>L:INI_FADEC1_GND_POWER_STATE",
+      "expect": 0,
+      "skip_delay": true
+    },
+    {
+      "label": "Check ENG",
+      "read": "(L:INI_FADEC2_GND_POWER_STATE)",
+      "on": "0 (>L:INI_FADEC2_GND_POWER_STATE",
+      "expect": 0
     }
   ]
 }

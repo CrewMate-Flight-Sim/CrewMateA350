@@ -112,6 +112,12 @@
       "expect": 1
     },
     {
+      "label": "Disarm slides",
+      "read": "(L:INI_DOOR0_ARMED)",
+      "on": "1 (>L:INI_SLIDES_REQ)",
+      "expect": 0
+    },
+    {
       "label": "Jetway Toggle",
       "read": "(A:JETWAY MOVING, bool)",
       "on": "(>K:TOGGLE_JETWAY)",

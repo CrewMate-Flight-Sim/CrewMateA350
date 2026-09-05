@@ -19,6 +19,12 @@
       "read": "(L:INI_WING_ANTI_ICE1_STATE)",
       "on": "{anti_ice_wing_cmd}",
       "expect": "{anti_ice_wing_expect}"
+    },
+    {
+      "label": "Check STS",
+      "read": "(L:INI_ECAM_PAGE)",
+      "on": "1 (>L:PUSH_STS_ECAM)",
+      "expect": 14
     }
   ]
 }

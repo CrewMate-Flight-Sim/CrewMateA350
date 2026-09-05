@@ -30,6 +30,16 @@
       "read": "(L:INI_CKPT_LT_DOME)",
       "on": "0 (>L:INI_CKPT_LT_DOME)",
       "expect": 0
+    },
+    {
+      "label": "Check STS",
+      "read": "(L:INI_ECAM_PAGE)",
+      "on": "1 (>L:PUSH_STS_ECAM)",
+      "expect": 14,
+      "only_if": {
+        "read": "(L:INI_MIXTURE_RATIO2_HANDLE)",
+        "one_of": [1]
+      }
     }
   ]
 }
