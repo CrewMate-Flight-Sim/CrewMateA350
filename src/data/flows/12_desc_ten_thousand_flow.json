@@ -41,8 +41,8 @@
     {
       "label": "FO LS",
       "read": "(L:INI_LS_FO)",
-      "on": "1 (>L:INI_LS_FO)",
-      "expect": 1
+      "on": "{landing_ls_on}",
+      "expect": "{landing_ls_expect}"
     }
   ]
 }

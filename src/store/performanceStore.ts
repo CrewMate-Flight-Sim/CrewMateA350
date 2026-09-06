@@ -17,6 +17,7 @@ interface LandingData {
   missedAltitude: number
   antiIce?: string
   apuStart?: string
+  ls: boolean
 }
 
 interface PerformanceStore {
@@ -42,7 +43,8 @@ const defaultLandingData: LandingData = {
   flaps: "Full",
   missedAltitude: 4000,
   antiIce: "off",
-  apuStart: "auto"
+  apuStart: "auto",
+  ls: true
 }
 
 export const usePerformanceStore = create<PerformanceStore>()(
