@@ -403,6 +403,10 @@ class ChecklistRunner {
         await this.playTakeoffConfirmation()
       }
 
+      if (item.rwy_confirmation) {
+        await this.playRwyConfirmation()
+      }
+
       if (item.baro_confirmation) {
         await this.playBaroConfirmation(spoken)
       }
@@ -478,6 +482,41 @@ class ChecklistRunner {
         .map((d) => `${d}.ogg`),
       "set.ogg"
     ]
+    await playSoundSequence(filenames)
+  }
+
+  private async playRwyConfirmation(): Promise<void> {
+    const { runway } = usePerformanceStore.getState().takeoff
+    if (!runway) return
+
+    // Separate runway numbers from trailing orientation letter (e.g., "08L" -> "08" and "L")
+    const match = runway
+      .trim()
+      .toUpperCase()
+      .match(/^([0-9]+)([LCR])?$/)
+    if (!match) return
+
+    const [, numStr, parallel] = match
+
+    // Turn runway numbers into individual sound files (e.g. "08" -> ["0.ogg", "8.ogg"])
+    const filenames: string[] = numStr.split("").map((d) => `${d}.ogg`)
+
+    // If parallel orientation exists, add it before the confirmation phrase
+    if (parallel) {
+      const parallelMap: Record<string, string> = {
+        L: "left.ogg",
+        C: "center.ogg",
+        R: "right.ogg"
+      }
+
+      if (parallelMap[parallel]) {
+        filenames.push(parallelMap[parallel])
+      }
+    }
+
+    // Append confirmation at the very end
+    filenames.push("confirmed.ogg")
+
     await playSoundSequence(filenames)
   }
 

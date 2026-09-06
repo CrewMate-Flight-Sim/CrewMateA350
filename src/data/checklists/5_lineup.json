@@ -3,15 +3,15 @@
   "name": "Line Up Checklist",
   "items": [
     {
-      "challenge": "cabin_crew.ogg",
+      "challenge": "cabin.ogg",
       "response": ["secured", "signaled", "set and checked"],
       "label": "Cabin Advisory"
     },
     {
       "challenge": "takeoff_runway.ogg",
-      "response": ["confirmed", "set and checked"],
+      "response": ["#3 confirmed", "confirmed", "set and checked"],
       "label": "Take off Runway",
-      "copilot_response": "confirmed.ogg"
+      "rwy_confirmation": true
     },
     {
       "label": "Packs Settings",

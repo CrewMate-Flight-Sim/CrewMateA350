@@ -9,6 +9,7 @@ interface TakeoffData {
   thrustSetting?: string
   packs?: string
   antiIce?: string
+  runway: string
 }
 
 interface LandingData {
@@ -33,7 +34,8 @@ const defaultTakeoffData: TakeoffData = {
   v2: 0,
   thrustSetting: "toga",
   packs: "on",
-  antiIce: "off"
+  antiIce: "off",
+  runway: ""
 }
 
 const defaultLandingData: LandingData = {

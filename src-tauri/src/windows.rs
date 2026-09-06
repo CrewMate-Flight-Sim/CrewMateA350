@@ -82,7 +82,7 @@ pub async fn open_takeoff_window(app_handle: AppHandle) -> Result<(), String> {
         "src/windows/takeoff/takeoff.html",
         "Takeoff Plan",
         350.0,
-        200.0,
+        255.0,
         false,
     )
 }

@@ -72,7 +72,8 @@ const simVars: { key: string; expression: string }[] = [
   { key: "thrlvrclb", expression: "(L:INI_LEVER_IN_CL)" },
   { key: "flapssetting", expression: "(L:TO_FLAPS_CONF)" },
   { key: "a350FoCrono", expression: "(L:INI_FO_CHRONO)" },
-  { key: "inialtimeter", expression: "(L:XMLVAR_Baro1_Mode)" }
+  { key: "inialtimeter", expression: "(L:XMLVAR_Baro1_Mode)" },
+  { key: "brakefan", expression: "(L:INI_OPTION_BRAKE_FANS)" }
 ]
 
 const RETRY_INTERVAL_MS = 5000

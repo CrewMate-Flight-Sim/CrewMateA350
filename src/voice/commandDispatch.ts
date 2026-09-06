@@ -1,4 +1,4 @@
-import { simvarSet } from "@/API/simvarApi"
+import { simvarGet, simvarSet } from "@/API/simvarApi"
 import { buildPassingAltitudeSequence } from "@/hooks/useCallouts"
 import { delay } from "@/lib/utils"
 import { abortChecklist, executeChecklist } from "@/services/checklistRunner"
@@ -6,7 +6,6 @@ import { executeFlow } from "@/services/flowRunner"
 import { playSound, playSoundSequence } from "@/services/playSounds"
 import { useGroundEngineerStore } from "@/store/groundEngineerStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
-import { usePerformanceStore } from "@/store/performanceStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
 import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
@@ -31,6 +30,7 @@ import {
   setSelSpeed
 } from "./commands/autoPilot"
 import { setStdBaro } from "./commands/baro"
+import { setBrakeFan } from "./commands/brake_fan"
 import { setDoorSlides } from "./commands/doorSlides"
 import { setIgnKnob, startEngine2 } from "./commands/engine"
 import { setFlaps } from "./commands/flaps"
@@ -63,6 +63,35 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
   flaps_3: () => setFlaps(3),
   flaps_full: () => setFlaps(4),
   go_around_flaps: () => executeGoAround(),
+
+  // ── Brake Fan ─────────────────────────────────────────────────────────────
+  brake_fan_on: async () => {
+    const isFitted = (await simvarGet("(L:INI_OPTION_BRAKE_FANS)")) === 1
+    if (isFitted) {
+      playSound("check.ogg")
+      await setBrakeFan(1)
+    } else {
+      playSound("are_you_sure.ogg")
+    }
+  },
+
+  brake_fan_off: async () => {
+    const isFitted = (await simvarGet("(L:INI_OPTION_BRAKE_FANS)")) === 1
+    if (isFitted) {
+      playSound("check.ogg")
+      await setBrakeFan(0)
+    } else {
+      playSound("are_you_sure.ogg")
+    }
+  },
+
+  // Control handover
+  you_have_ctrl: () => {
+    playSound("i_have_ctrl.ogg")
+  },
+  i_have_ctrl: () => {
+    playSound("you_have_ctrl.ogg")
+  },
 
   // ── Lights ────────────────────────────────────────────────────────────────
   landing_lights_on: () => {
@@ -418,15 +447,11 @@ export async function dispatchFoCommand(commandType: string, payload: Record<str
     }
 
     case "missed_approach_altitude": {
-      if ((payload.mode as string) === "auto") {
-        const alt = usePerformanceStore.getState().landing?.["missedAltitude"]
-        if (alt != null) {
-          playSound("missed_approach_alt_set.ogg")
-          setAltitudeDial(alt)
-        }
-      } else if (payload.value != null) {
-        playSound("missed_approach_alt_set.ogg")
-        setAltitudeDial(payload.value as number)
+      if (payload.value != null) {
+        const altValue = payload.value as number
+        const leadingNumber = Math.floor(altValue / 1000).toString()
+        setAltitudeDial(altValue)
+        playSoundSequence(["go_around_alt.ogg", `${leadingNumber}.ogg`, "thousand.ogg", "feet_set.ogg"])
       }
       return true
     }
