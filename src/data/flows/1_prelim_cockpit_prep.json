@@ -205,7 +205,8 @@
       "label": "Check ENG",
       "read": "(L:INI_FADEC2_GND_POWER_STATE)",
       "on": "1 (>L:INI_FADEC2_GND_POWER_STATE",
-      "expect": 1
+      "expect": 1,
+      "wait_ms": 2000
     },
     {
       "label": "Check ENG",
