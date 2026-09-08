@@ -50,6 +50,22 @@ const gePack = () => useSettingsStore.getState().geSoundPack
 // Commands that are allowed to fire even while a checklist is running.
 export const checklistAbortCommands = new Set(["checklist_cancel"])
 
+// Commands that still work while the FO is outside on the walkaround: the ground
+// engineer is a different person on the interphone, and the preflight timer is
+// how the pilot moves through the absence.
+export const foAwayAllowedCommands = new Set([
+  "ground_call",
+  "pushback_request",
+  "connect_gpu",
+  "disconnect_gpu",
+  "connect_asu",
+  "disconnect_asu",
+  "connect_acu",
+  "disconnect_acu",
+  "disconnect_all_ground",
+  "prepare_aircraft"
+])
+
 // ─── Discrete command map ─────────────────────────────────────────────────────
 
 export const discreteCommandMap: Record<string, () => void | Promise<void>> = {

@@ -18,6 +18,7 @@ import { usePreflightTimer } from "@/hooks/usePreflightTimer"
 import { useSimConnection } from "@/hooks/useSimConnection"
 import { useSpeechCommands } from "@/hooks/useSpeechCommands"
 import { useVoiceHints } from "@/hooks/useVoiceHints"
+import { useFoPresenceStore } from "@/store/foPresenceStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
 import { useSettingsStore } from "@/store/settingsStore"
@@ -56,6 +57,7 @@ function App() {
   }, [])
 
   const currentEvent = usePreflightTimerStore((s) => s.currentEvent)
+  const foAway = useFoPresenceStore((s) => s.isActive)
 
   // Context-Aware Mute Engine: force-mute on sim disconnect, restore prior
   // voice preference on reconnect (and sync mute state to sidecar on startup).
@@ -117,6 +119,7 @@ function App() {
                   {currentEvent}
                 </span>
               )}
+              {foAway && <span className="text-xs text-amber-400/80 font-mono">FO outside</span>}
               <FlowPanel />
               <ChecklistPanel />
               <VoiceGuide phase={voiceHintPhase} />
