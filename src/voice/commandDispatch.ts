@@ -6,6 +6,7 @@ import { executeFlow } from "@/services/flowRunner"
 import { playSound, playSoundSequence } from "@/services/playSounds"
 import { useGroundEngineerStore } from "@/store/groundEngineerStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
+import { usePerformanceStore } from "@/store/performanceStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
 import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
@@ -392,6 +393,23 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
   }
 }
 
+/**
+ * Build the go-around altitude readback. Only exact thousands up to 10000 can be
+ * spoken — the packs carry 0-9, thousand and ten_thousand, but no "hundred" — so
+ * anything else falls back to "go around altitude set" rather than a wrong or
+ * missing number file.
+ */
+const buildGoAroundAltSequence = (altValue: number): string[] => {
+  if (altValue === 10000) {
+    return ["go_around_alt.ogg", "ten_thousand.ogg", "feet_set.ogg"]
+  }
+  const thousands = altValue / 1000
+  if (Number.isInteger(thousands) && thousands >= 1 && thousands <= 9) {
+    return ["go_around_alt.ogg", `${thousands}.ogg`, "thousand.ogg", "feet_set.ogg"]
+  }
+  return ["go_around_alt.ogg", "set.ogg"]
+}
+
 // ─── FO command dispatcher (heading, altitude, speed, fma) ────────
 
 export async function dispatchFoCommand(commandType: string, payload: Record<string, unknown>): Promise<boolean> {
@@ -447,12 +465,13 @@ export async function dispatchFoCommand(commandType: string, payload: Record<str
     }
 
     case "missed_approach_altitude": {
-      if (payload.value != null) {
-        const altValue = payload.value as number
-        const leadingNumber = Math.floor(altValue / 1000).toString()
-        setAltitudeDial(altValue)
-        playSoundSequence(["go_around_alt.ogg", `${leadingNumber}.ogg`, "thousand.ogg", "feet_set.ogg"])
-      }
+      const altValue =
+        (payload.mode as string) === "auto"
+          ? usePerformanceStore.getState().landing?.missedAltitude
+          : (payload.value as number | undefined)
+      if (altValue == null) return true
+      setAltitudeDial(altValue)
+      playSoundSequence(buildGoAroundAltSequence(altValue))
       return true
     }
 

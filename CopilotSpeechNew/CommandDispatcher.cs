@@ -42,6 +42,7 @@ namespace VoiceSidecar
                 13 => FuelTons(cval, balanced: true, raw),
                 14 => TakeoffData(cval, raw),
                 15 => TakeoffData(cval, raw),
+                16 => MissedApproachAuto(raw),
                 17 => MissedApproachFeet(cval, raw),
                 18 => MissedApproachFL(cval, raw),
                 19 => Minimums(cval, "baro", raw),

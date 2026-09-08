@@ -213,12 +213,15 @@
         <tag>out.pid="15"; out.cval=out.v1+"|"+out.vr+"|"+out.v2+"|TOGA|";</tag>
       </item>
 
+      <!-- Missed approach altitude — auto (uses the Landing window's missed altitude) -->
+      <item>
+        <ruleref uri="#MISSED_APPROACH_PREFIX" />
+        <tag>out.pid="16"; out.cval="AUTO";</tag>
+      </item>
+
       <!-- Missed approach altitude — explicit feet -->
       <item>
-        <one-of>
-          <item>set go around altitude</item>
-          <item>go around altitude</item>
-        </one-of>
+        <ruleref uri="#MISSED_APPROACH_PREFIX" />
         <ruleref uri="#ALTITUDE_VALUE" />
         <item repeat="0-1">feet</item>
         <tag>out.pid="17"; out.cval=rules.ALTITUDE_VALUE;</tag>
@@ -227,10 +230,9 @@
       <!-- Missed approach altitude — explicit flight level -->
       <item>
         <one-of>
-          <item>set go around altitude</item>
+          <item><ruleref uri="#MISSED_APPROACH_PREFIX" /></item>
           <item>set go around</item>
-          <item>go around altitude</item>
-          <item>go around</item>
+          <item>set missed approach</item>
         </one-of>
         <item>flight level</item>
         <ruleref uri="#HDG_SPD_FL_VALUE" />
@@ -813,6 +815,14 @@
       <item>thirty<tag>out="30";</tag></item>
       <item>forty<tag>out="40";</tag></item>
       <item>fifty<tag>out="50";</tag></item>
+    </one-of>
+  </rule>
+
+  <!-- Go-around / missed approach altitude command prefix -->
+  <rule id="MISSED_APPROACH_PREFIX">
+    <one-of>
+      <item>set go around altitude</item>
+      <item>set missed approach altitude</item>
     </one-of>
   </rule>
 

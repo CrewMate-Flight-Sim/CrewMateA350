@@ -487,14 +487,18 @@ class ChecklistRunner {
 
   private async playRwyConfirmation(): Promise<void> {
     const { runway } = usePerformanceStore.getState().takeoff
-    if (!runway) return
 
     // Separate runway numbers from trailing orientation letter (e.g., "08L" -> "08" and "L")
     const match = runway
-      .trim()
+      ?.trim()
       .toUpperCase()
       .match(/^([0-9]+)([LCR])?$/)
-    if (!match) return
+
+    // No runway set, or one we can't read back - still acknowledge the item
+    if (!match) {
+      await playSyncSound("confirmed.ogg")
+      return
+    }
 
     const [, numStr, parallel] = match
 
