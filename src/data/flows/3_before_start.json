@@ -3,12 +3,6 @@
   "name": "Before Start",
   "steps": [
     {
-      "label": "Jetway Toggle",
-      "read": "(A:JETWAY MOVING, bool)",
-      "on": "(>K:TOGGLE_JETWAY)",
-      "expect": 1
-    },
-    {
       "label": "Cockpit Door close",
       "read": "(L:INI_COCKPIT_DOOR)",
       "on": "0 (>L:INI_COCKPIT_DOOR)",
@@ -51,11 +45,23 @@
       }
     },
     {
-      "label": "FPLN MCDU",
-      "read": "(L:INI_MCDU2_FPLAN)",
-      "on": "1 (>L:INI_MCDU2_FPLAN)",
+      "label": "SURV MCDU",
+      "read": "(L:INI_MCDU2_SURV)",
+      "on": "1 (>L:INI_MCDU2_SURV)",
       "expect": 1,
       "skip_verify": true
+    },
+    {
+      "label": "TCAS",
+      "read": "(L:INI_TCAS_STBY_STATE)",
+      "on": "1 (>L:INI_TCAS_STBY_STATE)",
+      "expect": 1
+    },
+    {
+      "label": "TCAS",
+      "read": "(L:INI_tcas_mode_pedestal)",
+      "on": "2 (>L:INI_tcas_mode_pedestal)",
+      "expect": 2
     },
     {
       "label": "Remove Chocks",
