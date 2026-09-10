@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.4] - 2026-09-10
+
+- Switched voice generation from Azure Cognitive Services to edge-tts and regenerated every sound pack - @alexlenh
+- Added Aria and Christopher voices, and replaced the Davis ground engineer pack with Christopher - @alexlenh
+- Added "brake fan on/off" commands - the FO checks whether the aircraft is fitted with brake fans before acting - @alexlenh
+- Added "you have control" / "i have control" handover callouts - @alexlenh
+- Added a Runway field to the Takeoff Plan window - the FO now reads the runway back on the Line Up checklist instead of a plain "confirmed" - @alexlenh
+- Added a SEL LS checkbox to the Landing Plan window, so LS selection on descent is a manual choice - deselect it for RNP AR approaches - @alexlenh
+- Added FADEC ground power and ECAM HYD/ENG page checks to the preliminary cockpit preparation flow - @alexlenh
+- Added the ND mode setting to the cockpit preparation flow, and an "approach path clear of traffic" callout to the before takeoff flow - @alexlenh
+- Adjusted RMP volumes and dome light brightness in the preliminary cockpit preparation flow - @alexlenh
+- Added "arm loc" as an alternative to "arm localizer" - @alexlenh
+- Added TCAS and transponder setup to the before start flow, and shutdown to the shutdown flow - @marxio09dio
+- The FO no longer answers while he is outside on the walkaround - ground engineer calls and the preflight timer still work, and an "FO outside" indicator shows while he is away - @marxio09dio
+- Added "set missed approach altitude" as an alternative to "set go around altitude", and the FO now reads the altitude back - @marxio09dio
+- Removed jetway control from the open curtains and shutdown flows as it was conflicting with other integrations - @marxio09dio
+
 ## [0.3.3] - 2026-08-17
 
 - Added GSX support - @alexlenh
