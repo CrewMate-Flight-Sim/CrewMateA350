@@ -213,25 +213,15 @@
         <tag>out.pid="15"; out.cval=out.v1+"|"+out.vr+"|"+out.v2+"|TOGA|";</tag>
       </item>
 
-      <!-- Missed approach altitude — auto -->
+      <!-- Missed approach altitude — auto (uses the Landing window's missed altitude) -->
       <item>
-        <one-of>
-          <item>set go around altitude</item>
-          <item>set go around</item>
-          <item>go aruond altitude</item>
-          <item>go aruond</item>
-        </one-of>
+        <ruleref uri="#MISSED_APPROACH_PREFIX" />
         <tag>out.pid="16"; out.cval="AUTO";</tag>
       </item>
 
       <!-- Missed approach altitude — explicit feet -->
       <item>
-        <one-of>
-          <item>set go around altitude</item>
-          <item>set go around</item>
-          <item>go aruond altitude</item>
-          <item>go aruond</item>
-        </one-of>
+        <ruleref uri="#MISSED_APPROACH_PREFIX" />
         <ruleref uri="#ALTITUDE_VALUE" />
         <item repeat="0-1">feet</item>
         <tag>out.pid="17"; out.cval=rules.ALTITUDE_VALUE;</tag>
@@ -240,10 +230,9 @@
       <!-- Missed approach altitude — explicit flight level -->
       <item>
         <one-of>
-          <item>set go around altitude</item>
+          <item><ruleref uri="#MISSED_APPROACH_PREFIX" /></item>
           <item>set go around</item>
-          <item>go around altitude</item>
-          <item>go around</item>
+          <item>set missed approach</item>
         </one-of>
         <item>flight level</item>
         <ruleref uri="#HDG_SPD_FL_VALUE" />
@@ -264,6 +253,13 @@
         <ruleref uri="#MINIMUMS_VALUE" />
         <item repeat="0-1">feet</item>
         <tag>out.pid="20"; out.cval=rules.MINIMUMS_VALUE;</tag>
+      </item>
+
+      <!-- Runway selection — "zero nine left confirmed" → pid "21", cval "09|L" -->
+      <item>
+        <ruleref uri="#RUNWAY_VALUE" />
+        <item>confirmed</item>
+        <tag>out.pid="21"; out.cval=rules.RUNWAY_VALUE;</tag>
       </item>
     </one-of>
   </rule>
@@ -470,6 +466,7 @@
       <item>press alt<tag>out.pid="110";</tag></item>
       <item>arm approach<tag>out.pid="111";</tag></item>
       <item>arm localizer<tag>out.pid="112";</tag></item>
+      <item>arm loc<tag>out.pid="112";</tag></item>
       <!-- Lights -->
       <item>landing light on<tag>out.pid="12";</tag></item>
       <item>takeoff light on<tag>out.pid="69";</tag></item>
@@ -479,6 +476,12 @@
       <item>strobe light off<tag>out.pid="16";</tag></item>
       <item>taxi light on<tag>out.pid="17";</tag></item>
       <item>taxi light off<tag>out.pid="18";</tag></item>
+      <!--Brake fan-->
+      <item>brake fan on<tag>out.pid="125";</tag></item>
+      <item>brake fan off<tag>out.pid="126";</tag></item>
+      <!--Control handover-->
+      <item>you have control<tag>out.pid="127";</tag></item>
+      <item>i have control<tag>out.pid="128";</tag></item>
       <!-- Flight director -->
       <item>flight director on<tag>out.pid="19";</tag></item>
       <item>bird on<tag>out.pid="67";</tag></item>
@@ -815,6 +818,14 @@
     </one-of>
   </rule>
 
+  <!-- Go-around / missed approach altitude command prefix -->
+  <rule id="MISSED_APPROACH_PREFIX">
+    <one-of>
+      <item>set go around altitude</item>
+      <item>set missed approach altitude</item>
+    </one-of>
+  </rule>
+
   <!-- Altitude value: "twelve thousand five hundred" → "12500" -->
   <rule id="ALTITUDE_VALUE">
     <ruleref uri="#ALTV_THOUSANDS" />
@@ -981,6 +992,35 @@
       <item>seventy<tag>out="70";</tag></item>
       <item>eighty<tag>out="80";</tag></item>
       <item>ninety<tag>out="90";</tag></item>
+    </one-of>
+  </rule>
+
+  <!-- Runway identifier and optional designator: "zero nine left" → "09|L" -->
+  <rule id="RUNWAY_VALUE">
+    <ruleref uri="#RUNWAY_TWO_DIGITS" />
+    <tag>out.id=rules.RUNWAY_TWO_DIGITS; out.des="";</tag>
+    <item repeat="0-1">
+      <ruleref uri="#RUNWAY_DESIGNATOR" />
+      <tag>out.des=rules.RUNWAY_DESIGNATOR;</tag>
+    </item>
+    <tag>out=out.id+"|"+out.des;</tag>
+  </rule>
+
+  <!-- Two digit runway numbers: "zero nine" → "09", "two seven" → "27" -->
+  <rule id="RUNWAY_TWO_DIGITS">
+    <ruleref uri="#NUMBERS" />
+    <tag>out.a=rules.NUMBERS;</tag>
+    <ruleref uri="#NUMBERS" />
+    <tag>out=out.a+rules.NUMBERS;</tag>
+  </rule>
+
+  <!-- Optional runway designator letters -->
+  <rule id="RUNWAY_DESIGNATOR">
+    <one-of>
+      <item>left<tag>out="L";</tag></item>
+      <item>right<tag>out="R";</tag></item>
+      <item>center<tag>out="C";</tag></item>
+      <item>centre<tag>out="C";</tag></item>
     </one-of>
   </rule>
 

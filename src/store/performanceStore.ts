@@ -9,6 +9,7 @@ interface TakeoffData {
   thrustSetting?: string
   packs?: string
   antiIce?: string
+  runway: string
 }
 
 interface LandingData {
@@ -16,6 +17,7 @@ interface LandingData {
   missedAltitude: number
   antiIce?: string
   apuStart?: string
+  ls: boolean
 }
 
 interface PerformanceStore {
@@ -33,14 +35,16 @@ const defaultTakeoffData: TakeoffData = {
   v2: 0,
   thrustSetting: "toga",
   packs: "on",
-  antiIce: "off"
+  antiIce: "off",
+  runway: ""
 }
 
 const defaultLandingData: LandingData = {
   flaps: "Full",
   missedAltitude: 4000,
   antiIce: "off",
-  apuStart: "auto"
+  apuStart: "auto",
+  ls: true
 }
 
 export const usePerformanceStore = create<PerformanceStore>()(

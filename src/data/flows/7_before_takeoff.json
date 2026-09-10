@@ -26,7 +26,8 @@
       "label": "ND SET",
       "read": "(L:INI_MAP_RANGE_FO_SWITCH)",
       "on": "6 (>L:INI_MAP_RANGE_FO_SWITCH)",
-      "expect": 6
+      "expect": 6,
+      "sound_on_execute": "appr_path_clear_of_tfc.ogg"
     },
     {
       "label": "Strobes",

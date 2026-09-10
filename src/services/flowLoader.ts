@@ -102,6 +102,10 @@ async function getTemplateVars(): Promise<Record<string, string>> {
   vars["landing_apu_start_cmd"] = landingApuAutoStart ? "1 (>L:INI_APU_START_BUTTON)" : "0 (>L:INI_APU_START_BUTTON)"
   vars["landing_apu_start_expect"] = landingApuAutoStart ? "1" : "0"
 
+  const landingLSonoff = (landing.ls ?? false) === true
+  vars["landing_ls_on"] = landingLSonoff ? "1 (>L:INI_LS_FO)" : "0 (>L:INI_LS_FO)"
+  vars["landing_ls_expect"] = landingLSonoff ? "1" : "0"
+
   const landFlapsMap: Record<string, string> = {
     "3": "3",
     Full: "4"

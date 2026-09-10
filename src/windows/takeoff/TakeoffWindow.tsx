@@ -107,7 +107,8 @@ export function TakeoffWindow() {
                   <Info className="w-3 h-3 text-slate-400 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="text-xs max-w-[200px]">
-                  Other than OFF will not set the flaps automatically on after start flow.
+                  Other than OFF will not set the flaps automatically on after start flow. You will need to order when
+                  close to runway.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -124,6 +125,39 @@ export function TakeoffWindow() {
             <option value="oneng">ENG</option>
             <option value="onengwing">ENG+WING</option>
           </select>
+        </div>
+
+        <div className="space-y-1">
+          <div className={labelRow}>
+            <Label htmlFor="runway" className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
+              Runway
+            </Label>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="text-xs max-w-[200px]">
+                  Used for line up checklist takeoff runway item
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          <Input
+            type="text"
+            id="runway"
+            name="runway"
+            maxLength={4}
+            value={takeoff.runway ?? ""}
+            onChange={(e) => {
+              const val = e.target.value.toUpperCase().replace(/[^0-9LCR]/g, "")
+              handleChange("runway", val)
+            }}
+            className="h-8 bg-slate-900/50 border-slate-600 text-white text-xs font-mono text-center focus-visible:ring-cyan-500 uppercase"
+            placeholder="08L"
+          />
         </div>
       </div>
 

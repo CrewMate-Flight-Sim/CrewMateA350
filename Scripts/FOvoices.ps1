@@ -1,30 +1,11 @@
-# This script uses Azure Cognitive Services for high-quality TTS
-# You'll need a free Azure account: https://azure.microsoft.com/free/
-
-# === LOAD .env ===
-$envFile = Join-Path $PSScriptRoot ".env"
-if (Test-Path $envFile) {
-    Get-Content $envFile | ForEach-Object {
-        if ($_ -match '^\s*([^#][^=]+?)\s*=\s*(.+)\s*$') {
-            [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2], 'Process')
-        }
-    }
-}
-else {
-    Write-Error ".env file not found at: $envFile (copy .env.example and fill in your values)"
-    exit 1
-}
-
 # === CONFIGURATION ===
-$azureKey = $env:AZURE_TTS_KEY
-$azureRegion = $env:AZURE_TTS_REGION
-$voiceName = "en-US-JennyNeural"   # Jenny neural voice
 
-# Other voices:
-# "en-US-AriaNeural"  - Female, friendly
-# "en-US-GuyNeural"   - Male, professional
-# "en-US-DavisNeural" - Male, authoritative
-# "en-US-JennyNeural"  - Female, clear
+$voicesToGenerate = @(
+    "en-US-JennyNeural", 
+    "en-US-AriaNeural", 
+    "en-US-GuyNeural", 
+    "en-US-ChristopherNeural"
+)
 
 $phrases = @{
     "checked"                                   = "Checked"
@@ -63,7 +44,7 @@ $phrases = @{
     "runway_condition"                          = "Runway condition"
     "auto_brake"                                = "Auto brake"
     "approach_checklist_completed"              = "Approach checklist completed"
-    "cabin_crew"                                = "Cabin crew"
+    "cabin"                                = "Cabin"
     "takeoff_runway"                            = "Takeoff runway"
     "packs_one_and_two"                         = "Packs one and two"
     "line_up_checklist_completed"               = "Line up checklist completed"
@@ -135,7 +116,7 @@ $phrases = @{
     "departure_change_checklist_completed"      = "Departure change checklist completed"
     "one_to_go"                                 = "One thousand to go"
     "standard_set"                              = "Standard Set"
-    "missed_approach_alt_set"                   = "Missed approach altitude set"
+    "go_around_alt"                   = "Go around altitude" # changed
     "check_beacon"                              = "Beacon is not on"
     "check_belts"                               = "Seat belt sign is not on"
     "pressure_zero"                             = "Pressure zero"
@@ -145,84 +126,64 @@ $phrases = @{
     "starting_engine_2"                         = "Starting engine two"
     "five_minutes"                              = "Five minutes"
     "five_minutes_not_passed"                   = "Five minutes not passed yet"
-}
+    "feet_set" = "feet set" # new
+    "appr_path_clear_of_tfc" = "approach path clear of traffic" # new
+    "i_have_ctrl" = "I have control" # new
+    "you_have_ctrl" = "You have control" # new
+    "left" = "Left" # new
+    "center" = "Center" # new
+    "right" = "Right" # new
+} 
 
-# Derive folder name from voice: "en-US-JennyNeural" -> "Jenny"
-$voiceShortName = ($voiceName -replace '^.*-([A-Za-z]+)Neural$', '$1')
-if ([string]::IsNullOrWhiteSpace($voiceShortName) -or $voiceShortName -eq $voiceName) {
-    $voiceShortName = $voiceName  # fallback to full name
-}
-$outDir = Join-Path $PSScriptRoot "..\src-tauri\sounds\$voiceShortName"
-$outDir = [System.IO.Path]::GetFullPath($outDir)
-New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+# Find Python automatically
+$pythonExe = Get-Command python.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+if (-not $pythonExe) { $pythonExe = "py" } # Fallback to launcher
 
-$ffmpegExe = "C:\Users\extra\Downloads\Wwise-Unpacker-master\Tools\ffmpeg.exe"
+
+# === DYNAMIC FFmpeg SEARCH ===
+$ffmpegExe = Get-Command ffmpeg -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+
+if (-not $ffmpegExe) {
+    # Fallback to your specific path if it's not in the System PATH
+    $ffmpegExe = "C:\Users\extra\Downloads\Wwise-Unpacker-master\Tools\ffmpeg.exe"
+}
 
 if (-not (Test-Path $ffmpegExe)) {
-    Write-Error "FFmpeg not found at: $ffmpegExe"
+    Write-Error "FFmpeg NOT FOUND! Please install it or check the path: $ffmpegExe"
     exit 1
 }
+Write-Host "Using FFmpeg from: $ffmpegExe" -ForegroundColor Yellow
 
-if ([string]::IsNullOrWhiteSpace($azureKey) -or $azureKey -eq "your_azure_tts_key_here") {
-    Write-Error "Please set AZURE_TTS_KEY in PSscripts/.env"
-    Write-Host ""
-    Write-Host "To get a free Azure key:"
-    Write-Host "1. Go to https://azure.microsoft.com/free/"
-    Write-Host "2. Create a free account"
-    Write-Host "3. Create a Speech Service resource"
-    Write-Host "4. Copy the key and region"
-    exit 1
-}
+# === VOICE GENERATION LOOP ===
+foreach ($voiceName in $voicesToGenerate) {
+    
+    $voiceShortName = ($voiceName -replace '^.*-([A-Za-z]+)Neural$', '$1')
+    $outDir = Join-Path $PSScriptRoot "..\src-tauri\sounds\$voiceShortName"
+    $outDir = [System.IO.Path]::GetFullPath($outDir)
+    New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
-$count = 0
-$total = $phrases.Count
+    Write-Host "`n>>> STARTING VOICE: $voiceShortName" -ForegroundColor Cyan
 
-Write-Host "Using Azure TTS with voice: $voiceName"
-Write-Host ""
+    foreach ($file in $phrases.Keys) {
+        $text = $phrases[$file]
+        $mp3Path = "$outDir\$file.mp3"
+        $oggPath = "$outDir\$file.ogg"
 
-foreach ($file in $phrases.Keys) {
-    $count++
-    $text = $phrases[$file]
-    $mp3Path = "$outDir\$file.mp3"
-    $oggPath = "$outDir\$file.ogg"
-
-    Write-Host "[$count/$total] Processing: $file"
-
-    try {
-        # Build SSML
-        $ssml = @"
-<speak version='1.0' xml:lang='en-US'>
-    <voice name='$voiceName'>
-        <prosody rate='-5%' pitch='+0%'>
-            $text
-        </prosody>
-    </voice>
-</speak>
-"@
-
-        # Call Azure TTS API
-        $headers = @{
-            "Ocp-Apim-Subscription-Key" = $azureKey
-            "Content-Type"              = "application/ssml+xml"
-            "X-Microsoft-OutputFormat"  = "audio-16khz-128kbitrate-mono-mp3"
+        try {
+            # Use edge-tts (free)
+            edge-tts --voice $voiceName --text "$text" --write-media "$mp3Path"
+            
+            # Convert to OGG
+            if (Test-Path $mp3Path) {
+                & $ffmpegExe -i "$mp3Path" -c:a libvorbis -q:a 4 "$oggPath" -y -loglevel error
+                Remove-Item $mp3Path -ErrorAction SilentlyContinue
+                Write-Host "  [OK] $file"
+            }
         }
-
-        $uri = "https://$azureRegion.tts.speech.microsoft.com/cognitiveservices/v1"
-        
-        $response = Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $ssml -OutFile $mp3Path
-        
-        # Convert to OGG
-        $ffmpegArgs = "-i `"$mp3Path`" -c:a libvorbis -q:a 4 `"$oggPath`" -y"
-        $process = Start-Process -FilePath $ffmpegExe -ArgumentList $ffmpegArgs -Wait -NoNewWindow -PassThru
-        
-        if ($process.ExitCode -eq 0) {
-            Remove-Item $mp3Path -ErrorAction SilentlyContinue
+        catch {
+            Write-Error "Failed $file : $_"
         }
-    }
-    catch {
-        Write-Error "Error processing $file : $_"
     }
 }
 
-Write-Host ""
-Write-Host "✓ Completed! Audio files created in $outDir"
+Write-Host "Completed! Audio files created in $outDir"

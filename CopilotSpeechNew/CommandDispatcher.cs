@@ -47,6 +47,7 @@ namespace VoiceSidecar
                 18 => MissedApproachFL(cval, raw),
                 19 => Minimums(cval, "baro", raw),
                 20 => Minimums(cval, "radio", raw),
+                21 => Runway(cval, raw),
                 _ => null,
             };
         }
@@ -231,6 +232,28 @@ namespace VoiceSidecar
             );
         }
 
+        private static VoiceCommand? Runway(string cval, string raw)
+        {
+            // cval = "identifier|designator" e.g. "09|L", "27|", "36|R"
+            var parts = cval.Split('|');
+            if (parts.Length < 1)
+                return null;
+
+            var identifier = parts[0];
+            var designator = parts.Length > 1 ? parts[1] : string.Empty;
+
+            var payload = new Dictionary<string, object>
+            {
+                ["runway"] = identifier + designator,
+                ["identifier"] = identifier
+            };
+
+            if (!string.IsNullOrEmpty(designator))
+                payload["designator"] = designator;
+
+            return Cmd("runway", raw, payload);
+        }
+
         private static VoiceCommand? TakeoffData(string cval, string raw)
         {
             // cval = "V1|VR|V2|thrustMode|flexTemp"
@@ -262,7 +285,6 @@ namespace VoiceSidecar
 
             return Cmd("takeoff_data", raw, payload);
         }
-
         private static VoiceCommand DispatchFma(string cval, string raw)
         {
             var payload = new Dictionary<string, object>();
@@ -392,6 +414,11 @@ namespace VoiceSidecar
             [121] = "cabin_crew_disarm_slides",
             // Brake
             [61] = "brake_check",
+            [125] = "brake_fan_on",
+            [126] = "brake_fan_off",
+            // Control Handover
+            [127] = "you_have_ctrl", 
+            [128] = "i_have_ctrl",
             // Altimeter
             [64] = "set_standard",
             [122] = "set_altimeter",

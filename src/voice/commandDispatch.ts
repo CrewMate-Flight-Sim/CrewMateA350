@@ -1,4 +1,4 @@
-import { simvarSet } from "@/API/simvarApi"
+import { simvarGet, simvarSet } from "@/API/simvarApi"
 import { buildPassingAltitudeSequence } from "@/hooks/useCallouts"
 import { delay } from "@/lib/utils"
 import { abortChecklist, executeChecklist } from "@/services/checklistRunner"
@@ -31,6 +31,7 @@ import {
   setSelSpeed
 } from "./commands/autoPilot"
 import { setStdBaro } from "./commands/baro"
+import { setBrakeFan } from "./commands/brake_fan"
 import { setDoorSlides } from "./commands/doorSlides"
 import { setIgnKnob, startEngine2 } from "./commands/engine"
 import { setFlaps } from "./commands/flaps"
@@ -49,6 +50,22 @@ const gePack = () => useSettingsStore.getState().geSoundPack
 // Commands that are allowed to fire even while a checklist is running.
 export const checklistAbortCommands = new Set(["checklist_cancel"])
 
+// Commands that still work while the FO is outside on the walkaround: the ground
+// engineer is a different person on the interphone, and the preflight timer is
+// how the pilot moves through the absence.
+export const foAwayAllowedCommands = new Set([
+  "ground_call",
+  "pushback_request",
+  "connect_gpu",
+  "disconnect_gpu",
+  "connect_asu",
+  "disconnect_asu",
+  "connect_acu",
+  "disconnect_acu",
+  "disconnect_all_ground",
+  "prepare_aircraft"
+])
+
 // ─── Discrete command map ─────────────────────────────────────────────────────
 
 export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
@@ -63,6 +80,35 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
   flaps_3: () => setFlaps(3),
   flaps_full: () => setFlaps(4),
   go_around_flaps: () => executeGoAround(),
+
+  // ── Brake Fan ─────────────────────────────────────────────────────────────
+  brake_fan_on: async () => {
+    const isFitted = (await simvarGet("(L:INI_OPTION_BRAKE_FANS)")) === 1
+    if (isFitted) {
+      playSound("check.ogg")
+      await setBrakeFan(1)
+    } else {
+      playSound("are_you_sure.ogg")
+    }
+  },
+
+  brake_fan_off: async () => {
+    const isFitted = (await simvarGet("(L:INI_OPTION_BRAKE_FANS)")) === 1
+    if (isFitted) {
+      playSound("check.ogg")
+      await setBrakeFan(0)
+    } else {
+      playSound("are_you_sure.ogg")
+    }
+  },
+
+  // Control handover
+  you_have_ctrl: () => {
+    playSound("i_have_ctrl.ogg")
+  },
+  i_have_ctrl: () => {
+    playSound("you_have_ctrl.ogg")
+  },
 
   // ── Lights ────────────────────────────────────────────────────────────────
   landing_lights_on: () => {
@@ -363,6 +409,23 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
   }
 }
 
+/**
+ * Build the go-around altitude readback. Only exact thousands up to 10000 can be
+ * spoken — the packs carry 0-9, thousand and ten_thousand, but no "hundred" — so
+ * anything else falls back to "go around altitude set" rather than a wrong or
+ * missing number file.
+ */
+const buildGoAroundAltSequence = (altValue: number): string[] => {
+  if (altValue === 10000) {
+    return ["go_around_alt.ogg", "ten_thousand.ogg", "feet_set.ogg"]
+  }
+  const thousands = altValue / 1000
+  if (Number.isInteger(thousands) && thousands >= 1 && thousands <= 9) {
+    return ["go_around_alt.ogg", `${thousands}.ogg`, "thousand.ogg", "feet_set.ogg"]
+  }
+  return ["go_around_alt.ogg", "set.ogg"]
+}
+
 // ─── FO command dispatcher (heading, altitude, speed, fma) ────────
 
 export async function dispatchFoCommand(commandType: string, payload: Record<string, unknown>): Promise<boolean> {
@@ -418,16 +481,13 @@ export async function dispatchFoCommand(commandType: string, payload: Record<str
     }
 
     case "missed_approach_altitude": {
-      if ((payload.mode as string) === "auto") {
-        const alt = usePerformanceStore.getState().landing?.["missedAltitude"]
-        if (alt != null) {
-          playSound("missed_approach_alt_set.ogg")
-          setAltitudeDial(alt)
-        }
-      } else if (payload.value != null) {
-        playSound("missed_approach_alt_set.ogg")
-        setAltitudeDial(payload.value as number)
-      }
+      const altValue =
+        (payload.mode as string) === "auto"
+          ? usePerformanceStore.getState().landing?.missedAltitude
+          : (payload.value as number | undefined)
+      if (altValue == null) return true
+      setAltitudeDial(altValue)
+      playSoundSequence(buildGoAroundAltSequence(altValue))
       return true
     }
 

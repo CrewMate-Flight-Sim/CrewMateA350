@@ -3,7 +3,8 @@ import { listen } from "@tauri-apps/api/event"
 import { useEffect, useState } from "react"
 
 import { useChecklistStore } from "@/store/checklistStore"
-import { checklistAbortCommands, dispatchFoCommand } from "@/voice/commandDispatch"
+import { useFoPresenceStore } from "@/store/foPresenceStore"
+import { checklistAbortCommands, dispatchFoCommand, foAwayAllowedCommands } from "@/voice/commandDispatch"
 
 type SpeechRecognizedPayload = {
   type?: string
@@ -61,6 +62,15 @@ export function useSpeechCommands({ voiceEnabled }: UseSpeechCommandsOptions) {
       setIsUnrecognized(false)
 
       const { commandType, payload } = event.payload
+
+      const foAway = useFoPresenceStore.getState().isActive
+      const isAllowedWhileAway = commandType === "discrete" && foAwayAllowedCommands.has(payload?.command as string)
+
+      if (foAway && !isAllowedWhileAway) {
+        setRecognizedText(spokenText)
+        setIsValidCommand(false)
+        return
+      }
 
       // While a checklist is running, only allow explicit abort commands through.
       // All other voice commands are suppressed — the checklist runner handles

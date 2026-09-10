@@ -45,7 +45,7 @@ export function LandingWindow() {
     [landing, setLandingData]
   )
 
-  const handleChange = (name: string, value: string | number) => {
+  const handleChange = (name: string, value: string | number | boolean) => {
     setLandingData({ [name]: value } as Partial<typeof landing>)
     emit("landing-updated", { ...landing, [name]: value })
   }
@@ -58,11 +58,15 @@ export function LandingWindow() {
     handleChange(e.target.name, e.target.value)
   }
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e.target.name, e.target.checked)
+  }
+
   const labelRow = "flex items-center gap-1 h-4"
 
   return (
     <div className="h-screen bg-black text-white p-3 flex flex-col gap-3">
-      {/*Flaps + Missed Approach */}
+      {/* Flaps + Missed Approach */}
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label htmlFor="flaps" className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
@@ -160,6 +164,40 @@ export function LandingWindow() {
         </div>
       </div>
 
+      {/* SEL LS Checkbox */}
+      <div className="flex flex-col items-center gap-1">
+        <div className="flex items-center gap-1">
+          <Label
+            htmlFor="selLs"
+            className="text-xs font-mono text-cyan-400 uppercase tracking-widest cursor-pointer select-none"
+          >
+            SEL LS?
+          </Label>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-3 h-3 text-slate-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="text-xs max-w-[200px]">
+                This will tell FO if he/she will select the LS button or not, deselect if flying RNP AR approach for
+                example.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        <div className="flex items-center justify-center h-8">
+          <input
+            type="checkbox"
+            id="selLs"
+            name="ls"
+            checked={Boolean(landing.ls)}
+            onChange={handleCheckboxChange}
+            className="w-4 h-4 rounded border-slate-600 bg-slate-900/50 accent-cyan-500 cursor-pointer"
+          />
+        </div>
+      </div>
       <Button
         onClick={() => getCurrentWindow().close()}
         className="w-full h-8 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold text-sm mt-3"
