@@ -361,6 +361,7 @@ class ChecklistRunner {
         checkAbort(signal)
         if (await findPassingRule(item.validations, "", signal)) break
         if (item.incorrect) await playSyncSound(item.incorrect)
+        if (!useSettingsStore.getState().holdOnIncorrect) break
         await delay(AUTO_CHECK_RETRY_DELAY)
       }
     }
