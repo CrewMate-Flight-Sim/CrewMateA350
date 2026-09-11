@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.5] - 2026-09-11
+
+- Fixed the FO repeating the reminder on an incorrect checklist item instead of saying it once, even with "Hold checklist on incorrect item" switched off - @marxio09dio
+- Fixed the missing "check" callout when shutting down engine 1 or 2 - @marxio09dio
+- Fixed the ECAM HYD and ENG pushbuttons staying pressed, which stopped the pages switching on later runs, and the FO now deselects the ENG page after the check - @marxio09dio
+- Fixed the FADEC and oxygen test steps reporting a failure when they had actually worked - @marxio09dio
+- Voice commands the FO cannot act on are no longer shown as accepted - @marxio09dio
+- Moved the speech sidecar to .NET 10, and cut the download by about 15 MB - @marxio09dio
+- Updated NAudio to 3.1.0 - @marxio09dio
+
 ## [0.3.4] - 2026-09-10
 
 - Switched voice generation from Azure Cognitive Services to edge-tts and regenerated every sound pack - @alexlenh
