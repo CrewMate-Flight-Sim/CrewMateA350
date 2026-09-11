@@ -1,7 +1,7 @@
 {
   "id": "shutdown_eng1",
   "name": "Shutdown Engine 1",
-  "start_sound": "check.ogg",
+  "sound_start": "check.ogg",
   "steps": [
     {
       "label": "Engine 1 Shutdown",

@@ -282,7 +282,7 @@ static WaveInStream? SetInputToNamedDevice(SpeechRecognitionEngine engine, strin
             || deviceName.Contains(caps.ProductName, StringComparison.OrdinalIgnoreCase)
         )
         {
-            var waveIn = new WaveInEvent
+            var waveIn = new WaveIn
             {
                 DeviceNumber = i,
                 WaveFormat = new WaveFormat(16000, 16, 1),
@@ -346,13 +346,13 @@ static void WriteLine(object payload)
 
 public sealed class WaveInStream : Stream
 {
-    private readonly WaveInEvent _waveIn;
+    private readonly WaveIn _waveIn;
     private readonly BlockingCollection<byte[]> _queue = new(64);
     private byte[]? _current;
     private int _offset;
     private long _position;
 
-    public WaveInStream(WaveInEvent waveIn)
+    public WaveInStream(WaveIn waveIn)
     {
         _waveIn = waveIn;
         _waveIn.DataAvailable += OnData;

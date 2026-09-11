@@ -438,7 +438,8 @@ export async function dispatchFoCommand(commandType: string, payload: Record<str
       const cmd = payload.command as string | undefined
       if (!cmd) return false
       const handler = discreteCommandMap[cmd]
-      if (handler) await handler()
+      if (!handler) return false
+      await handler()
       return true
     }
 
