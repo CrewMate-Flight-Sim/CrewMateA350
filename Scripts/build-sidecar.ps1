@@ -39,8 +39,9 @@ $repoRoot = Split-Path -Parent $projectDir
 
 Set-Location $projectDir
 
-# Build project
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true
+# Publish to a fixed directory so the target framework never appears in this script
+$publishDir = Join-Path $projectDir "publish"
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o $publishDir
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Build failed!" -ForegroundColor Red
@@ -56,8 +57,6 @@ if (!(Test-Path $binDir)) {
     New-Item -ItemType Directory -Path $binDir | Out-Null
 }
 
-$publishDir = Join-Path $projectDir "bin\Release\net8.0-windows\win-x64\publish"
-
 # Copy executable
 Write-Host "Copying .exe..." -ForegroundColor Yellow
 Copy-Item "$publishDir\CopilotSpeech.exe" `
@@ -68,7 +67,6 @@ Write-Host "✓ Copied copilot_speech-x86_64-pc-windows-msvc.exe" -ForegroundCol
 Write-Host "Copying grammar.xml..." -ForegroundColor Yellow
 $grammarPublishPath = Join-Path $publishDir "grammar.xml"
 $grammarProjectPath = Join-Path $projectDir "grammar.xml"
-$grammarLegacyPath = Join-Path $projectDir "bin\Release\net8.0\grammar.xml"
 $grammarFound = $null
 
 if (Test-Path $grammarPublishPath) {
@@ -76,9 +74,6 @@ if (Test-Path $grammarPublishPath) {
 }
 elseif (Test-Path $grammarProjectPath) {
     $grammarFound = $grammarProjectPath
-}
-elseif (Test-Path $grammarLegacyPath) {
-    $grammarFound = $grammarLegacyPath
 }
 
 if ($grammarFound) {
