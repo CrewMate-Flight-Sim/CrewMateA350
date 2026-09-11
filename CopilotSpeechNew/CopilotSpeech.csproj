@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Speech" Version="10.0.12" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NAudio" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
