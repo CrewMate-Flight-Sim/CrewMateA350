@@ -44,16 +44,6 @@ tons, balanced".
   numbers. Source is `USER_MANUAL.md` (282 lines, already has a hand-written
   TOC) plus `Manual/Images/`.
 
-## Cleanup
-
-- Delete the dead `"#3 confirmed"` token in `src/data/checklists/5_lineup.json`.
-  `matchesResponse` only special-cases `#3` as a standalone token, so this one is
-  a literal substring test that never matches. Matching already falls through to
-  plain `"confirmed"`, which is correct since the PM calls the runway.
-- Two orphaned sounds in the packs after the 0.3.4 rename: `cabin_crew.ogg`
-  (superseded by `cabin.ogg`) and `check_seatbelts.ogg` (superseded by
-  `check_belts.ogg`).
-
 ## Explicitly not doing
 
 - **ECAM / abnormal procedures** — no LVars for it.

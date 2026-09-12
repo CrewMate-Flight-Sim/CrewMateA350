@@ -101,7 +101,6 @@ $phrases = @{
     "flex"                                      = "Flex"
     "confirmed"                                 = "Confirmed"
     "BTV"                                       = "BTV"
-    "check_seatbelts"                           = "Check seatbelts"
     "check_landing_gear"                        = "Check landing gear"
     "check_flaps"                               = "Check flaps"
     "check_spoilers"                            = "Check spoilers"
