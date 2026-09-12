@@ -16,7 +16,7 @@
     "label": "PM walkaround",
     "type": "flow",
     "sound": "walkaround.ogg",
-    "flowId": "table_close"
+    "flowId": "walkaround_depart"
   },
   {
     "minuteMark": 35,

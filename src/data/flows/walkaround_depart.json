@@ -1,0 +1,27 @@
+{
+  "id": "walkaround_depart",
+  "name": "Walkaround Depart",
+  "steps": [
+    {
+      "label": "Table",
+      "read": "(L:INI_FO_TRAY_COVER_TGT)",
+      "on": "0 (>L:INI_FO_TRAY_COVER_TGT)",
+      "expect": 0
+    },
+    {
+      "label": "Armrest up",
+      "read": "(L:INI_A350_INT_SEAT_FO_ARMREST_L_BASE)",
+      "on": "1 (>L:INI_A350_INT_SEAT_FO_ARMREST_L_BASE)",
+      "expect": 1
+    },
+    {
+      "label": "Seat back",
+      "read": "(L:INI_SEAT_FO_BKFWD_ANIMATION)",
+      "on": "0 (>L:INI_SEAT_FO_BKFWD_SWITCH)",
+      "release": "1 (>L:INI_SEAT_FO_BKFWD_SWITCH)",
+      "until": "at_most",
+      "expect": 1,
+      "timeout_ms": 20000
+    }
+  ]
+}

@@ -16,6 +16,9 @@ export interface FlowStep {
   sound_on_execute?: string
   sound_after_execute?: string
   only_if?: FlowCondition
+  until?: "at_least" | "at_most"
+  release?: string
+  timeout_ms?: number
 }
 
 export interface Flow {

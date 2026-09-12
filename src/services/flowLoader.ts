@@ -21,6 +21,7 @@ import curtains_close from "@/data/flows/curtains_close.json"
 import curtains_open from "@/data/flows/curtains_open.json"
 import table_close from "@/data/flows/table_close.json"
 import table_open from "@/data/flows/table_open.json"
+import walkaround_depart from "@/data/flows/walkaround_depart.json"
 import { usePerformanceStore } from "@/store/performanceStore"
 import type { Flow, FlowStep } from "@/types/flow"
 
@@ -46,7 +47,8 @@ export const allFlows: Flow[] = [
   curtains_open,
   curtains_close,
   table_open,
-  table_close
+  table_close,
+  walkaround_depart
 ] as Flow[]
 
 export function getFlowById(id: string): Flow | undefined {
@@ -138,6 +140,7 @@ export async function resolveStep(step: FlowStep, vars?: Record<string, string>)
     label: resolveString(step.label, templateVars),
     read: resolveString(step.read, templateVars),
     on: resolveString(step.on, templateVars),
+    release: step.release ? resolveString(step.release, templateVars) : undefined,
     expect: typeof step.expect === "string" ? parseFloat(resolveString(step.expect, templateVars)) || 0 : step.expect,
     only_if: resolvedOnlyIf
   }
