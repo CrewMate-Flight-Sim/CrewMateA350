@@ -114,7 +114,6 @@ $phrases = @{
     "fcualt"                                    = "FCU altitude"
     "departure_change_checklist_completed"      = "Departure change checklist completed"
     "one_to_go"                                 = "One thousand to go"
-    "standard_set"                              = "Standard Set"
     "go_around_alt"                   = "Go around altitude" # changed
     "check_beacon"                              = "Beacon is not on"
     "check_belts"                               = "Seat belt sign is not on"

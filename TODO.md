@@ -25,8 +25,6 @@ tons, balanced".
 
 - **BTV callout** — `BTV.ogg` is recorded and referenced nowhere. Natural fit
   beside the existing autobrake checklist item.
-- **`standard_set.ogg`** — recorded, unused, despite the transition altitude
-  callout logic already existing.
 - **RTO** — `abort_takeoff` is in the grammar and its handler is commented out in
   `commandDispatch.ts`, so the FO does nothing during a rejected takeoff.
 - **`sound_after_execute`** — implemented in the flow runner, used by zero flows.
