@@ -311,7 +311,12 @@ export function useCallouts(vrSpeed: number) {
       al.oneToGo = true
     }
 
-    // Transition altitude / level
+    // Transition altitude / level — both calls prompt an altimeter change, so they
+    // are skipped when it has already been made. XMLVAR_Baro1_Mode: 3 = STD.
+    const baroMode = t.inialtimeter ?? -1
+    const onStandard = baroMode === 3
+    const baroKnown = baroMode >= 0
+
     if (
       !t.onGround &&
       t.vs > 100 &&
@@ -319,7 +324,7 @@ export function useCallouts(vrSpeed: number) {
       t.transitionAltitude > 0 &&
       crossedUp(p.alt, t.alt, t.transitionAltitude)
     ) {
-      playSound("transiton_altitude.ogg")
+      if (!baroKnown || !onStandard) playSound("transiton_altitude.ogg")
       al.transitionAltitude = true
     }
 
@@ -330,7 +335,7 @@ export function useCallouts(vrSpeed: number) {
       t.transitionLevel > 0 &&
       crossedDown(p.alt, t.alt, t.transitionLevel)
     ) {
-      playSound("transiton_level.ogg")
+      if (!baroKnown || onStandard) playSound("transiton_level.ogg")
       al.transitionLevel = true
     }
 

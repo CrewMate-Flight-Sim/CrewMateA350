@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0] - Unreleased
+
+- The FO now moves his seat: pulls it back and slides forward when he arrives at the aircraft, moves it back before leaving for the walkaround, forward again when he returns, and settles it before engine start - @marxio09dio
+- Flow steps can now drive a control until a value is reached, and always release it afterwards - @marxio09dio
+- The batteries are switched off before the battery voltage check in the preliminary cockpit preparation - @alexlenh
+- The IRS is switched off before NAV is selected, so the alignment always starts fresh instead of being skipped when it is already aligned - @alexlenh
+- The transition altitude and transition level calls are no longer made when the altimeter has already been set - @marxio09dioa
+- Removed unused sounds, voice script entries and packages - @marxio09dio
+
 ## [0.3.5] - 2026-09-11
 
 - Fixed the FO repeating the reminder on an incorrect checklist item instead of saying it once, even with "Hold checklist on incorrect item" switched off - @marxio09dio

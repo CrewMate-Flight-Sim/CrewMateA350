@@ -211,22 +211,22 @@ The FO will confirm speed limits before moving flaps while airborne.
 
 ### Autopilot
 
-| Say                                                                                                | What happens                                       |
-| -------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| "Autopilot on"                                                                                     | Engages Autopilot 1.                               |
-| "Set speed **_ or speed select _**"                                                                | Sets commanded speed.                              |
-| "Set heading **\_ or heading select \_\_**"                                                        | Sets commanded heading.                            |
-| "Set altitude **\_** or altitude select **\_** or set flight level **_ or flight level select _**" | Sets commanded altitude.                           |
-| "Pull speed"                                                                                       | Pulls speed knob to select selected speed.         |
-| "Pull speed \_\_\_"                                                                                | Pulls speed knob and sets the commanded speed.     |
-| "Manage speed"                                                                                     | Pushes speed knob to select managed speed.         |
-| "Pull heading"                                                                                     | Pulls heading knob to select selected heading.     |
-| "Pull heading \_\_\_"                                                                              | Pulls heading knob and sets the commanded heading. |
-| "Manage nav"                                                                                       | Pushes heading knob to select LNAV.                |
-| "Altitude **\_** pull or Flight level \_\_\_ pull"                                                 | Sets commanded altitude and pulls altitude knob.   |
-| "Altitude **\_** manage or Flight level \_\_\_ manage"                                             | Sets commanded altitude and pushes altitude knob.  |
-| "Altitude pull or Flight level pull"                                                               | Pulls altitude knob.                               |
-| "Altitude manage or Flight level manage"                                                           | Pushes altitude knob.                              |
+| Say                                                                                                 | What happens                                       |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| "Autopilot on"                                                                                      | Engages Autopilot 1.                               |
+| "Set speed **\_ or speed select _**"                                                                | Sets commanded speed.                              |
+| "Set heading **\_ or heading select \_\_**"                                                         | Sets commanded heading.                            |
+| "Set altitude **\_** or altitude select **\_** or set flight level **\_ or flight level select _**" | Sets commanded altitude.                           |
+| "Pull speed"                                                                                        | Pulls speed knob to select selected speed.         |
+| "Pull speed \_\_\_"                                                                                 | Pulls speed knob and sets the commanded speed.     |
+| "Manage speed"                                                                                      | Pushes speed knob to select managed speed.         |
+| "Pull heading"                                                                                      | Pulls heading knob to select selected heading.     |
+| "Pull heading \_\_\_"                                                                               | Pulls heading knob and sets the commanded heading. |
+| "Manage nav"                                                                                        | Pushes heading knob to select LNAV.                |
+| "Altitude **\_** pull or Flight level \_\_\_ pull"                                                  | Sets commanded altitude and pulls altitude knob.   |
+| "Altitude **\_** manage or Flight level \_\_\_ manage"                                              | Sets commanded altitude and pushes altitude knob.  |
+| "Altitude pull or Flight level pull"                                                                | Pulls altitude knob.                               |
+| "Altitude manage or Flight level manage"                                                            | Pushes altitude knob.                              |
 
 ### Flight Controls Check
 
