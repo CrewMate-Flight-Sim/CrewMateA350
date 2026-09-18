@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 
+import { useTelemetryTick } from "@/hooks/useTelemetryTick"
 import { executeFlow } from "@/services/flowRunner"
 import { useFlowStore } from "@/store/flowStore"
 import { useGoAroundStore } from "@/store/goAroundStore"
@@ -70,7 +71,7 @@ export function useAutoFlows() {
     })
   }, [])
 
-  const tick = useCallback(() => {
+  const tick = () => {
     const t = useTelemetryStore.getState().telemetry
     if (!t || t.isSlewActive) return
 
@@ -177,10 +178,7 @@ export function useAutoFlows() {
     p.alt = t.alt ?? 0
     p.mixture1 = t.mixture1 ?? 1
     p.mixture2 = t.mixture2 ?? 1
-  }, [])
+  }
 
-  useEffect(() => {
-    const id = setInterval(tick, 100)
-    return () => clearInterval(id)
-  }, [tick])
+  useTelemetryTick(tick)
 }

@@ -1,6 +1,7 @@
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 
 import { simvarSet } from "@/API/simvarApi"
+import { useTelemetryTick } from "@/hooks/useTelemetryTick"
 import { playSound, isSoundPlaying } from "@/services/playSounds"
 import { useGoAroundStore } from "@/store/goAroundStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
@@ -256,7 +257,7 @@ export function useCallouts(vrSpeed: number) {
     })
   }, [])
 
-  const tick = useCallback(async () => {
+  const tick = async () => {
     const t = useTelemetryStore.getState().telemetry
     if (!t || t.isSlewActive) return
 
@@ -489,10 +490,7 @@ export function useCallouts(vrSpeed: number) {
     p.cabinIsReady = cabinIsReady
     p.takeoffN1 = takeoffN1
     p.fcuAlt = fcuAlt
-  }, [])
+  }
 
-  useEffect(() => {
-    const id = setInterval(tick, 100)
-    return () => clearInterval(id)
-  }, [tick])
+  useTelemetryTick(tick)
 }
