@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core"
 
+import { delay } from "@/lib/utils"
 import { useSettingsStore } from "@/store/settingsStore"
 
 interface PlaySoundOptions {
@@ -28,6 +29,13 @@ export const isSoundPlaying = async (): Promise<boolean> => {
   } catch {
     return false
   }
+}
+
+const SOUND_POLL_INTERVAL_MS = 100
+
+/** Resolves once the backend reports no sound is playing. */
+export const waitForSoundFinished = async (): Promise<void> => {
+  while (await isSoundPlaying()) await delay(SOUND_POLL_INTERVAL_MS)
 }
 
 /// Play a list of sound files back-to-back (silence-trimmed, gapless).

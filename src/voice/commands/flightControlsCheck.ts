@@ -1,5 +1,5 @@
 import { executeFlow } from "@/services/flowRunner"
-import { playSound, isSoundPlaying } from "@/services/playSounds"
+import { playSound, waitForSoundFinished } from "@/services/playSounds"
 import { useTelemetryStore } from "@/store/telemetryStore"
 import type { Telemetry } from "@/store/telemetryStore"
 
@@ -45,25 +45,13 @@ function waitFor(condition: (t: Telemetry) => boolean): Promise<void> {
   })
 }
 
-/** Resolves once the backend reports no sound is playing. */
-function waitForSoundDone(): Promise<void> {
-  return new Promise((resolve) => {
-    const id = setInterval(async () => {
-      if (!(await isSoundPlaying())) {
-        clearInterval(id)
-        resolve()
-      }
-    }, 50)
-  })
-}
-
 export async function flightControlsCheck() {
-  await waitForSoundDone()
+  await waitForSoundFinished()
 
   for (const step of steps) {
     await waitFor(step.condition)
     await playSound(step.sound)
-    await waitForSoundDone()
+    await waitForSoundFinished()
   }
 
   executeFlow("after_flight_controls_check")

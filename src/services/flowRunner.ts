@@ -1,7 +1,7 @@
 import { simvarGet, simvarSet } from "@/API/simvarApi"
 import { delay } from "@/lib/utils"
 import { getFlowById, resolveFlow } from "@/services/flowLoader"
-import { playSound, isSoundPlaying } from "@/services/playSounds"
+import { playSound, waitForSoundFinished } from "@/services/playSounds"
 import { useFlowStore } from "@/store/flowStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { useSettingsStore } from "@/store/settingsStore"
@@ -28,9 +28,6 @@ const FUZZY_EPS = 0.5
 const getRandomStepDelay = () => Math.random() * (STEP_DELAY.MAX - STEP_DELAY.MIN) + STEP_DELAY.MIN
 const fuzzyEquals = (a: number, b: number, eps = FUZZY_EPS) => Math.abs(a - b) < eps
 const toNumber = (v: number | string) => (typeof v === "string" ? parseFloat(v) : v)
-const waitForSoundFinished = async () => {
-  while (await isSoundPlaying()) await delay(100)
-}
 
 // ---------------------------------------------------------------------------
 // SimVar I/O

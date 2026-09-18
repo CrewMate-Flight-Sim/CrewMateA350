@@ -3,7 +3,7 @@ import { listen } from "@tauri-apps/api/event"
 import { simvarGet, simvarSet } from "@/API/simvarApi"
 import { delay } from "@/lib/utils"
 import { getChecklistById } from "@/services/checklistLoader"
-import { isSoundPlaying, playSound, playSoundSequence } from "@/services/playSounds"
+import { playSound, playSoundSequence, waitForSoundFinished } from "@/services/playSounds"
 import { useChecklistStore } from "@/store/checklistStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { useSettingsStore } from "@/store/settingsStore"
@@ -25,10 +25,6 @@ const NUMBER_WORDS_RE = new RegExp(`\\b${NUMBER_WORD_PATTERN}(?:[\\s-]+${NUMBER_
 // ---------------------------------------------------------------------------
 // Utilities
 // ---------------------------------------------------------------------------
-
-async function waitForSoundFinished(): Promise<void> {
-  while (await isSoundPlaying()) await delay(100)
-}
 
 async function playSyncSound(soundFile: string): Promise<void> {
   await waitForSoundFinished()
