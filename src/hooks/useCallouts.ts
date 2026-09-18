@@ -66,26 +66,6 @@ const crossedUp = (prev: number, curr: number, threshold: number) => prev < thre
 
 const crossedDown = (prev: number, curr: number, threshold: number) => prev > threshold && curr <= threshold
 
-/**
- * Build audio sequence for "standard crosschecked, passing FL XXX"
- * @param targetAlt Target altitude in feet
- * @returns Array of audio filenames to play in sequence
- */
-export const buildPassingAltitudeSequence = (targetAlt: number): string[] => {
-  const sequence: string[] = ["standard_cross_checked.ogg", "passing_flight_level.ogg"]
-
-  const flightLevel = Math.round(targetAlt / 100)
-  //  FL050, FL100, FL250, etc.
-  const flString = flightLevel.toString().padStart(3, "0")
-
-  // digit files
-  for (const digit of flString) {
-    sequence.push(`${digit}.ogg`)
-  }
-
-  return sequence
-}
-
 const advancePhase = (ls: LandingSequenceState, next: LandingPhase, now: number) => {
   ls.phase = next
   ls.phaseStartTime = now

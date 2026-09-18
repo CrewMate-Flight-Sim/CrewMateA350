@@ -1,9 +1,9 @@
 import { simvarGet, simvarSet } from "@/API/simvarApi"
-import { buildPassingAltitudeSequence } from "@/hooks/useCallouts"
 import { delay } from "@/lib/utils"
 import { abortChecklist, executeChecklist } from "@/services/checklistRunner"
 import { executeFlow } from "@/services/flowRunner"
 import { playSound, playSoundSequence } from "@/services/playSounds"
+import { buildGoAroundAltSequence, buildPassingAltitudeSequence } from "@/services/soundSequences"
 import { useGroundEngineerStore } from "@/store/groundEngineerStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
 import { usePerformanceStore } from "@/store/performanceStore"
@@ -408,23 +408,6 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
     await disconnectAllGround()
     await playSound("all_off.ogg", { pack: gePack() })
   }
-}
-
-/**
- * Build the go-around altitude readback. Only exact thousands up to 10000 can be
- * spoken — the packs carry 0-9, thousand and ten_thousand, but no "hundred" — so
- * anything else falls back to "go around altitude set" rather than a wrong or
- * missing number file.
- */
-const buildGoAroundAltSequence = (altValue: number): string[] => {
-  if (altValue === 10000) {
-    return ["go_around_alt.ogg", "ten_thousand.ogg", "feet_set.ogg"]
-  }
-  const thousands = altValue / 1000
-  if (Number.isInteger(thousands) && thousands >= 1 && thousands <= 9) {
-    return ["go_around_alt.ogg", `${thousands}.ogg`, "thousand.ogg", "feet_set.ogg"]
-  }
-  return ["go_around_alt.ogg", "set.ogg"]
 }
 
 // ─── FO command dispatcher (heading, altitude, speed, fma) ────────
