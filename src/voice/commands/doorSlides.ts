@@ -1,23 +1,14 @@
-import { simvarSet, simvarGet } from "@/API/simvarApi"
+import { setLvar, simvarGet } from "@/API/simvarApi"
 
 export async function setDoorSlides(shouldArm: boolean) {
-  try {
-    const armed = (await simvarGet("(L:INI_DOOR0_ARMED)")) ?? 0
+  const armed = await simvarGet("(L:INI_DOOR0_ARMED)").catch((error) => {
+    console.error("[SimVar] Failed to read slides state (L:INI_DOOR0_ARMED):", error)
+    return undefined
+  })
+  if (armed === undefined) return
 
-    if (shouldArm) {
-      if (armed > 0.5) {
-        // Already armed, do nothing
-        return
-      }
-    } else {
-      if (armed < 0.5) {
-        // Already disarmed, do nothing
-        return
-      }
-    }
+  // Already in the requested state, do nothing
+  if ((armed ?? 0) > 0.5 === shouldArm) return
 
-    await simvarSet(`1 (>L:INI_SLIDES_REQ)`)
-  } catch (error) {
-    console.error("Error setting slides (LVAR):", error)
-  }
+  await setLvar(1, "INI_SLIDES_REQ", "slides")
 }

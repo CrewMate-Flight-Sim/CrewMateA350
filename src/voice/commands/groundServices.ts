@@ -1,40 +1,24 @@
 import { gsxClient } from "@/API/gsxApi"
-import { simvarSet } from "@/API/simvarApi"
+import { setLvar } from "@/API/simvarApi"
 
 gsxClient.connect()
 
 export async function setGPU(on: boolean) {
-  try {
-    await simvarSet(`${on ? 1 : 0} (>L:INI_GPU_AVAIL)`)
-  } catch (error) {
-    console.error("Error setting GPU (LVAR):", error)
-  }
+  await setLvar(on ? 1 : 0, "INI_GPU_AVAIL", "GPU")
 }
 
 export async function setASU(on: boolean) {
-  try {
-    await simvarSet(`${on ? 1 : 0} (>L:INI_ASU_AVAIL)`)
-  } catch (error) {
-    console.error("Error setting ASU (LVAR):", error)
-  }
+  await setLvar(on ? 1 : 0, "INI_ASU_AVAIL", "ASU")
 }
 
 export async function setACU(on: boolean) {
-  try {
-    await simvarSet(`${on ? 1 : 0} (>L:INI_ACU_AVAIL)`)
-  } catch (error) {
-    console.error("Error setting ACU (LVAR):", error)
-  }
+  await setLvar(on ? 1 : 0, "INI_ACU_AVAIL", "ACU")
 }
 
 export async function disconnectAllGround() {
-  try {
-    await simvarSet("0 (>L:INI_GPU_AVAIL)")
-    await simvarSet("0 (>L:INI_ASU_AVAIL)")
-    await simvarSet("0 (>L:INI_ACU_AVAIL)")
-  } catch (error) {
-    console.error("Error disconnecting all ground services (LVAR):", error)
-  }
+  await setGPU(false)
+  await setASU(false)
+  await setACU(false)
 }
 
 export async function callPushback() {
