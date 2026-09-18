@@ -29,7 +29,7 @@ interface PrevValues {
   alt: number
   mixture1: number
   mixture2: number
-  thrlvrclb: number
+  thrustLeverClb: number
 }
 
 export function useAutoFlows() {
@@ -53,7 +53,7 @@ export function useAutoFlows() {
     alt: 0,
     mixture1: 1,
     mixture2: 1,
-    thrlvrclb: 0
+    thrustLeverClb: 0
   })
 
   const phase = useRef<"ground" | "airborne">("ground")
@@ -84,7 +84,7 @@ export function useAutoFlows() {
       prev.current.spoilersArmed = t.spoilersArmed ?? 0
       prev.current.landingGear = t.landingGear ?? 1
       prev.current.alt = t.alt ?? 0
-      prev.current.thrlvrclb = t.thrlvrclb ?? 0
+      prev.current.thrustLeverClb = t.thrustLeverClb ?? 0
       prev.current.mixture1 = t.mixture1 ?? 1
       prev.current.mixture2 = t.mixture2 ?? 1
       phase.current = t.onGround ? "ground" : "airborne"
@@ -121,7 +121,7 @@ export function useAutoFlows() {
       }
 
       // Packs on: THR lever moved to CLB detent while airborne
-      else if (!fl.packsOn && !t.onGround && !p.thrlvrclb && t.thrlvrclb === 1) {
+      else if (!fl.packsOn && !t.onGround && !p.thrustLeverClb && t.thrustLeverClb === 1) {
         fl.packsOn = true
         executeFlow("packs_on")
       }
@@ -168,7 +168,7 @@ export function useAutoFlows() {
       }
     }
 
-    p.thrlvrclb = t.thrlvrclb ?? 0
+    p.thrustLeverClb = t.thrustLeverClb ?? 0
     p.onGround = t.onGround
     p.ignitionKnob = t.ignitionKnob ?? 0
     p.flapsIndex = t.flapsIndex ?? 0

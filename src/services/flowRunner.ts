@@ -134,7 +134,7 @@ class PostLandingTimer {
 
   private onTelemetry(telemetry: Telemetry | null): void {
     if (!telemetry) return
-    const chronoValue = telemetry.a350FoCrono
+    const chronoValue = telemetry.foChrono
     if (typeof chronoValue !== "number") return
 
     // Chrono reset to 0 — re-arm for the next landing

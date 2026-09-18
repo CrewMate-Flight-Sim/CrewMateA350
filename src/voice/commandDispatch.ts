@@ -12,7 +12,7 @@ import { useRtoStore } from "@/store/rtoStore"
 import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 
-import { setEngAntiIce, setWingAntiIce } from "./commands/anti_ice"
+import { setEngAntiIce, setWingAntiIce } from "./commands/antiIce"
 import { setStartAPU } from "./commands/apu"
 import {
   setAirspeedDial,
@@ -32,16 +32,16 @@ import {
   setSelSpeed
 } from "./commands/autoPilot"
 import { setStdBaro } from "./commands/baro"
-import { setBrakeFan } from "./commands/brake_fan"
+import { setBrakeFan } from "./commands/brakeFan"
 import { setDoorSlides } from "./commands/doorSlides"
 import { setIgnKnob, startEngine2 } from "./commands/engine"
 import { setFlaps } from "./commands/flaps"
-import { flightControlsCheck } from "./commands/flight_controls_check"
+import { flightControlsCheck } from "./commands/flightControlsCheck"
 import { setGearHandle } from "./commands/gear"
 import { executeGoAround } from "./commands/goAround"
 import { callPushback, disconnectAllGround, setACU, setASU, setGPU } from "./commands/groundServices"
 import { setLandingLights, setStrobeLights, setTaxiLights } from "./commands/lights"
-import { setSeatBelts } from "./commands/seat_belts"
+import { setSeatBelts } from "./commands/seatBelts"
 import { setWipers } from "./commands/wipers"
 
 const randomDelay = (min: number, max: number) => delay(min + Math.random() * (max - min))
@@ -213,7 +213,7 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
     setLOC(1)
   },
   set_runway_track: () => {
-    const hdg = useTelemetryStore.getState().telemetry?.["landingtrk"]
+    const hdg = useTelemetryStore.getState().telemetry?.["arrRunwayHdg"]
     if (hdg != null) {
       playSound("check.ogg")
       setHeadingDial(hdg)

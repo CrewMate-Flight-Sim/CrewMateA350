@@ -267,8 +267,8 @@ export function useCallouts(vrSpeed: number) {
     const vr = vrSpeedRef.current
     const now = Date.now()
     const cabinIsReady = (t.cabinIsReady ?? 0) > 0.5 ? 1 : 0
-    const takeoffN1 = Math.min(t.engineN1_1 ?? 0, t.engineN1_2 ?? 0)
-    const fcuAlt = t.fcu_alt ?? 0
+    const takeoffN1 = Math.min(t.engine1N1 ?? 0, t.engine2N1 ?? 0)
+    const fcuAlt = t.fcuAlt ?? 0
     const takeoffThrustTarget = getTakeoffThrustTarget(t)
 
     if (!cabinReadyPrimed.current) {
@@ -379,7 +379,7 @@ export function useCallouts(vrSpeed: number) {
 
     // Transition altitude / level — both calls prompt an altimeter change, so they
     // are skipped when it has already been made. XMLVAR_Baro1_Mode: 3 = STD.
-    const baroMode = t.inialtimeter ?? -1
+    const baroMode = t.baroMode ?? -1
     const onStandard = baroMode === 3
     const baroKnown = baroMode >= 0
 

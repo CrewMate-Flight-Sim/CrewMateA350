@@ -32,8 +32,8 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: Icon
   const N1_IDLE_MAX = 15
   const onGround = (telemetry?.onGround ?? 0) > 0.5
   const enginesOn =
-    (telemetry?.engineN1_1 ?? 0) >= N1_IDLE_MAX ||
-    (telemetry?.engineN1_2 ?? 0) >= N1_IDLE_MAX ||
+    (telemetry?.engine1N1 ?? 0) >= N1_IDLE_MAX ||
+    (telemetry?.engine2N1 ?? 0) >= N1_IDLE_MAX ||
     (telemetry?.mixture1 ?? 0) >= 0.5 ||
     (telemetry?.mixture2 ?? 0) >= 0.5
 

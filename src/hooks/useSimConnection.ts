@@ -20,8 +20,8 @@ const simVars: { key: string; expression: string }[] = [
   { key: "vs", expression: "(A:VERTICAL SPEED,Feet per minute)" },
   { key: "onGround", expression: "(A:SIM ON GROUND,Bool)" },
   { key: "isSlewActive", expression: "(A:IS SLEW ACTIVE,Bool)" },
-  { key: "engineN1_1", expression: "(A:TURB ENG N1:1,Percent)" },
-  { key: "engineN1_2", expression: "(A:TURB ENG N1:2,Percent)" },
+  { key: "engine1N1", expression: "(A:TURB ENG N1:1,Percent)" },
+  { key: "engine2N1", expression: "(A:TURB ENG N1:2,Percent)" },
   { key: "throttleLever1", expression: "(A:GENERAL ENG THROTTLE LEVER POSITION:1,Number)" },
   { key: "throttleLever2", expression: "(A:GENERAL ENG THROTTLE LEVER POSITION:2,Number)" },
   { key: "landingGear", expression: "(A:GEAR HANDLE POSITION,Position)" },
@@ -56,12 +56,12 @@ const simVars: { key: string; expression: string }[] = [
   { key: "mixture1", expression: "(L:INI_MIXTURE_RATIO1_HANDLE)" },
   { key: "mixture2", expression: "(L:INI_MIXTURE_RATIO2_HANDLE)" },
   { key: "spoilersArmed", expression: "(L:INI_SPOILERS_ARMED)" },
-  { key: "fcu_alt", expression: "(L:INI_ALTITUDE_MEM_DIAL)" },
+  { key: "fcuAlt", expression: "(L:INI_ALTITUDE_MEM_DIAL)" },
   { key: "cptBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_1)" },
   { key: "foBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_2)" },
   { key: "stbBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_3)" },
   { key: "linkedInstruments", expression: "(L:INI_LINKED_INSTRUMENTS)" },
-  { key: "landingtrk", expression: "(L:INI_ARR_RUNWAY_HDG)" },
+  { key: "arrRunwayHdg", expression: "(L:INI_ARR_RUNWAY_HDG)" },
   { key: "foShowAirports", expression: "(L:INI_SHOW_AIRPORTS2)" },
   { key: "foShowConstraints", expression: "(L:INI_SHOW_CONSTRAINTS2)" },
   { key: "foVor1Active", expression: "(L:INI_FO_VOR1_ACTIVE)" },
@@ -69,11 +69,11 @@ const simVars: { key: string; expression: string }[] = [
   { key: "foTerrOn", expression: "(L:INI_TERR_ON_FO)" },
   { key: "foWxr2On", expression: "(L:INI_WXR2_ON)" },
   { key: "autobrakeLevel", expression: "(L:INI_AUTOBRAKE_LEVEL)" },
-  { key: "thrlvrclb", expression: "(L:INI_LEVER_IN_CL)" },
-  { key: "flapssetting", expression: "(L:TO_FLAPS_CONF)" },
-  { key: "a350FoCrono", expression: "(L:INI_FO_CHRONO)" },
-  { key: "inialtimeter", expression: "(L:XMLVAR_Baro1_Mode)" },
-  { key: "brakefan", expression: "(L:INI_OPTION_BRAKE_FANS)" }
+  { key: "thrustLeverClb", expression: "(L:INI_LEVER_IN_CL)" },
+  { key: "takeoffFlapsConf", expression: "(L:TO_FLAPS_CONF)" },
+  { key: "foChrono", expression: "(L:INI_FO_CHRONO)" },
+  { key: "baroMode", expression: "(L:XMLVAR_Baro1_Mode)" },
+  { key: "brakeFanFitted", expression: "(L:INI_OPTION_BRAKE_FANS)" }
 ]
 
 const RETRY_INTERVAL_MS = 5000
