@@ -606,7 +606,6 @@
       <item>ice<tag>out.pid="10"</tag></item>
       <!-- Go around / abort / land -->
       <item>go around flaps<tag>out.pid="99";</tag></item>
-      <item>abort takeoff<tag>out.pid="100";</tag></item>
       <item>continue<tag>out.pid="101";</tag></item>
       <item>stop<tag>out.pid="100";</tag></item>
       <!-- Ground engineer -->

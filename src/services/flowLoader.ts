@@ -21,7 +21,6 @@ import curtains_close from "@/data/flows/curtains_close.json"
 import curtains_open from "@/data/flows/curtains_open.json"
 import table_close from "@/data/flows/table_close.json"
 import table_open from "@/data/flows/table_open.json"
-import walkaround_depart from "@/data/flows/walkaround_depart.json"
 import { usePerformanceStore } from "@/store/performanceStore"
 import type { Flow, FlowStep } from "@/types/flow"
 
@@ -47,8 +46,7 @@ export const allFlows: Flow[] = [
   curtains_open,
   curtains_close,
   table_open,
-  table_close,
-  walkaround_depart
+  table_close
 ] as Flow[]
 
 export function getFlowById(id: string): Flow | undefined {

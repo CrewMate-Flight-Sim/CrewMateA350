@@ -14,19 +14,10 @@ message (fires at T-35 from `preflight_timeline.json`).
   is in there somewhere.
 - Needs new audio generated for all four packs via `Scripts/FOvoices.ps1`.
 
-## Fuel readback in tonnes
-
-Recorded and never wired: `point.ogg` and `tons.ogg` exist in every pack, and
-`CommandDispatcher.cs` already emits a `fuel` command with `quantity`, `unit` and
-`balanced`. `dispatchFoCommand` has no `case "fuel"`. Would give "six point five
-tons, balanced".
-
 ## Smaller unused pieces
 
 - **BTV callout** — `BTV.ogg` is recorded and referenced nowhere. Natural fit
   beside the existing autobrake checklist item.
-- **RTO** — `abort_takeoff` is in the grammar and its handler is commented out in
-  `commandDispatch.ts`, so the FO does nothing during a rejected takeoff.
 - **`sound_after_execute`** — implemented in the flow runner, used by zero flows.
 
 ## User manual
@@ -36,14 +27,16 @@ tons, balanced".
   Takeoff Plan, TCAS/XPDR in the flows, the FO being unavailable on the
   walkaround, "set missed approach altitude", "you have / I have control", and
   the "Hold checklist on incorrect item" setting.
-- Fix the walkaround timing: the manual says the PM returns at T-33, but
-  `src/data/preflight_timeline.json` fires the return at T-35.
 - Produce a PDF version with a proper table of contents, PDF bookmarks and page
   numbers. Source is `USER_MANUAL.md` (282 lines, already has a hand-written
   TOC) plus `Manual/Images/`.
 
 ## Explicitly not doing
 
+- **FO seat movement** — built and removed. MSFS does not move the copilot model
+  with the seat, so only the chair slides and it looks wrong.
+- **Fuel readback in tonnes** — the PF reads the fuel, not the FO.
+  `point.ogg` and `tons.ogg` stay unused.
 - **ECAM / abnormal procedures** — no LVars for it.
 - **Approach briefing readback** — the briefing is the user's job.
 - **SURV page ALT RPTG / ADS-B RPTG / ADS-B TRAFFIC** — not reachable. No LVar,

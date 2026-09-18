@@ -53,7 +53,7 @@ This tutorial assumes you are parked at the gate with engines off. You are the C
 - 48 min: PM starts preliminary cockpit preparation.
 - 44 min: PM departs for external walkaround. PF starts cockpit preparation.
   ![Cockpit Preparation flow pattern](Images/COCKPIT%20PREPARATION%20FLOW%20PATTERN.png)
-- 33 min: PM returns and starts cockpit preparation on his side.
+- 35 min: PM returns and starts cockpit preparation on his side.
 - 25 min: PF conducts the departure briefing (enter takeoff data in the Takeoff Performance window).
 - 20 min: PF calls for the COCKPIT PREPARATION checklist.
 - 1 min: CrewMate closes the cockpit door. PF and PM perform before start flow, after that PF calls for the BEFORE START checklist.

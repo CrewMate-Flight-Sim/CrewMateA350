@@ -3,24 +3,6 @@
   "name": "Before Start",
   "steps": [
     {
-      "label": "Seat readjust back",
-      "read": "(L:INI_SEAT_FO_BKFWD_ANIMATION)",
-      "on": "0 (>L:INI_SEAT_FO_BKFWD_SWITCH)",
-      "release": "1 (>L:INI_SEAT_FO_BKFWD_SWITCH)",
-      "until": "at_most",
-      "expect": 70,
-      "timeout_ms": 20000
-    },
-    {
-      "label": "Seat readjust forward",
-      "read": "(L:INI_SEAT_FO_BKFWD_ANIMATION)",
-      "on": "2 (>L:INI_SEAT_FO_BKFWD_SWITCH)",
-      "release": "1 (>L:INI_SEAT_FO_BKFWD_SWITCH)",
-      "until": "at_least",
-      "expect": 80,
-      "timeout_ms": 20000
-    },
-    {
       "label": "Cockpit Door close",
       "read": "(L:INI_COCKPIT_DOOR)",
       "on": "0 (>L:INI_COCKPIT_DOOR)",

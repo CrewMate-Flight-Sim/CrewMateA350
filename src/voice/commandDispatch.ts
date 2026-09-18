@@ -8,6 +8,7 @@ import { useGroundEngineerStore } from "@/store/groundEngineerStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
+import { useRtoStore } from "@/store/rtoStore"
 import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 
@@ -344,7 +345,7 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
   checklist_cancel: () => abortChecklist(),
 
   // ── RTO / Continue  ─────────────────────────────────────
-  //abort_takeoff: () => playSound("check.ogg"),
+  abort_takeoff: () => useRtoStore.getState().trigger(),
   continue: () => playSound("check.ogg"),
 
   // ── Ground engineer ───────────────────────────────────────────────────────

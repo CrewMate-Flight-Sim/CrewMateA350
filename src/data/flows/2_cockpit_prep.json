@@ -3,21 +3,6 @@
   "name": "Cockpit Preparation",
   "steps": [
     {
-      "label": "Seat forward",
-      "read": "(L:INI_SEAT_FO_BKFWD_ANIMATION)",
-      "on": "2 (>L:INI_SEAT_FO_BKFWD_SWITCH)",
-      "release": "1 (>L:INI_SEAT_FO_BKFWD_SWITCH)",
-      "until": "at_least",
-      "expect": 80,
-      "timeout_ms": 20000
-    },
-    {
-      "label": "Armrest down",
-      "read": "(L:INI_A350_INT_SEAT_FO_ARMREST_L_BASE)",
-      "on": "0 (>L:INI_A350_INT_SEAT_FO_ARMREST_L_BASE)",
-      "expect": 0
-    },
-    {
       "label": "Table",
       "read": "(L:INI_FO_TRAY_COVER_TGT)",
       "on": "1 (>L:INI_FO_TRAY_COVER_TGT)",

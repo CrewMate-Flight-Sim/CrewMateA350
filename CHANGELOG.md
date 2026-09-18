@@ -2,11 +2,11 @@
 
 ## [0.4.0] - Unreleased
 
-- The FO now moves his seat: pulls it back and slides forward when he arrives at the aircraft, moves it back before leaving for the walkaround, forward again when he returns, and settles it before engine start - @marxio09dio
-- Flow steps can now drive a control until a value is reached, and always release it afterwards - @marxio09dio
-- The batteries are switched off before the battery voltage check in the preliminary cockpit preparation - @alexlenh
-- The IRS is switched off before NAV is selected, so the alignment always starts fresh instead of being skipped when it is already aligned - @alexlenh
-- The transition altitude and transition level calls are no longer made when the altimeter has already been set - @marxio09dioa
+- Flow steps can drive a control until a target value is reached, then release it - @marxio09dio
+- Rejected takeoff callouts, triggered by "stop" (replaces "abort takeoff"): "reverse green" if reverse is selected, then "decel" or "no decel" - no "no reverse" or spoilers call on a reject - @marxio09dio
+- Batteries are switched off before the battery voltage check in the preliminary cockpit preparation - @alexlenh
+- IRS is switched off before NAV is selected, so the alignment always starts fresh instead of being skipped - @alexlenh
+- Transition altitude and transition level calls are skipped when the altimeter is already set - @marxio09dio
 - Removed unused sounds, voice script entries and packages - @marxio09dio
 
 ## [0.3.5] - 2026-09-11

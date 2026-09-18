@@ -4,6 +4,7 @@ import { simvarSet } from "@/API/simvarApi"
 import { playSound, isSoundPlaying } from "@/services/playSounds"
 import { useGoAroundStore } from "@/store/goAroundStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
+import { useRtoStore } from "@/store/rtoStore"
 import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 import type { Telemetry } from "@/store/telemetryStore"
@@ -32,6 +33,13 @@ interface LandingSequenceState {
   phase: LandingPhase
   phaseStartTime: number | null
   done: boolean
+}
+
+interface RtoState {
+  active: boolean
+  startedAt: number | null
+  calledReverse: boolean
+  calledDecel: boolean
 }
 
 interface PreviousValues {
@@ -139,6 +147,43 @@ const phaseHandlers: Record<
   decel: handleDecelPhase
 }
 
+// ─── Rejected takeoff ────────────────────────────────────────────────────────
+// Triggered by the pilot calling "stop". FCOM PRO-ABN-ABN-00: the F/O calls
+// REVERSE GREEN, then DECEL or NO DECEL. There is no spoilers call, and nothing
+// is said about reverse when it was never selected.
+
+const RTO_ARM_MIN_IAS = 40
+const RTO_END_IAS = 30
+const RTO_DECEL_TIMEOUT = 5000
+
+const resetRto = (rto: RtoState) => {
+  rto.active = false
+  rto.startedAt = null
+  rto.calledReverse = false
+  rto.calledDecel = false
+}
+
+function handleRto(rto: RtoState, t: Telemetry, prevSpeed: number, now: number) {
+  if (!rto.calledReverse && (t.throttleLever1 < -0.1 || t.throttleLever2 < -0.1)) {
+    playSound("reverse_green.ogg")
+    rto.calledReverse = true
+    return
+  }
+
+  if (rto.calledDecel) return
+
+  const brakesApplied = t.brakeLeftPosition > 0.1 || t.brakeRightPosition > 0.1
+  const elapsed = rto.startedAt ? now - rto.startedAt : 0
+
+  if (brakesApplied && t.ias < prevSpeed) {
+    playSound("decel.ogg")
+    rto.calledDecel = true
+  } else if (elapsed >= RTO_DECEL_TIMEOUT) {
+    playSound("no_decel.ogg")
+    rto.calledDecel = true
+  }
+}
+
 export function useCallouts(vrSpeed: number) {
   const speed = useRef<SpeedCalloutFlags>({
     calledThrustSet: false,
@@ -187,6 +232,27 @@ export function useCallouts(vrSpeed: number) {
         goAroundCount.current = s.count
         altitude.current.positiveClimb = false
       }
+    })
+  }, [])
+
+  // Rejected takeoff: armed only by the pilot calling "stop", and only on the
+  // ground above 40 kt so a stray call at the gate or in the cruise does nothing
+  const rto = useRef<RtoState>({
+    active: false,
+    startedAt: null,
+    calledReverse: false,
+    calledDecel: false
+  })
+  const rtoCount = useRef(useRtoStore.getState().count)
+  useEffect(() => {
+    return useRtoStore.subscribe((s) => {
+      if (s.count === rtoCount.current) return
+      rtoCount.current = s.count
+      const t = useTelemetryStore.getState().telemetry
+      if (!t || !t.onGround || t.ias <= RTO_ARM_MIN_IAS) return
+      resetRto(rto.current)
+      rto.current.active = true
+      rto.current.startedAt = Date.now()
     })
   }, [])
 
@@ -379,18 +445,6 @@ export function useCallouts(vrSpeed: number) {
       ls.wasAirborne = false
     }
 
-    // Arm: RTO (never airborne, spoilers deployed at speed)
-    if (
-      t.onGround &&
-      !ls.wasAirborne &&
-      ls.phase === "idle" &&
-      !ls.done &&
-      t.spoilersHandlePosition > 0.1 &&
-      t.ias > 60
-    ) {
-      advancePhase(ls, "spoilers", now)
-    }
-
     // Reset on sustained climb-away
     if (!t.onGround && t.vs > 500) {
       // Only reset passing altitude on actual go-around (landing sequence was active)
@@ -404,6 +458,15 @@ export function useCallouts(vrSpeed: number) {
     // Reset on taxi
     if (t.onGround && t.ias < 30) {
       resetLanding(ls)
+    }
+
+    // Rejected takeoff - runs on its own state, the landing sequence is untouched
+    if (rto.current.active) {
+      if (!t.onGround || t.ias < RTO_END_IAS) {
+        resetRto(rto.current)
+      } else if (!(await isSoundPlaying())) {
+        handleRto(rto.current, t, p.speed, now)
+      }
     }
 
     // Process landing phases (skip if idle or audio still playing)
