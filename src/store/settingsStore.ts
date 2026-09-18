@@ -124,7 +124,7 @@ export const useSettingsStore = create<SettingsStore>()(
         const safeThreshold = normalizeThreshold(threshold)
         set({ confidenceThreshold: safeThreshold })
         applyConfidenceThreshold(safeThreshold).catch((err) => {
-          console.error("Failed to apply confidence threshold:", err)
+          console.error("[SettingsStore] Failed to apply confidence threshold:", err)
         })
         if (!isUpdatingFromEvent) {
           emit("settings-changed", { confidenceThreshold: safeThreshold })
@@ -146,7 +146,7 @@ export const useSettingsStore = create<SettingsStore>()(
             useSettingsStore.setState({ confidenceThreshold: safeThreshold })
           }
           applyConfidenceThreshold(safeThreshold).catch((err) => {
-            console.error("Failed to restore confidence threshold:", err)
+            console.error("[SettingsStore] Failed to restore confidence threshold:", err)
           })
         }
         if (state && state.outputDevice) {

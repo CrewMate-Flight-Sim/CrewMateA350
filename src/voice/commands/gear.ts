@@ -25,6 +25,6 @@ export async function setGearHandle(position: number) {
       playSound("gear_up.ogg")
     }
   } catch (error) {
-    console.error("Error sending gear key event:", error)
+    console.error("[Gear] Failed to send gear key event:", error)
   }
 }

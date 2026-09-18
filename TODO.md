@@ -14,6 +14,12 @@ message (fires at T-35 from `preflight_timeline.json`).
   is in there somewhere.
 - Needs new audio generated for all four packs via `Scripts/FOvoices.ps1`.
 
+## Push-to-talk
+
+`voiceMode: "ptt"` and `pttShortcut` already exist in `settingsStore` and are persisted, but the
+shortcut is not bound to anything and the setter list in the `settings-changed`
+listener type was left partly stale as a placeholder for this work.
+
 ## Smaller unused pieces
 
 - **BTV callout** — `BTV.ogg` is recorded and referenced nowhere. Natural fit

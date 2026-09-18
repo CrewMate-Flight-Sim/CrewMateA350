@@ -25,6 +25,6 @@ export async function callPushback() {
   try {
     await gsxClient.triggerService("Departure")
   } catch (error) {
-    console.error("Error calling GSX Pushback (Remote API):", error)
+    console.error("[GroundServices] Failed to call GSX pushback:", error)
   }
 }

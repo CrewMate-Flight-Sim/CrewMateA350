@@ -45,7 +45,7 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: Icon
       await invoke("set_always_on_top", { alwaysOnTop: newValue })
       setAlwaysOnTop(newValue)
     } catch (error) {
-      console.error("Failed to set always on top:", error)
+      console.error("[IconToolbar] Failed to set always on top:", error)
     }
   }
 

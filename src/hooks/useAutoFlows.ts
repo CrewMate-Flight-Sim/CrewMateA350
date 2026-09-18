@@ -22,7 +22,6 @@ interface TriggeredFlags {
 }
 
 interface PrevValues {
-  onGround: number
   ignitionKnob: number
   flapsIndex: number
   spoilersArmed: number
@@ -46,7 +45,6 @@ export function useAutoFlows() {
   })
 
   const prev = useRef<PrevValues>({
-    onGround: 1,
     ignitionKnob: 0,
     flapsIndex: 0,
     spoilersArmed: 0,
@@ -79,7 +77,6 @@ export function useAutoFlows() {
     // detect false edges (e.g. ignitionKnob already 1 on app start).
     if (!primed.current) {
       primed.current = true
-      prev.current.onGround = t.onGround
       prev.current.ignitionKnob = t.ignitionKnob ?? 0
       prev.current.flapsIndex = t.flapsIndex ?? 0
       prev.current.spoilersArmed = t.spoilersArmed ?? 0
@@ -170,7 +167,6 @@ export function useAutoFlows() {
     }
 
     p.thrustLeverClb = t.thrustLeverClb ?? 0
-    p.onGround = t.onGround
     p.ignitionKnob = t.ignitionKnob ?? 0
     p.flapsIndex = t.flapsIndex ?? 0
     p.spoilersArmed = t.spoilersArmed ?? 0

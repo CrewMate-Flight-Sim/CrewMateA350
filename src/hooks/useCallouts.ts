@@ -322,7 +322,7 @@ export function useCallouts(vrSpeed: number) {
     if (t.onGround && crossedDown(p.speed, t.ias, 70) && !sp.called70) {
       playSound("70_knots.ogg")
       sp.called70 = true
-      // 2 seconds after the 70-knot callout, press the chrono button and start the
+      // 5 seconds after the 70-knot callout, press the chrono button and start the
       // post-landing timer. The chrono counts up in seconds; when it reaches 300
       // (5 minutes) the announcement plays.
       setTimeout(() => {
