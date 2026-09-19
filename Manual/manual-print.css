@@ -1,0 +1,143 @@
+/* Print stylesheet for the PDF build (Scripts/build-manual-pdf.py). */
+
+@page {
+  size: A4;
+  margin: 16mm 16mm 18mm 16mm;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.5;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+h1.title {
+  font-size: 26pt;
+  margin: 0 0 2pt;
+}
+
+h1 {
+  font-size: 22pt;
+  margin: 0 0 4pt;
+}
+
+h2 {
+  font-size: 15pt;
+  margin-top: 16pt;
+  padding-bottom: 3pt;
+  border-bottom: 1.5pt solid #0b9b6a;
+  break-before: page;
+}
+
+/* The first section follows the table of contents page, not a blank one. */
+#TOC + h2 {
+  break-before: auto;
+}
+
+h3 {
+  font-size: 12pt;
+  margin-top: 13pt;
+  color: #0a7a52;
+}
+
+h2,
+h3 {
+  break-after: avoid;
+}
+
+p,
+li {
+  orphans: 2;
+  widows: 2;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 6pt 0 10pt;
+  font-size: 9pt;
+}
+
+th {
+  background: #eef4f1;
+  text-align: left;
+}
+
+th,
+td {
+  border: 0.5pt solid #ccd5d1;
+  padding: 3pt 5pt;
+  vertical-align: top;
+}
+
+tr {
+  break-inside: avoid;
+}
+
+thead {
+  display: table-header-group;
+}
+
+code {
+  background: #f4f4f6;
+  padding: 0 2pt;
+  font-size: 8.5pt;
+}
+
+blockquote {
+  margin: 8pt 0;
+  padding: 6pt 10pt;
+  background: #fff8e5;
+  border-left: 3pt solid #e0a800;
+  break-inside: avoid;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  break-inside: avoid;
+}
+
+hr {
+  display: none;
+}
+
+#TOC {
+  break-after: page;
+}
+
+#TOC ul {
+  list-style: none;
+  padding-left: 12pt;
+}
+
+#TOC > ul {
+  padding-left: 0;
+}
+
+#TOC h2.toc-heading {
+  break-before: auto;
+  margin-top: 0;
+}
+
+#TOC li {
+  margin-top: 3pt;
+  font-weight: 600;
+}
+
+#TOC li.sub {
+  padding-left: 14pt;
+  margin-top: 1pt;
+  font-weight: 400;
+}
+
+a {
+  color: #0a7a52;
+  text-decoration: none;
+}

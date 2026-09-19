@@ -26,17 +26,6 @@ listener type was left partly stale as a placeholder for this work.
   beside the existing autobrake checklist item.
 - **`sound_after_execute`** — implemented in the flow runner, used by zero flows.
 
-## User manual
-
-- Bring `Manual/USER_MANUAL.md` up to date — nothing added since 0.3.3 is
-  documented. Zero mentions of: brake fan, SEL LS, the Runway field in the
-  Takeoff Plan, TCAS/XPDR in the flows, the FO being unavailable on the
-  walkaround, "set missed approach altitude", "you have / I have control", and
-  the "Hold checklist on incorrect item" setting.
-- Produce a PDF version with a proper table of contents, PDF bookmarks and page
-  numbers. Source is `USER_MANUAL.md` (282 lines, already has a hand-written
-  TOC) plus `Manual/Images/`.
-
 ## Explicitly not doing
 
 - **FO seat movement** — built and removed. MSFS does not move the copilot model

@@ -9,6 +9,7 @@
 - Transition altitude and transition level calls are skipped when the altimeter is already set - @marxio09dio
 - The Voice Trainer now checks for a Windows speech profile before training and says how to set one up, instead of failing with "Value does not fall within the expected range". Errors also show the log file path - @marxio09dio
 - The voice guide now suggests the securing checklist after parking, and the after landing hint says "taxi light off" instead of a phrase the FO cannot hear - @marxio09dio
+- User manual updates - @marxio09dio
 - Removed unused sounds, voice script entries and packages - @marxio09dio
 
 ## [0.3.5] - 2026-09-11
