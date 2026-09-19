@@ -1,19 +1,3 @@
-"""Build the user manual PDF from Manual/USER_MANUAL.md.
-
-Runs on a stock Python install plus a browser Windows already has:
-
-  python Scripts/build-manual-pdf.py
-
-No pandoc, no pip packages. The Markdown subset the manual uses is converted
-here, images are inlined as data URIs, and headless Chrome (or Edge) prints the
-result. Chrome is driven over its DevTools protocol rather than --print-to-pdf,
-because the CLI flag bakes the file:// URL into the footer with no way to
-replace it; the protocol lets us supply a footer with a real page number.
-
-Pillow is used if it happens to be installed, to palette-quantise the
-screenshots — that halves the PDF. Without it the build still works, just larger.
-"""
-
 import base64
 import html as html_mod
 import io
@@ -35,7 +19,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MANUAL = ROOT / "Manual" / "USER_MANUAL.md"
 CSS = ROOT / "Manual" / "manual-print.css"
-OUT = ROOT / "Manual" / "CrewmateA350-User-Manual.pdf"
+# Bundled with the app (see bundle.resources in tauri.conf.json), so the
+# build output lives under src-tauri like the other shipped artefacts.
+OUT = ROOT / "src-tauri" / "Manual" / "CrewmateA350-User-Manual.pdf"
 TITLE = "CrewmateA350 — User Manual"
 PORT = 9333
 
@@ -361,6 +347,7 @@ def main() -> None:
                     break
             if "error" in message:
                 sys.exit(f"printToPDF failed: {message['error']}")
+            OUT.parent.mkdir(parents=True, exist_ok=True)
             OUT.write_bytes(base64.b64decode(message["result"]["data"]))
         finally:
             if ws:
