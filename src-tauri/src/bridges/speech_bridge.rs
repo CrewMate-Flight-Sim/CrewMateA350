@@ -570,5 +570,5 @@ fn handle_stdout_line(line: &[u8], shared: &SidecarShared) {
 pub fn get_speech_input_devices(
     state: tauri::State<'_, crate::SpeechBridgeState>,
 ) -> Vec<SpeechInputDevice> {
-    state.inner().0.get_input_devices()
+    state.inner().bridge.get_input_devices()
 }

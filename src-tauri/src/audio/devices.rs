@@ -104,12 +104,12 @@ pub fn get_available_output_devices() -> Result<Vec<AudioDevice>, String> {
 
 #[tauri::command]
 pub fn set_output_device(app_handle: AppHandle, device: Option<String>) -> Result<(), String> {
-    log::info!("set_output_device called: {:?}", device);
+    log::info!("[Audio] Output device set: {:?}", device);
     // Create a new AudioPlayer bound to the requested device and swap it into app state
-    let new_player = crate::audio::audio_player::AudioPlayer::with_device(device.clone())
+    let new_player = crate::audio::player::AudioPlayer::with_device(device.clone())
         .map_err(|e| format!("Failed to create audio player for device: {}", e))?;
 
-    let state = app_handle.state::<crate::audio::audio_commands::AudioPlayerState>();
+    let state = app_handle.state::<crate::audio::commands::AudioPlayerState>();
     if let Ok(mut guard) = state.inner().0.lock() {
         let _ = guard.stop();
         *guard = new_player;
@@ -121,8 +121,8 @@ pub fn set_output_device(app_handle: AppHandle, device: Option<String>) -> Resul
 
 #[tauri::command]
 pub fn set_input_device(app_handle: AppHandle, device: Option<String>) -> Result<(), String> {
-    log::info!("set_input_device called: {:?}", device);
+    log::info!("[Audio] Input device set: {:?}", device);
     let state = app_handle.state::<crate::SpeechBridgeState>();
-    state.inner().0.restart_with_device(device);
+    state.inner().bridge.restart_with_device(device);
     Ok(())
 }

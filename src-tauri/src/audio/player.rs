@@ -1,4 +1,4 @@
-use crate::audio::audio_devices;
+use crate::audio::devices;
 use rodio::{buffer::SamplesBuffer, Decoder, OutputStream, Sink, Source};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -42,7 +42,7 @@ fn load_and_trim<P: AsRef<std::path::Path>>(
     let channels = decoder.channels();
     let sample_rate = decoder.sample_rate();
     let raw: Vec<i16> = decoder.collect();
-    // 15ms padding, scaled to this file's sample rate.
+    // 40ms padding, scaled to this file's sample rate.
     let pad_samples = (sample_rate as f32 * 0.04) as usize;
     let samples = trim_silence(&raw, 200, pad_samples);
     Ok(DecodedSound {
@@ -139,7 +139,7 @@ impl AudioPlayer {
         let (stream, stream_handle) = match device.as_deref() {
             None | Some("default") => OutputStream::try_default()?,
             Some(idx) => {
-                let devices = audio_devices::list_output_devices()?;
+                let devices = devices::list_output_devices()?;
                 let found = devices
                     .into_iter()
                     .find(|d| d.index == idx)

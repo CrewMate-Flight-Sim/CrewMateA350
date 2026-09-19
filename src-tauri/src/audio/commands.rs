@@ -1,4 +1,4 @@
-use crate::audio::audio_player::AudioPlayer;
+use crate::audio::player::AudioPlayer;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager};

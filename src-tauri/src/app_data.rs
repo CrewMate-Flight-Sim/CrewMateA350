@@ -1,6 +1,12 @@
 use tauri::AppHandle;
 use tauri::Manager;
 
+/// Name of the logs folder inside the app data directory, and the base name of
+/// the rolling log file. Shared with the logging plugin set up in `lib.rs` so
+/// "open log file" can never point somewhere the logger is not writing.
+pub const LOGS_DIR_NAME: &str = "logs";
+pub const LOG_FILE_STEM: &str = "crewmateinia350";
+
 #[tauri::command]
 pub fn setup_app_data_directories(app_handle: &tauri::AppHandle) -> tauri::Result<()> {
     // Get the app data directory
@@ -8,7 +14,7 @@ pub fn setup_app_data_directories(app_handle: &tauri::AppHandle) -> tauri::Resul
         // Ensure the app data directory exists
         if !app_data_dir.exists() {
             std::fs::create_dir_all(&app_data_dir).map_err(tauri::Error::Io)?;
-            log::info!("Created app data directory: {:?}", app_data_dir);
+            log::info!("[AppData] Created app data directory: {:?}", app_data_dir);
         }
     }
     Ok(())
@@ -20,9 +26,9 @@ pub async fn get_log_file_path(app_handle: AppHandle) -> Result<String, String> 
         .path()
         .app_data_dir()
         .map_err(|e| e.to_string())?
-        .join("logs");
+        .join(LOGS_DIR_NAME);
 
-    let log_file_path = logs_dir.join("crewmateinia350.log");
+    let log_file_path = logs_dir.join(format!("{LOG_FILE_STEM}.log"));
     Ok(log_file_path.to_string_lossy().to_string())
 }
 
@@ -52,7 +58,7 @@ pub async fn open_logs_folder(app_handle: AppHandle) -> Result<(), String> {
         .path()
         .app_data_dir()
         .map_err(|e| e.to_string())?
-        .join("logs");
+        .join(LOGS_DIR_NAME);
 
     // Create the directory if it doesn't exist
     std::fs::create_dir_all(&logs_dir).map_err(|e| e.to_string())?;
