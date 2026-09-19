@@ -525,7 +525,7 @@ class ChecklistRunner {
 
   private onChecklistCompleted(checklistId: string): void {
     useVoiceHintProgressStore.getState().recordChecklistCompleted(checklistId)
-    if (checklistId === "parking") {
+    if (checklistId === "secure_aircraft") {
       useVoiceHintProgressStore.getState().resetForColdGround()
     }
   }

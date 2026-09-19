@@ -65,7 +65,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
   if (!ground) {
     const descending = vs < -300
 
-    // 13. Initial climb — below 3 000 ft radio altitude and not descending
+    // Initial climb — takeoff done, flaps still out, not descending
     if (
       (lastFl === "takeoff" || lastFl === "packs_on" || lastFl === "after_takeoff") &&
       !descending &&
@@ -77,8 +77,8 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
         phrases: ["gear up", "flaps X", "autopilot on"]
       }
     }
-    // 16. Short final — radioAlt below threshold, descending
-    if (lastCl == "approach" && radioAlt > 5 && landingGear == 1 && flapsIndex >= 3) {
+    // Configured for landing — gear down and flaps 3 or more
+    if (lastCl === "approach" && radioAlt > 5 && landingGear === 1 && flapsIndex >= 3) {
       return {
         id: "short_final1",
         title: "Short final",
@@ -86,7 +86,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
       }
     }
 
-    if (lastCl == "landing" && radioAlt > 5 && landingGear == 1 && flapsIndex >= 3) {
+    if (lastCl === "landing" && radioAlt > 5 && landingGear === 1 && flapsIndex >= 3) {
       return {
         id: "short_final2",
         title: "Short final",
@@ -94,8 +94,8 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
       }
     }
 
-    // 15a. Approach checklist already done — only gear/flaps left
-    if (lastCl == "approach" && alt < transitionLevel && alt <= 10000 && !onStandard) {
+    // Approach — checklist done, only gear and flaps left
+    if (lastCl === "approach" && alt < transitionLevel && alt <= 10000 && !onStandard) {
       return {
         id: "approach",
         title: "Approach",
@@ -103,7 +103,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
       }
     }
 
-    // 15b. Approach checklist not yet done — full prompt
+    // Approach — checklist not called yet
     if (descending && alt < transitionLevel && alt <= 10000 && !onStandard) {
       return {
         id: "approach_checklist",
@@ -112,7 +112,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
       }
     }
 
-    // 15b. Set altimeters — below transition level minus 1 000 ft, descending
+    // Descent — still on STD below the transition level
     if (descending && alt < transitionLevel - 1000) {
       return {
         id: "set_altimeters",
@@ -121,8 +121,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
       }
     }
 
-    // 14. Climb / cruise — above 3 000 ft, flaps clean, not descending
-    // 14. Climb / cruise — phrases built from independent altitude conditions
+    // Climb / cruise — phrases built from independent altitude conditions
     const transitionAltitude = num(t, "transitionAltitude") ?? 0
     const cruisePhrases: string[] = []
     if (alt > transitionAltitude && !onStandard) cruisePhrases.push("set standard")
@@ -138,25 +137,26 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
   // ── GROUND ──────────────────────────────────────────────────────────────────
   const slowGround = ias <= LINEUP_MAX_IAS
 
-  // 18. Parking — after the parking flow has run
-  if (lastFl === "shutdown") {
+  // Parking, then securing — released once a new preflight starts
+  if (lastFl === "shutdown" && !preflightTimerRunning) {
+    const parked = lastCl === "parking"
     return {
-      id: "parking",
-      title: "Parking",
-      phrases: ["parking checklist"]
+      id: parked ? "securing" : "parking",
+      title: parked ? "Securing" : "Parking",
+      phrases: [parked ? "secure aircraft checklist" : "parking checklist"]
     }
   }
 
-  // 17. After landing — after the after_landing flow has completed (on ground)
+  // After landing
   if (lastFl === "after_landing" && ias <= TAXI_MAX_IAS) {
     return {
       id: "after_landing_hints",
       title: "After landing",
-      phrases: ["shutdown engine X", "taxi lights off"]
+      phrases: ["shutdown engine X", "taxi light off"]
     }
   }
 
-  // 12. Takeoff #2 — after takeoff flow → thrust setting + stop
+  // Takeoff — FMA readout and the reject call
   if (lastFl === "takeoff" && slowGround) {
     return {
       id: "takeoff_thrust",
@@ -165,7 +165,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 11. Takeoff #1 — after line_up checklist → say "takeoff" to start takeoff flow
+  // Takeoff — line up checklist done
   if (lastCl === "line_up" && slowGround) {
     return {
       id: "call_takeoff",
@@ -174,7 +174,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 10. Line up — after before_takeoff flow → call lineup checklist first
+  // Line up — before takeoff flow done
   if (lastFl === "before_takeoff" && slowGround) {
     return {
       id: "call_lineup_checklist",
@@ -183,7 +183,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 10. Line up — after before_takeoff flow → call lineup checklist first
+  // Before takeoff — taxi checklist done
   if (lastCl === "taxi" && slowGround) {
     return {
       id: "before_to_proc",
@@ -192,7 +192,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 9. Taxi #3 — after flight controls check flow → only taxi checklist remains
+  // Taxi — flight controls checked
   if (lastFl === "after_flight_controls_check" && ias <= TAXI_MAX_IAS) {
     return {
       id: "pre_taxi",
@@ -201,7 +201,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 8. Taxi #2 — after clear_left flow → flight controls check + taxi light on
+  // Taxi — clear left done
   if (lastFl === "clear_left" && ias <= TAXI_MAX_IAS) {
     return {
       id: "post_clear_left",
@@ -210,7 +210,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 7. Taxi #1 — after after_start checklist → clear left
+  // Taxi — after start checklist done
   if (lastCl === "after_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "taxi_phase",
@@ -219,7 +219,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 6. After start — after_start flow done, after_start CL not yet run
+  // After start — flow done, checklist not called yet
   if (lastFl === "after_start" && lastCl !== "after_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "after_start_running",
@@ -228,7 +228,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 5. Engine start — after before_start checklist done
+  // Engine start — before start checklist done
   if (lastCl === "before_start" && lastFl !== "after_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "engine_start",
@@ -237,7 +237,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 4. Ready for before start — before_start flow done, checklist not yet called
+  // Ready for before start — flow done, checklist not called yet
   if (lastFl === "before_start" && lastCl !== "before_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "call_before_start_checklist",
@@ -246,7 +246,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 3. Before start — after cockpit_preparation checklist
+  // Before start — cockpit preparation checklist done
   if (lastCl === "cockpit_preparation") {
     return {
       id: "post_cockpit_prep",
@@ -257,7 +257,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
 
   // ── Engines off ─────────────────────────────────────────────────────────────
 
-  // 2. Timer running — timeline running, engines off
+  // Preflight timer running, engines off
   if (preflightTimerRunning && engOff) {
     return {
       id: "prep_timeline",
@@ -266,7 +266,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // 1. Prepare — cold & dark, no timeline
+  // Cold and dark, no timeline
   if (engOff) {
     return {
       id: "prep",
