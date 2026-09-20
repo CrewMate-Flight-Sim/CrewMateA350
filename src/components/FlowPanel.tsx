@@ -56,16 +56,6 @@ export function FlowPanel() {
           )}
         </Button>
       </div>
-
-      {/* Running indicator */}
-      {currentFlow && isRunning && (
-        <div className="flex items-center gap-2 py-1">
-          <div className="w-1.5 h-1.5 bg-orange-400/60 rounded-full animate-pulse" />
-          <span className="font-normal text-xs tracking-wide opacity-90 text-slate-400">
-            Flow {currentFlow.name} running
-          </span>
-        </div>
-      )}
     </div>
   )
 }

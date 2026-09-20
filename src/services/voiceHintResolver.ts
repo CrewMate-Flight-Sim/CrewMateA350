@@ -10,6 +10,10 @@ export type VoiceHintPhase = {
 const N1_IDLE_MAX = 15
 const TAXI_MAX_IAS = 45
 const LINEUP_MAX_IAS = 60
+// Level enough to count as cruise, not a climb or descent
+const CRUISE_VS_LIMIT = 300
+// Approach checklist is due from here on the way down
+const APPROACH_PREP_ALT = 18000
 
 function num(t: Telemetry | null, key: string): number | null {
   if (!t) return null
@@ -60,6 +64,7 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
   const transitionLevel = num(t, "transitionLevel") ?? 0
   const landingGear = num(t, "landingGear") ?? 0
   const onStandard = num(t, "baroMode") === 3
+  const autopilotOn = (num(t, "autopilotEngaged") ?? 0) > 0.5
 
   // ── AIRBORNE ────────────────────────────────────────────────────────────────
   if (!ground) {
@@ -71,10 +76,14 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
       !descending &&
       flapsIndex > 0
     ) {
+      const climb: string[] = []
+      if (landingGear === 1) climb.push("gear up")
+      climb.push("flaps X")
+      if (!autopilotOn) climb.push("autopilot on")
       return {
         id: "initial_climb",
         title: "Initial climb",
-        phrases: ["gear up", "flaps X", "autopilot on"]
+        phrases: climb
       }
     }
     // Configured for landing — gear down and flaps 3 or more
@@ -94,38 +103,43 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
       }
     }
 
-    // Approach — checklist done, only gear and flaps left
-    if (lastCl === "approach" && alt < transitionLevel && alt <= 10000 && !onStandard) {
+    // Approach — checklist done, still configuring
+    if (lastCl === "approach" && (landingGear !== 1 || flapsIndex < 3)) {
+      const config: string[] = []
+      if (landingGear !== 1) config.push("gear down")
+      config.push("flaps X")
       return {
         id: "approach",
         title: "Approach",
-        phrases: ["gear down", "flaps X"]
+        phrases: config
       }
     }
 
-    // Approach — checklist not called yet
-    if (descending && alt < transitionLevel && alt <= 10000 && !onStandard) {
-      return {
-        id: "approach_checklist",
-        title: "Approach",
-        phrases: ["approach checklist", "gear down", "flaps X"]
+    // Descent — chips accumulate as each item falls due
+    if (descending) {
+      const descent: string[] = []
+      if (onStandard && transitionLevel > 0 && alt < transitionLevel) {
+        descent.push("set altimeters", "set QNH")
+      }
+      if (lastCl !== "approach" && alt <= APPROACH_PREP_ALT) {
+        descent.push("approach checklist")
+      }
+      if (descent.length > 0) {
+        return {
+          id: "descent",
+          title: "Descent",
+          phrases: descent
+        }
       }
     }
 
-    // Descent — still on STD below the transition level
-    if (descending && alt < transitionLevel - 1000) {
-      return {
-        id: "set_altimeters",
-        title: "Descent",
-        phrases: ["set altimeters", "set QNH"]
-      }
-    }
-
-    // Climb / cruise — phrases built from independent altitude conditions
+    // Climb / cruise — phrases built from independent conditions
     const transitionAltitude = num(t, "transitionAltitude") ?? 0
+    const cruising = onStandard && Math.abs(vs) < CRUISE_VS_LIMIT && alt > 10000
     const cruisePhrases: string[] = []
     if (alt > transitionAltitude && !onStandard) cruisePhrases.push("set standard")
-    if (alt > 10000) cruisePhrases.push("seatbelts auto")
+    if (alt > 10000) cruisePhrases.push("seat belts auto")
+    if (cruising) cruisePhrases.push("you have control", "i have control")
 
     return {
       id: "climb_cruise",
@@ -143,7 +157,10 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     return {
       id: parked ? "securing" : "parking",
       title: parked ? "Securing" : "Parking",
-      phrases: [parked ? "secure aircraft checklist" : "parking checklist"]
+      phrases: parked
+        ? // securing, or straight into the next flight on a turnaround
+          ["secure aircraft checklist", "lets prepare the aircraft"]
+        : ["parking checklist", "cabin crew disarm slides"]
     }
   }
 
@@ -156,12 +173,17 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // Takeoff — FMA readout and the reject call
-  if (lastFl === "takeoff" && slowGround) {
+  // Takeoff — FMA readout while slow, the reject call for the whole roll
+  if (lastFl === "takeoff") {
+    const takeoff: string[] = []
+    if (slowGround) {
+      takeoff.push("man flex XX srs runway autothrust blue", "man toga srs autothrust blue")
+    }
+    takeoff.push("stop")
     return {
       id: "takeoff_thrust",
       title: "Takeoff",
-      phrases: ["man flex XX srs runway autothrust blue", "man toga srs autothrust blue", "stop"]
+      phrases: takeoff
     }
   }
 

@@ -18,6 +18,7 @@ import { usePreflightTimer } from "@/hooks/usePreflightTimer"
 import { useSimConnection } from "@/hooks/useSimConnection"
 import { useSpeechCommands } from "@/hooks/useSpeechCommands"
 import { useVoiceHints } from "@/hooks/useVoiceHints"
+import { useFlowStore } from "@/store/flowStore"
 import { useFoPresenceStore } from "@/store/foPresenceStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
@@ -37,7 +38,14 @@ function App() {
   const setVoiceEnabled = useSettingsStore((state) => state.setVoiceEnabled)
   const takeoffVr = usePerformanceStore((state) => state.takeoff.vr)
 
-  // Use a mutable ref to store previous state memory without triggering extra render cycles
+  const { currentFlow, executionState } = useFlowStore()
+  const isRunning = executionState === "running"
+
+  // Ref to track the latest voiceEnabled without triggering re-renders in connection effect
+  const voiceEnabledRef = useRef(voiceEnabled)
+  voiceEnabledRef.current = voiceEnabled
+
+  // Mutable memory to persist preference state across connection dropouts
   const wasVoiceEnabledBeforeDisconnect = useRef<boolean | null>(null)
 
   useCallouts(takeoffVr)
@@ -59,35 +67,24 @@ function App() {
   const currentEvent = usePreflightTimerStore((s) => s.currentEvent)
   const foAway = useFoPresenceStore((s) => s.isActive)
 
-  // Context-Aware Mute Engine: force-mute on sim disconnect, restore prior
-  // voice preference on reconnect (and sync mute state to sidecar on startup).
+  // Context-Aware Mute Engine: handle sim disconnect/reconnect and sync sidecar mute
   useEffect(() => {
     if (!connected) {
-      // 1. Sim just disconnected. Cache the user's true preference if we haven't already.
       if (wasVoiceEnabledBeforeDisconnect.current === null) {
-        wasVoiceEnabledBeforeDisconnect.current = voiceEnabled
+        wasVoiceEnabledBeforeDisconnect.current = voiceEnabledRef.current
       }
-      // 2. Force an immediate system-wide mute to prevent background ghost inputs
       invoke("set_muted", { muted: true }).catch(() => {})
     } else {
-      // 3. Sim reconnected. Check if we have a cached state to restore.
       if (wasVoiceEnabledBeforeDisconnect.current !== null) {
         const previousState = wasVoiceEnabledBeforeDisconnect.current
-
-        // Restore the store toggle state to match what it was before drop-out
         setVoiceEnabled(previousState)
-
-        // Signal the sidecar engine using the matching inverse mapping
         invoke("set_muted", { muted: !previousState }).catch(() => {})
-
-        // Reset our tracker memory lane for the next link disruption event
         wasVoiceEnabledBeforeDisconnect.current = null
       } else {
-        // 4. Fallback/Standard operation (e.g., initial startup sync)
-        invoke("set_muted", { muted: !voiceEnabled }).catch(() => {})
+        invoke("set_muted", { muted: !voiceEnabledRef.current }).catch(() => {})
       }
     }
-  }, [connected, voiceEnabled, setVoiceEnabled])
+  }, [connected, setVoiceEnabled])
 
   return (
     <div className="flex bg-black flex-col min-h-screen">
@@ -120,6 +117,17 @@ function App() {
                 </span>
               )}
               {foAway && <span className="text-xs text-amber-400/80 font-mono">FO outside</span>}
+
+              {/* Running Flow Indicator */}
+              {currentFlow && isRunning && (
+                <div className="flex items-center gap-2 py-1">
+                  <div className="w-1.5 h-1.5 bg-orange-400/60 rounded-full animate-pulse" />
+                  <span className="font-normal text-xs tracking-wide opacity-90 text-slate-400">
+                    Flow {currentFlow.name} running
+                  </span>
+                </div>
+              )}
+
               <FlowPanel />
               <ChecklistPanel />
               <VoiceGuide phase={voiceHintPhase} />

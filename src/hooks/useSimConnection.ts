@@ -40,6 +40,7 @@ const simVars: { key: string; expression: string }[] = [
   { key: "iniThrustFlexN1", expression: "(L:INI_THRUST_FLEX_N1)" },
   { key: "iniThrustTogaN1", expression: "(L:INI_THRUST_TOGA_N1)" },
   { key: "iniFdOn", expression: "(L:INI_FD_ON)" },
+  { key: "autopilotEngaged", expression: "(L:INI_AP1_BUTTON,Bool)" },
   { key: "efisQnhUnitSelectorLeft", expression: "(A:EFIS_QNH_UNIT_SELECTOR_LEFT, Bool)" },
   { key: "captAltimeterSettingMB", expression: "(A:KOHLSMAN SETTING MB:1, Millibars)" },
   { key: "captAltimeterSettingHG", expression: "(A:KOHLSMAN SETTING HG:1, inHg)" },

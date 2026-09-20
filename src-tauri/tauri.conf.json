@@ -15,9 +15,9 @@
       {
         "title": "Crewmate INI A350",
         "width": 360,
-        "height": 280,
+        "height": 310,
         "minWidth": 360,
-        "minHeight": 280,
+        "minHeight": 310,
         "maximizable": false,
         "fullscreen": false,
         "visible": false,

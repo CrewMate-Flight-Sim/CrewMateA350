@@ -352,14 +352,21 @@ class ChecklistRunner {
   // ── Auto-check phase (no challenge, validations only) ─────────────────────
 
   private async runAutoCheckItem(item: ChecklistItem, signal: AbortSignal): Promise<void> {
-    if (item.validations?.length) {
-      while (true) {
-        checkAbort(signal)
-        if (await findPassingRule(item.validations, "", signal)) break
+    if (!item.validations?.length) return
+
+    let called = false
+    while (true) {
+      checkAbort(signal)
+      if (await findPassingRule(item.validations, "", signal)) break
+
+      // Said once, then waits for the switch
+      if (!called) {
+        called = true
         if (item.incorrect) await playSyncSound(item.incorrect)
-        if (!useSettingsStore.getState().holdOnIncorrect) break
-        await delay(AUTO_CHECK_RETRY_DELAY)
       }
+
+      if (!useSettingsStore.getState().holdOnIncorrect) break
+      await delay(AUTO_CHECK_RETRY_DELAY)
     }
   }
 
