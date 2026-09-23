@@ -214,12 +214,12 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // Taxi — flight controls checked
-  if (lastFl === "after_flight_controls_check" && ias <= TAXI_MAX_IAS) {
+  // Flight controls checked — after start checklist is next
+  if (lastFl === "after_flight_controls_check" && lastCl !== "after_start" && ias <= TAXI_MAX_IAS) {
     return {
-      id: "pre_taxi",
-      title: "Taxi",
-      phrases: ["taxi checklist"]
+      id: "after_start_checklist",
+      title: "After start",
+      phrases: ["after start checklist"]
     }
   }
 
@@ -241,12 +241,12 @@ export function resolveVoiceHints(args: ResolveVoiceHintsArgs): VoiceHintPhase |
     }
   }
 
-  // After start — flow done, checklist not called yet
+  // After start — flow done, flight controls check is next
   if (lastFl === "after_start" && lastCl !== "after_start" && ias <= TAXI_MAX_IAS) {
     return {
       id: "after_start_running",
       title: "After start",
-      phrases: ["after start checklist"]
+      phrases: ["flight controls check"]
     }
   }
 

@@ -79,17 +79,17 @@ The before start flow takes TCAS out of standby and sets the transponder mode, t
 
 - Announce each engine start (e.g., "Starting engine one").
 - When ignition is set to NORMAL, PF and PM will start the AFTER START flow pattern. If anti‑ice will be used, flaps may be left as required.
-- On hand signal from ground personnel, call for the AFTER START checklist.
+- After the AFTER START flow, complete the flight controls check when prompted.
+- Control check sequence: Full Up, Full Down, Neutral, Full Left, Full Right, Neutral, Rudder Full Left, Rudder Full Right, Neutral. The FO calls out each position as it is reached and waits for you.
+- When the controls check is complete, call for the AFTER START checklist.
 
 ![After Start flow pattern](Images/AFTER%20START%20FLOW%20PATTERN.png)
 
 ### Taxi
 
 - PM announces when the cabin is ready.
-- Check flight controls at a convenient time before or during taxi (this is done before arming the autobrake).
-- Control check sequence: Full Up, Full Down, Neutral, Full Left, Full Right, Neutral, Rudder Full Left, Rudder Full Right, Neutral. The FO calls out each position as it is reached and waits for you.
-- After the controls check, PM performs the TAXI flow pattern.
-- After T.O. CONFIG pushbutton is pressed and a cabin report is received, PF calls for the TAXI checklist.
+- After the AFTER START checklist, PM performs the TAXI flow pattern.
+- After T.O. CONFIG pushbutton is pressed PF calls for the TAXI checklist.
 
 ![Taxi flow pattern](Images/TAXI%20FLOW%20PATTERN.png)
 
@@ -175,14 +175,14 @@ Where a command takes a number, say it naturally: "two seven zero", "three hundr
 
 ### Launching Flows by Voice
 
-| Say                                                                        | Flow launched                              |
-| -------------------------------------------------------------------------- | ------------------------------------------ |
-| "Clear left" / "Clear on the left" / "Left side clear" / "Clear left side" | Clear Left flow                            |
-| "Before start procedure"                                                   | Before Start flow                          |
-| "Runway entry procedure" / "Clear to line up"                              | Before Takeoff flow                        |
-| "Takeoff"                                                                  | Takeoff flow                               |
-| "Flight controls check"                                                    | Flight controls sequence, then Taxi flow   |
-| "Start engine two"                                                         | Starts engine 2 (single-engine taxi start) |
+| Say                                                                        | Flow launched                                            |
+| -------------------------------------------------------------------------- | -------------------------------------------------------- |
+| "Clear left" / "Clear on the left" / "Left side clear" / "Clear left side" | Clear Left flow                                          |
+| "Before start procedure"                                                   | Before Start flow                                        |
+| "Runway entry procedure" / "Clear to line up"                              | Before Takeoff flow                                      |
+| "Takeoff"                                                                  | Takeoff flow                                             |
+| "Flight controls check"                                                    | Flight controls sequence, then the next After Start hint |
+| "Start engine two"                                                         | Starts engine 2 (single-engine taxi start)               |
 
 ### Launching Checklists by Voice
 

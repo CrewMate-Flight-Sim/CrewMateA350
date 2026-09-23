@@ -12,6 +12,7 @@
 - User manual updates - @marxio09dio
 - Fixed the FO repeating "seat belt sign is not on" and "beacon is not on" every two seconds with "Hold checklist on incorrect item" switched on - the reminder is said once and the checklist then waits for the switch - @marxio09dio
 - Removed unused sounds, voice script entries and packages - @marxio09dio
+- After Start now prompts for the flight controls check before the After Start checklist to match the built in checklist - @marxio09dio
 
 ## [0.3.5] - 2026-09-11
 
