@@ -128,7 +128,7 @@ impl SimVars {
                 Arc::as_ptr(&cache) as *mut std::ffi::c_void,
             );
         }
-        info!("SimVars: connected as \"{name}\"");
+        info!("[SimVars] Connected as \"{name}\"");
         Ok(Self {
             handle,
             reads: HashMap::new(),
@@ -209,7 +209,7 @@ impl SimVars {
     /// Transmit a key event (input event) with an integer payload.
     fn trigger_key_event(&mut self, event_name: &str, value: i32) -> Result<()> {
         info!(
-            "SimVars: trigger key event '{}' with data {}",
+            "[SimVars] Trigger key event '{}' with data {}",
             event_name, value
         );
         let event_id = if let Some(&id) = self.events.get(event_name) {

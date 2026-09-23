@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 
+import { useTelemetryTick } from "@/hooks/useTelemetryTick"
 import { executeFlow } from "@/services/flowRunner"
 import { useFlowStore } from "@/store/flowStore"
 import { useGoAroundStore } from "@/store/goAroundStore"
@@ -21,7 +22,6 @@ interface TriggeredFlags {
 }
 
 interface PrevValues {
-  onGround: number
   ignitionKnob: number
   flapsIndex: number
   spoilersArmed: number
@@ -29,7 +29,7 @@ interface PrevValues {
   alt: number
   mixture1: number
   mixture2: number
-  thrlvrclb: number
+  thrustLeverClb: number
 }
 
 export function useAutoFlows() {
@@ -45,7 +45,6 @@ export function useAutoFlows() {
   })
 
   const prev = useRef<PrevValues>({
-    onGround: 1,
     ignitionKnob: 0,
     flapsIndex: 0,
     spoilersArmed: 0,
@@ -53,7 +52,7 @@ export function useAutoFlows() {
     alt: 0,
     mixture1: 1,
     mixture2: 1,
-    thrlvrclb: 0
+    thrustLeverClb: 0
   })
 
   const phase = useRef<"ground" | "airborne">("ground")
@@ -70,7 +69,7 @@ export function useAutoFlows() {
     })
   }, [])
 
-  const tick = useCallback(() => {
+  const tick = () => {
     const t = useTelemetryStore.getState().telemetry
     if (!t || t.isSlewActive) return
 
@@ -78,13 +77,12 @@ export function useAutoFlows() {
     // detect false edges (e.g. ignitionKnob already 1 on app start).
     if (!primed.current) {
       primed.current = true
-      prev.current.onGround = t.onGround
       prev.current.ignitionKnob = t.ignitionKnob ?? 0
       prev.current.flapsIndex = t.flapsIndex ?? 0
       prev.current.spoilersArmed = t.spoilersArmed ?? 0
       prev.current.landingGear = t.landingGear ?? 1
       prev.current.alt = t.alt ?? 0
-      prev.current.thrlvrclb = t.thrlvrclb ?? 0
+      prev.current.thrustLeverClb = t.thrustLeverClb ?? 0
       prev.current.mixture1 = t.mixture1 ?? 1
       prev.current.mixture2 = t.mixture2 ?? 1
       phase.current = t.onGround ? "ground" : "airborne"
@@ -121,7 +119,7 @@ export function useAutoFlows() {
       }
 
       // Packs on: THR lever moved to CLB detent while airborne
-      else if (!fl.packsOn && !t.onGround && !p.thrlvrclb && t.thrlvrclb === 1) {
+      else if (!fl.packsOn && !t.onGround && !p.thrustLeverClb && t.thrustLeverClb === 1) {
         fl.packsOn = true
         executeFlow("packs_on")
       }
@@ -168,8 +166,7 @@ export function useAutoFlows() {
       }
     }
 
-    p.thrlvrclb = t.thrlvrclb ?? 0
-    p.onGround = t.onGround
+    p.thrustLeverClb = t.thrustLeverClb ?? 0
     p.ignitionKnob = t.ignitionKnob ?? 0
     p.flapsIndex = t.flapsIndex ?? 0
     p.spoilersArmed = t.spoilersArmed ?? 0
@@ -177,10 +174,7 @@ export function useAutoFlows() {
     p.alt = t.alt ?? 0
     p.mixture1 = t.mixture1 ?? 1
     p.mixture2 = t.mixture2 ?? 1
-  }, [])
+  }
 
-  useEffect(() => {
-    const id = setInterval(tick, 100)
-    return () => clearInterval(id)
-  }, [tick])
+  useTelemetryTick(tick)
 }

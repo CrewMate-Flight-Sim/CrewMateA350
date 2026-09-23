@@ -1,11 +1,12 @@
 import { simvarGet, simvarSet } from "@/API/simvarApi"
 import { delay } from "@/lib/utils"
 import { getFlowById, resolveFlow } from "@/services/flowLoader"
-import { playSound, isSoundPlaying } from "@/services/playSounds"
+import { playSound, waitForSoundFinished } from "@/services/playSounds"
 import { useFlowStore } from "@/store/flowStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { useSettingsStore } from "@/store/settingsStore"
-import { Telemetry, useTelemetryStore } from "@/store/telemetryStore"
+import { useTelemetryStore } from "@/store/telemetryStore"
+import type { Telemetry } from "@/store/telemetryStore"
 import { useVoiceHintProgressStore } from "@/store/voiceHintProgressStore"
 import type { Flow, FlowStep, FlowConditionValue } from "@/types/flow"
 
@@ -16,6 +17,7 @@ import type { Flow, FlowStep, FlowConditionValue } from "@/types/flow"
 const STEP_DELAY = { MIN: 500, MAX: 1500 }
 const SIMVAR = { READ_RETRIES: 5, READ_RETRY_DELAY: 150 }
 const STEP_VERIFY = { RETRIES: 5, DELAY: 300, SOUND_AFTER_DELAY: 2000 }
+const DRIVE = { POLL_INTERVAL: 100, DEFAULT_TIMEOUT: 20000 }
 
 const BLOCKED_FLOWS = new Set(["shutdown_eng1", "shutdown_eng2"])
 const FUZZY_EPS = 0.5
@@ -27,9 +29,6 @@ const FUZZY_EPS = 0.5
 const getRandomStepDelay = () => Math.random() * (STEP_DELAY.MAX - STEP_DELAY.MIN) + STEP_DELAY.MIN
 const fuzzyEquals = (a: number, b: number, eps = FUZZY_EPS) => Math.abs(a - b) < eps
 const toNumber = (v: number | string) => (typeof v === "string" ? parseFloat(v) : v)
-const waitForSoundFinished = async () => {
-  while (await isSoundPlaying()) await delay(100)
-}
 
 // ---------------------------------------------------------------------------
 // SimVar I/O
@@ -133,7 +132,7 @@ class PostLandingTimer {
 
   private onTelemetry(telemetry: Telemetry | null): void {
     if (!telemetry) return
-    const chronoValue = telemetry.a350FoCrono
+    const chronoValue = telemetry.foChrono
     if (typeof chronoValue !== "number") return
 
     // Chrono reset to 0 — re-arm for the next landing
@@ -315,6 +314,11 @@ class FlowRunner {
       await this.abortableSleep(100, signal)
     }
 
+    if (step.until) {
+      await this.driveUntil(step, index, signal)
+      return
+    }
+
     const currentValue = await readSimvar(step.read)
     this.checkAbort(signal)
 
@@ -334,7 +338,7 @@ class FlowRunner {
 
     if (step.hold_ms) {
       await this.abortableSleep(step.hold_ms, signal)
-      const releaseExpr = step.on.replace(/^-?\d+\s+/, "0 ")
+      const releaseExpr = step.release ?? step.on.replace(/^-?\d+\s+/, "0 ")
       await writeSimvar(releaseExpr)
       this.checkAbort(signal)
     }
@@ -345,6 +349,65 @@ class FlowRunner {
     } else {
       await this.verifyAndFinish(step, index, expectedValue, signal)
     }
+  }
+
+  // ── Drive-until phase ─────────────────────────────────────────────────────
+  // Holds a control in its driving position until `read` passes `expect` (e.g. a
+  // seat that only moves while its switch is held). The release is always written,
+  // even on timeout or abort, so the control is never left running.
+
+  private async driveUntil(step: FlowStep, index: number, signal: AbortSignal): Promise<void> {
+    const { setStepStatus } = useFlowStore.getState()
+    const release = step.release
+    if (!release) throw new Error(`Step "${step.label}" uses "until" but has no "release" to stop it`)
+
+    const target = toNumber(step.expect)
+    const reached = (value: number | null) =>
+      value !== null && (step.until === "at_least" ? value >= target : value <= target)
+
+    const startValue = await readSimvar(step.read)
+    this.checkAbort(signal)
+    console.log(`[FlowRunner] Step "${step.label}": read=${startValue}, drive ${step.until} ${target}`)
+
+    if (reached(startValue)) {
+      if (step.wait_ms) await this.abortableSleep(step.wait_ms, signal)
+      setStepStatus(index, "skipped")
+      return
+    }
+
+    const timeoutMs = step.timeout_ms ?? DRIVE.DEFAULT_TIMEOUT
+    let arrived = false
+    try {
+      await writeSimvar(step.on)
+      // Not awaited: blocking on the sound would let the control overshoot
+      if (step.sound_on_execute) void playSound(step.sound_on_execute)
+
+      const deadline = Date.now() + timeoutMs
+      while (Date.now() < deadline) {
+        if (reached(await readSimvar(step.read))) {
+          arrived = true
+          break
+        }
+        await this.abortableSleep(DRIVE.POLL_INTERVAL, signal)
+      }
+    } finally {
+      try {
+        await writeSimvar(release)
+      } catch {
+        // writeSimvar already logged it; don't mask the original error
+      }
+    }
+
+    if (step.wait_ms) await this.abortableSleep(step.wait_ms, signal)
+
+    if (!arrived) {
+      console.warn(`[FlowRunner] Step "${step.label}" did not reach ${step.until} ${target} within ${timeoutMs} ms`)
+      setStepStatus(index, "failed")
+      return
+    }
+
+    setStepStatus(index, "done")
+    await this.playSoundAfterExecute(step, signal)
   }
 
   // ── Post-write phase ──────────────────────────────────────────────────────

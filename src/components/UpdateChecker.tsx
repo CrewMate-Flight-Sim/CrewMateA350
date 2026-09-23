@@ -50,7 +50,7 @@ export function UpdateChecker() {
       }
     } catch (e) {
       const details = parseErrorMessage(e)
-      console.error("Update check failed", e)
+      console.error("[UpdateChecker] Update check failed:", e)
       setStatus({
         message: `Check failed (${details.slice(0, 80)}). Retry in a moment.`,
         kind: "error"
@@ -84,7 +84,7 @@ export function UpdateChecker() {
       setStatus({ message: "Relaunch to update", kind: "success" })
     } catch (e) {
       const details = parseErrorMessage(e)
-      console.error("Install failed", e)
+      console.error("[UpdateChecker] Install failed:", e)
       setStatus({
         message: `Install failed (${details.slice(0, 80)}). Please retry.`,
         kind: "error"

@@ -1,17 +1,18 @@
 import { simvarGet, simvarSet } from "@/API/simvarApi"
-import { buildPassingAltitudeSequence } from "@/hooks/useCallouts"
 import { delay } from "@/lib/utils"
 import { abortChecklist, executeChecklist } from "@/services/checklistRunner"
 import { executeFlow } from "@/services/flowRunner"
 import { playSound, playSoundSequence } from "@/services/playSounds"
+import { buildGoAroundAltSequence, buildPassingAltitudeSequence } from "@/services/soundSequences"
 import { useGroundEngineerStore } from "@/store/groundEngineerStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
+import { useRtoStore } from "@/store/rtoStore"
 import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 
-import { setEngAntiIce, setWingAntiIce } from "./commands/anti_ice"
+import { setEngAntiIce, setWingAntiIce } from "./commands/antiIce"
 import { setStartAPU } from "./commands/apu"
 import {
   setAirspeedDial,
@@ -31,16 +32,16 @@ import {
   setSelSpeed
 } from "./commands/autoPilot"
 import { setStdBaro } from "./commands/baro"
-import { setBrakeFan } from "./commands/brake_fan"
+import { setBrakeFan } from "./commands/brakeFan"
 import { setDoorSlides } from "./commands/doorSlides"
 import { setIgnKnob, startEngine2 } from "./commands/engine"
 import { setFlaps } from "./commands/flaps"
-import { flightControlsCheck } from "./commands/flight_controls_check"
+import { flightControlsCheck } from "./commands/flightControlsCheck"
 import { setGearHandle } from "./commands/gear"
 import { executeGoAround } from "./commands/goAround"
 import { callPushback, disconnectAllGround, setACU, setASU, setGPU } from "./commands/groundServices"
 import { setLandingLights, setStrobeLights, setTaxiLights } from "./commands/lights"
-import { setSeatBelts } from "./commands/seat_belts"
+import { setSeatBelts } from "./commands/seatBelts"
 import { setWipers } from "./commands/wipers"
 
 const randomDelay = (min: number, max: number) => delay(min + Math.random() * (max - min))
@@ -212,7 +213,7 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
     setLOC(1)
   },
   set_runway_track: () => {
-    const hdg = useTelemetryStore.getState().telemetry?.["landingtrk"]
+    const hdg = useTelemetryStore.getState().telemetry?.["arrRunwayHdg"]
     if (hdg != null) {
       playSound("check.ogg")
       setHeadingDial(hdg)
@@ -344,7 +345,7 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
   checklist_cancel: () => abortChecklist(),
 
   // ── RTO / Continue  ─────────────────────────────────────
-  //abort_takeoff: () => playSound("check.ogg"),
+  abort_takeoff: () => useRtoStore.getState().trigger(),
   continue: () => playSound("check.ogg"),
 
   // ── Ground engineer ───────────────────────────────────────────────────────
@@ -407,23 +408,6 @@ export const discreteCommandMap: Record<string, () => void | Promise<void>> = {
     await disconnectAllGround()
     await playSound("all_off.ogg", { pack: gePack() })
   }
-}
-
-/**
- * Build the go-around altitude readback. Only exact thousands up to 10000 can be
- * spoken — the packs carry 0-9, thousand and ten_thousand, but no "hundred" — so
- * anything else falls back to "go around altitude set" rather than a wrong or
- * missing number file.
- */
-const buildGoAroundAltSequence = (altValue: number): string[] => {
-  if (altValue === 10000) {
-    return ["go_around_alt.ogg", "ten_thousand.ogg", "feet_set.ogg"]
-  }
-  const thousands = altValue / 1000
-  if (Number.isInteger(thousands) && thousands >= 1 && thousands <= 9) {
-    return ["go_around_alt.ogg", `${thousands}.ogg`, "thousand.ogg", "feet_set.ogg"]
-  }
-  return ["go_around_alt.ogg", "set.ogg"]
 }
 
 // ─── FO command dispatcher (heading, altitude, speed, fma) ────────

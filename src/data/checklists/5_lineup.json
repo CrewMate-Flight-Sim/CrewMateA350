@@ -9,7 +9,7 @@
     },
     {
       "challenge": "takeoff_runway.ogg",
-      "response": ["#3 confirmed", "confirmed", "set and checked"],
+      "response": ["confirmed", "set and checked"],
       "label": "Take off Runway",
       "rwy_confirmation": true
     },

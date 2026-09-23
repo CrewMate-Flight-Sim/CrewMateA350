@@ -3,7 +3,7 @@ import { listen } from "@tauri-apps/api/event"
 import { simvarGet, simvarSet } from "@/API/simvarApi"
 import { delay } from "@/lib/utils"
 import { getChecklistById } from "@/services/checklistLoader"
-import { isSoundPlaying, playSound, playSoundSequence } from "@/services/playSounds"
+import { playSound, playSoundSequence, waitForSoundFinished } from "@/services/playSounds"
 import { useChecklistStore } from "@/store/checklistStore"
 import { usePerformanceStore } from "@/store/performanceStore"
 import { useSettingsStore } from "@/store/settingsStore"
@@ -25,10 +25,6 @@ const NUMBER_WORDS_RE = new RegExp(`\\b${NUMBER_WORD_PATTERN}(?:[\\s-]+${NUMBER_
 // ---------------------------------------------------------------------------
 // Utilities
 // ---------------------------------------------------------------------------
-
-async function waitForSoundFinished(): Promise<void> {
-  while (await isSoundPlaying()) await delay(100)
-}
 
 async function playSyncSound(soundFile: string): Promise<void> {
   await waitForSoundFinished()
@@ -356,14 +352,21 @@ class ChecklistRunner {
   // ── Auto-check phase (no challenge, validations only) ─────────────────────
 
   private async runAutoCheckItem(item: ChecklistItem, signal: AbortSignal): Promise<void> {
-    if (item.validations?.length) {
-      while (true) {
-        checkAbort(signal)
-        if (await findPassingRule(item.validations, "", signal)) break
+    if (!item.validations?.length) return
+
+    let called = false
+    while (true) {
+      checkAbort(signal)
+      if (await findPassingRule(item.validations, "", signal)) break
+
+      // Said once, then waits for the switch
+      if (!called) {
+        called = true
         if (item.incorrect) await playSyncSound(item.incorrect)
-        if (!useSettingsStore.getState().holdOnIncorrect) break
-        await delay(AUTO_CHECK_RETRY_DELAY)
       }
+
+      if (!useSettingsStore.getState().holdOnIncorrect) break
+      await delay(AUTO_CHECK_RETRY_DELAY)
     }
   }
 
@@ -529,7 +532,7 @@ class ChecklistRunner {
 
   private onChecklistCompleted(checklistId: string): void {
     useVoiceHintProgressStore.getState().recordChecklistCompleted(checklistId)
-    if (checklistId === "parking") {
+    if (checklistId === "secure_aircraft") {
       useVoiceHintProgressStore.getState().resetForColdGround()
     }
   }

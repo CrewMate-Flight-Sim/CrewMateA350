@@ -2,14 +2,14 @@ import { simvarSet } from "@/API/simvarApi"
 import { playSound } from "@/services/playSounds"
 import { useTelemetryStore } from "@/store/telemetryStore"
 
-const gearLowerSpeedLimit = 255 // knots
+const GEAR_LOWER_SPEED_LIMIT = 255 // knots
 
 export async function setGearHandle(position: number) {
   try {
     const { telemetry } = useTelemetryStore.getState()
     const currentSpeed = telemetry?.ias ?? 0
 
-    if (position === 1 && currentSpeed > gearLowerSpeedLimit) {
+    if (position === 1 && currentSpeed > GEAR_LOWER_SPEED_LIMIT) {
       playSound("check_speed.ogg")
       return
     }
@@ -25,6 +25,6 @@ export async function setGearHandle(position: number) {
       playSound("gear_up.ogg")
     }
   } catch (error) {
-    console.error("Error sending gear key event:", error)
+    console.error("[Gear] Failed to send gear key event:", error)
   }
 }

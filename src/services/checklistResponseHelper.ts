@@ -29,6 +29,12 @@ export function getDisplayResponses(item: ChecklistItem): string[] {
     extras.push("qnh #4 set", "altimeter #4 set", "#4 set")
   }
 
+  // Runway confirmation: show the runway entered in the Takeoff Plan
+  if (item.rwy_confirmation) {
+    const runway = usePerformanceStore.getState().takeoff.runway?.trim()
+    if (runway) extras.push(`${runway.toUpperCase()} confirmed`)
+  }
+
   // Takeoff confirmation: show only the currently-configured thrust variant + safeword
   if (item.takeoff_confirmation) {
     const { v1, vr, v2, thrustSetting } = usePerformanceStore.getState().takeoff

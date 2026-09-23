@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Microsoft.Win32;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,16 @@ namespace SpeechTrainer
     {
         private const int BatchSize = 20;
         private const string LogFileName = "speech-trainer.log";
+
+        // What a missing speech profile surfaces as.
+        private const int E_INVALIDARG = unchecked((int)0x80070057);
+
+        // Desktop SAPI and the OneCore stack store profiles separately.
+        private static readonly string[] RecoProfileKeys =
+        {
+            @"Software\Microsoft\Speech\RecoProfiles\Tokens",
+            @"Software\Microsoft\Speech_OneCore\RecoProfiles\Tokens",
+        };
 
         private static readonly Guid SpInprocRecognizerClsid = new Guid(
             "41B89B6B-9399-11D2-9623-00C04F8EE628"
@@ -68,6 +79,54 @@ namespace SpeechTrainer
             {
                 // Swallow logging failures; never take down training.
             }
+        }
+
+        // Training without a profile fails inside DisplayUI, so check up front.
+        private static bool HasSpeechProfile()
+        {
+            foreach (var path in RecoProfileKeys)
+            {
+                try
+                {
+                    using (var key = Registry.CurrentUser.OpenSubKey(path))
+                    {
+                        if (key != null && key.GetSubKeyNames().Length > 0)
+                            return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // A failed registry read must not block training.
+                    Log("Could not read speech profiles from " + path, ex);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Actionable text for a failure, plus where the log is.
+        private static string DescribeFailure(Exception ex)
+        {
+            var com = ex as System.Runtime.InteropServices.COMException;
+            var detail =
+                com == null
+                    ? ex.Message
+                    : com.Message + " (HRESULT 0x" + com.HResult.ToString("X8") + ")";
+
+            var hint =
+                com != null && com.HResult == E_INVALIDARG
+                    ? "Windows rejected the training request. This normally means this account "
+                        + "has no usable speech profile yet.\r\n\r\nOpen Windows Speech Recognition, "
+                        + "complete the microphone and speech setup once, then run this tool "
+                        + "again.\r\n\r\n"
+                    : "";
+
+            return "Training error: "
+                + detail
+                + "\r\n\r\n"
+                + hint
+                + "Details were written to:\r\n"
+                + GetLogFilePath();
         }
 
         // ── UI ────────────────────────────────────────────────────────────────────
@@ -175,6 +234,23 @@ namespace SpeechTrainer
                 return;
             }
 
+            if (!HasSpeechProfile())
+            {
+                _lblStatus.Text =
+                    "No Windows speech profile found. Set up Speech Recognition first.";
+                Log("No speech profile found under HKCU RecoProfiles; training would fail.");
+                MessageBox.Show(
+                    "Windows Speech Recognition has not been set up for this account, so there is "
+                        + "no voice profile to train.\r\n\r\n"
+                        + "Open Windows Speech Recognition, complete the microphone setup and the "
+                        + "speech setup once, then run this tool again.",
+                    Text,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+
             var name = (string)_recognizers.Item(_recognizerIndex).GetDescription();
             _lblStatus.Text =
                 "Recognizer: "
@@ -244,7 +320,7 @@ namespace SpeechTrainer
             {
                 Log("Training failed.", ex);
                 MessageBox.Show(
-                    "Training error: " + ex.Message,
+                    DescribeFailure(ex),
                     title,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error

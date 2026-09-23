@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-interface VoiceHintProgressState {
+interface VoiceHintProgressStore {
   lastCompletedChecklistId: string | null
   lastCompletedFlowId: string | null
   /** Incremented when we detect ground→air; optional future use for stale guards */
@@ -16,7 +16,7 @@ interface VoiceHintProgressState {
   resetForColdGround: () => void
 }
 
-export const useVoiceHintProgressStore = create<VoiceHintProgressState>()((set) => ({
+export const useVoiceHintProgressStore = create<VoiceHintProgressStore>()((set) => ({
   lastCompletedChecklistId: null,
   lastCompletedFlowId: null,
   legEpoch: 0,

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.0] - Unreleased
+
+- Flow steps can drive a control until a target value is reached, then release it - @marxio09dio
+- Rejected takeoff callouts, triggered by "stop" (replaces "abort takeoff"): "reverse green" if reverse is selected, then "decel" or "no decel" - no "no reverse" or spoilers call on a reject - @marxio09dio
+- Batteries are switched off before the battery voltage check in the preliminary cockpit preparation - @alexlenh
+- IRS is switched off before NAV is selected, so the alignment always starts fresh instead of being skipped - @alexlenh
+- Transition altitude and transition level calls are skipped when the altimeter is already set - @marxio09dio
+- The Voice Trainer now checks for a Windows speech profile before training and says how to set one up, instead of failing with "Value does not fall within the expected range". Errors also show the log file path - @marxio09dio
+- The voice guide now suggests the securing checklist after parking, and the after landing hint says "taxi light off" instead of a phrase the FO cannot hear - @marxio09dio
+- User manual updates - @marxio09dio
+- Fixed the FO repeating "seat belt sign is not on" and "beacon is not on" every two seconds with "Hold checklist on incorrect item" switched on - the reminder is said once and the checklist then waits for the switch - @marxio09dio
+- Removed unused sounds, voice script entries and packages - @marxio09dio
+- After Start now prompts for the flight controls check before the After Start checklist to match the built in checklist - @marxio09dio
+
 ## [0.3.5] - 2026-09-11
 
 - Fixed the FO repeating the reminder on an incorrect checklist item instead of saying it once, even with "Hold checklist on incorrect item" switched off - @marxio09dio

@@ -1,14 +1,11 @@
-import { simvarGet, simvarSet } from "@/API/simvarApi"
+import { setLvar, simvarGet } from "@/API/simvarApi"
 import { delay } from "@/lib/utils"
 import { executeFlow } from "@/services/flowRunner"
+
 export async function setIgnKnob(position: number) {
-  try {
-    const expression = `${position} (>L:INI_IGNITION_KNOB)`
-    await simvarSet(expression)
-  } catch (error) {
-    console.error("Error setting ignition knob", error)
-  }
+  await setLvar(position, "INI_IGNITION_KNOB", "ignition knob")
 }
+
 async function monitorEngine2Start() {
   // Polling for up to 60 seconds
   for (let i = 0; i < 600; i++) {
@@ -22,14 +19,10 @@ async function monitorEngine2Start() {
     await delay(100)
   }
 }
+
 export async function startEngine2(position: number) {
-  try {
-    const expression = `${position} (>L:INI_MIXTURE_RATIO2_HANDLE)`
-    await simvarSet(expression)
-    if (position === 1) {
-      monitorEngine2Start()
-    }
-  } catch (error) {
-    console.error("Error starting engine 2:", error)
+  const ok = await setLvar(position, "INI_MIXTURE_RATIO2_HANDLE", "engine 2 master")
+  if (ok && position === 1) {
+    monitorEngine2Start()
   }
 }

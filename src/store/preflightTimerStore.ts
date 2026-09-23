@@ -31,7 +31,7 @@ interface PreflightTimerStore {
 
 const TOTAL_SECONDS = Math.max(...timelineData.map((e) => e.minuteMark)) * 60
 
-export const usePreflightTimerStore = create<PreflightTimerStore>((set, get) => ({
+export const usePreflightTimerStore = create<PreflightTimerStore>()((set, get) => ({
   isRunning: false,
   remainingSeconds: TOTAL_SECONDS,
   events: timelineData as TimelineEvent[],

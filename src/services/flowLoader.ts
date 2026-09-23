@@ -138,6 +138,7 @@ export async function resolveStep(step: FlowStep, vars?: Record<string, string>)
     label: resolveString(step.label, templateVars),
     read: resolveString(step.read, templateVars),
     on: resolveString(step.on, templateVars),
+    release: step.release ? resolveString(step.release, templateVars) : undefined,
     expect: typeof step.expect === "string" ? parseFloat(resolveString(step.expect, templateVars)) || 0 : step.expect,
     only_if: resolvedOnlyIf
   }

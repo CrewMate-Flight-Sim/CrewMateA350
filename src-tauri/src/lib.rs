@@ -1,17 +1,17 @@
 use std::sync::{mpsc, Arc, Mutex};
 mod audio;
-use audio::audio_commands::{
+use audio::commands::{
     get_sound_packs, is_audio_playing, play_sound, play_sound_sequence, AudioPlayerState,
 };
-use audio::audio_devices::{
+use audio::devices::{
     get_available_input_devices, get_available_output_devices, set_input_device, set_output_device,
 };
-use audio::audio_player::AudioPlayer;
-use brigdes::speech_bridge::get_speech_input_devices;
+use audio::player::AudioPlayer;
+use bridges::speech_bridge::get_speech_input_devices;
 use tauri_plugin_window_state::StateFlags;
 
-mod brigdes;
-use brigdes::speech_bridge::SpeechBridge;
+mod bridges;
+use bridges::speech_bridge::SpeechBridge;
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::Emitter;
 use tauri::Manager;
@@ -24,6 +24,7 @@ use simconnect::simvars::{
 mod app_data;
 use app_data::{
     get_log_file_path, open_app_data_folder, open_logs_folder, setup_app_data_directories,
+    LOGS_DIR_NAME, LOG_FILE_STEM,
 };
 
 mod simconnect;
@@ -37,7 +38,7 @@ fn get_in_cockpit() -> bool {
 
 #[tauri::command]
 fn get_speech_engine_error(state: tauri::State<'_, SpeechBridgeState>) -> Option<String> {
-    state.inner().0.last_error()
+    state.inner().bridge.last_error()
 }
 
 #[tauri::command]
@@ -46,19 +47,19 @@ fn set_confidence_threshold(state: tauri::State<'_, SpeechBridgeState>, threshol
         threshold.clamp(0.0, 1.0)
     } else {
         log::warn!(
-            "Received non-finite confidence threshold: {:?}, using default 0.85",
+            "[Speech] Received non-finite confidence threshold: {:?}, using default 0.85",
             threshold
         );
         0.85
     };
     let json = format!(r#"{{"confidenceThreshold":{:.3}}}"#, safe_threshold);
-    state.inner().0.send_config(&json);
+    state.inner().bridge.send_config(&json);
 }
 
 #[tauri::command]
 fn set_muted(state: tauri::State<'_, SpeechBridgeState>, muted: bool) {
     let json = format!(r#"{{"muted":{}}}"#, muted);
-    state.inner().0.send_config(&json);
+    state.inner().bridge.send_config(&json);
 }
 
 mod windows;
@@ -70,7 +71,9 @@ struct AppState {
     tx: Mutex<mpsc::Sender<WorkerRequest>>,
 }
 
-pub struct SpeechBridgeState(pub Arc<SpeechBridge>);
+pub struct SpeechBridgeState {
+    pub bridge: Arc<SpeechBridge>,
+}
 
 enum WorkerRequest {
     Set {
@@ -119,7 +122,9 @@ pub fn run() {
             // Initialize speech recognition sidecar
             let speech = Arc::new(SpeechBridge::new(app.handle().clone()));
             SPEECH_BRIDGE_STATE.set(speech.clone()).ok();
-            app.manage(SpeechBridgeState(speech.clone()));
+            app.manage(SpeechBridgeState {
+                bridge: speech.clone(),
+            });
 
             // Initialize audio player
             let audio_player = AudioPlayer::new().expect("Failed to initialize audio player");
@@ -137,16 +142,16 @@ pub fn run() {
             // Initialize logging
             let logs_dir = match app.path().app_data_dir() {
                 Ok(app_data_dir) => {
-                    let logs_path = app_data_dir.join("logs");
+                    let logs_path = app_data_dir.join(LOGS_DIR_NAME);
                     if let Err(e) = std::fs::create_dir_all(&logs_path) {
-                        eprintln!("Failed to create logs directory: {}", e);
+                        eprintln!("[App] Failed to create logs directory: {}", e);
                         app_data_dir
                     } else {
                         logs_path
                     }
                 }
                 Err(e) => {
-                    eprintln!("Failed to get app data directory: {}", e);
+                    eprintln!("[App] Failed to get app data directory: {}", e);
                     std::path::PathBuf::from(".")
                 }
             };
@@ -155,7 +160,7 @@ pub fn run() {
                 .target(tauri_plugin_log::Target::new(
                     tauri_plugin_log::TargetKind::Folder {
                         path: logs_dir,
-                        file_name: Some("crewmateinia350".to_string()),
+                        file_name: Some(LOG_FILE_STEM.to_string()),
                     },
                 ))
                 .level(log::LevelFilter::Info)
@@ -165,10 +170,10 @@ pub fn run() {
                 .plugin(log_plugin)
                 .expect("Failed to initialize logging plugin");
 
-            log::info!("Crewmate INI A350 application loaded...");
+            log::info!("[App] Crewmate INI A350 application loaded...");
 
             if let Err(e) = setup_app_data_directories(app.handle()) {
-                log::error!("Failed to setup app data directories: {}", e);
+                log::error!("[App] Failed to setup app data directories: {}", e);
             }
 
             // Close request handling

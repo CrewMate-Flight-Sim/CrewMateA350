@@ -1,9 +1,11 @@
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 
 import { simvarSet } from "@/API/simvarApi"
+import { useTelemetryTick } from "@/hooks/useTelemetryTick"
 import { playSound, isSoundPlaying } from "@/services/playSounds"
 import { useGoAroundStore } from "@/store/goAroundStore"
 import { usePassingAltitudeStore } from "@/store/passingAltitudeStore"
+import { useRtoStore } from "@/store/rtoStore"
 import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 import type { Telemetry } from "@/store/telemetryStore"
@@ -34,6 +36,13 @@ interface LandingSequenceState {
   done: boolean
 }
 
+interface RtoState {
+  active: boolean
+  startedAt: number | null
+  calledReverse: boolean
+  calledDecel: boolean
+}
+
 interface PreviousValues {
   speed: number
   alt: number
@@ -56,26 +65,6 @@ const getTakeoffThrustTarget = (t: Telemetry) => {
 const crossedUp = (prev: number, curr: number, threshold: number) => prev < threshold && curr >= threshold
 
 const crossedDown = (prev: number, curr: number, threshold: number) => prev > threshold && curr <= threshold
-
-/**
- * Build audio sequence for "standard crosschecked, passing FL XXX"
- * @param targetAlt Target altitude in feet
- * @returns Array of audio filenames to play in sequence
- */
-export const buildPassingAltitudeSequence = (targetAlt: number): string[] => {
-  const sequence: string[] = ["standard_cross_checked.ogg", "passing_flight_level.ogg"]
-
-  const flightLevel = Math.round(targetAlt / 100)
-  //  FL050, FL100, FL250, etc.
-  const flString = flightLevel.toString().padStart(3, "0")
-
-  // digit files
-  for (const digit of flString) {
-    sequence.push(`${digit}.ogg`)
-  }
-
-  return sequence
-}
 
 const advancePhase = (ls: LandingSequenceState, next: LandingPhase, now: number) => {
   ls.phase = next
@@ -139,6 +128,43 @@ const phaseHandlers: Record<
   decel: handleDecelPhase
 }
 
+// ─── Rejected takeoff ────────────────────────────────────────────────────────
+// Triggered by the pilot calling "stop". FCOM PRO-ABN-ABN-00: the F/O calls
+// REVERSE GREEN, then DECEL or NO DECEL. There is no spoilers call, and nothing
+// is said about reverse when it was never selected.
+
+const RTO_ARM_MIN_IAS = 40
+const RTO_END_IAS = 30
+const RTO_DECEL_TIMEOUT = 5000
+
+const resetRto = (rto: RtoState) => {
+  rto.active = false
+  rto.startedAt = null
+  rto.calledReverse = false
+  rto.calledDecel = false
+}
+
+function handleRto(rto: RtoState, t: Telemetry, prevSpeed: number, now: number) {
+  if (!rto.calledReverse && (t.throttleLever1 < -0.1 || t.throttleLever2 < -0.1)) {
+    playSound("reverse_green.ogg")
+    rto.calledReverse = true
+    return
+  }
+
+  if (rto.calledDecel) return
+
+  const brakesApplied = t.brakeLeftPosition > 0.1 || t.brakeRightPosition > 0.1
+  const elapsed = rto.startedAt ? now - rto.startedAt : 0
+
+  if (brakesApplied && t.ias < prevSpeed) {
+    playSound("decel.ogg")
+    rto.calledDecel = true
+  } else if (elapsed >= RTO_DECEL_TIMEOUT) {
+    playSound("no_decel.ogg")
+    rto.calledDecel = true
+  }
+}
+
 export function useCallouts(vrSpeed: number) {
   const speed = useRef<SpeedCalloutFlags>({
     calledThrustSet: false,
@@ -190,7 +216,28 @@ export function useCallouts(vrSpeed: number) {
     })
   }, [])
 
-  const tick = useCallback(async () => {
+  // Rejected takeoff: armed only by the pilot calling "stop", and only on the
+  // ground above 40 kt so a stray call at the gate or in the cruise does nothing
+  const rto = useRef<RtoState>({
+    active: false,
+    startedAt: null,
+    calledReverse: false,
+    calledDecel: false
+  })
+  const rtoCount = useRef(useRtoStore.getState().count)
+  useEffect(() => {
+    return useRtoStore.subscribe((s) => {
+      if (s.count === rtoCount.current) return
+      rtoCount.current = s.count
+      const t = useTelemetryStore.getState().telemetry
+      if (!t || !t.onGround || t.ias <= RTO_ARM_MIN_IAS) return
+      resetRto(rto.current)
+      rto.current.active = true
+      rto.current.startedAt = Date.now()
+    })
+  }, [])
+
+  const tick = async () => {
     const t = useTelemetryStore.getState().telemetry
     if (!t || t.isSlewActive) return
 
@@ -201,8 +248,8 @@ export function useCallouts(vrSpeed: number) {
     const vr = vrSpeedRef.current
     const now = Date.now()
     const cabinIsReady = (t.cabinIsReady ?? 0) > 0.5 ? 1 : 0
-    const takeoffN1 = Math.min(t.engineN1_1 ?? 0, t.engineN1_2 ?? 0)
-    const fcuAlt = t.fcu_alt ?? 0
+    const takeoffN1 = Math.min(t.engine1N1 ?? 0, t.engine2N1 ?? 0)
+    const fcuAlt = t.fcuAlt ?? 0
     const takeoffThrustTarget = getTakeoffThrustTarget(t)
 
     if (!cabinReadyPrimed.current) {
@@ -255,7 +302,7 @@ export function useCallouts(vrSpeed: number) {
     if (t.onGround && crossedDown(p.speed, t.ias, 70) && !sp.called70) {
       playSound("70_knots.ogg")
       sp.called70 = true
-      // 2 seconds after the 70-knot callout, press the chrono button and start the
+      // 5 seconds after the 70-knot callout, press the chrono button and start the
       // post-landing timer. The chrono counts up in seconds; when it reaches 300
       // (5 minutes) the announcement plays.
       setTimeout(() => {
@@ -311,7 +358,12 @@ export function useCallouts(vrSpeed: number) {
       al.oneToGo = true
     }
 
-    // Transition altitude / level
+    // Transition altitude / level — both calls prompt an altimeter change, so they
+    // are skipped when it has already been made. XMLVAR_Baro1_Mode: 3 = STD.
+    const baroMode = t.baroMode ?? -1
+    const onStandard = baroMode === 3
+    const baroKnown = baroMode >= 0
+
     if (
       !t.onGround &&
       t.vs > 100 &&
@@ -319,7 +371,7 @@ export function useCallouts(vrSpeed: number) {
       t.transitionAltitude > 0 &&
       crossedUp(p.alt, t.alt, t.transitionAltitude)
     ) {
-      playSound("transiton_altitude.ogg")
+      if (!baroKnown || !onStandard) playSound("transiton_altitude.ogg")
       al.transitionAltitude = true
     }
 
@@ -330,7 +382,7 @@ export function useCallouts(vrSpeed: number) {
       t.transitionLevel > 0 &&
       crossedDown(p.alt, t.alt, t.transitionLevel)
     ) {
-      playSound("transiton_level.ogg")
+      if (!baroKnown || onStandard) playSound("transiton_level.ogg")
       al.transitionLevel = true
     }
 
@@ -374,18 +426,6 @@ export function useCallouts(vrSpeed: number) {
       ls.wasAirborne = false
     }
 
-    // Arm: RTO (never airborne, spoilers deployed at speed)
-    if (
-      t.onGround &&
-      !ls.wasAirborne &&
-      ls.phase === "idle" &&
-      !ls.done &&
-      t.spoilersHandlePosition > 0.1 &&
-      t.ias > 60
-    ) {
-      advancePhase(ls, "spoilers", now)
-    }
-
     // Reset on sustained climb-away
     if (!t.onGround && t.vs > 500) {
       // Only reset passing altitude on actual go-around (landing sequence was active)
@@ -399,6 +439,15 @@ export function useCallouts(vrSpeed: number) {
     // Reset on taxi
     if (t.onGround && t.ias < 30) {
       resetLanding(ls)
+    }
+
+    // Rejected takeoff - runs on its own state, the landing sequence is untouched
+    if (rto.current.active) {
+      if (!t.onGround || t.ias < RTO_END_IAS) {
+        resetRto(rto.current)
+      } else if (!(await isSoundPlaying())) {
+        handleRto(rto.current, t, p.speed, now)
+      }
     }
 
     // Process landing phases (skip if idle or audio still playing)
@@ -421,10 +470,7 @@ export function useCallouts(vrSpeed: number) {
     p.cabinIsReady = cabinIsReady
     p.takeoffN1 = takeoffN1
     p.fcuAlt = fcuAlt
-  }, [])
+  }
 
-  useEffect(() => {
-    const id = setInterval(tick, 100)
-    return () => clearInterval(id)
-  }, [tick])
+  useTelemetryTick(tick)
 }

@@ -5,7 +5,7 @@ import { useTelemetryStore } from "@/store/telemetryStore"
 
 type A350Variant = "A350-900" | "A350-1000"
 
-const flapSpeedLimits: Record<A350Variant, Record<number, number>> = {
+const FLAP_SPEED_LIMITS: Record<A350Variant, Record<number, number>> = {
   "A350-900": {
     1: 255,
     2: 212,
@@ -20,7 +20,7 @@ const flapSpeedLimits: Record<A350Variant, Record<number, number>> = {
   }
 }
 
-const keyEventMap: Record<number, string> = {
+const KEY_EVENT_MAP: Record<number, string> = {
   0: "FLAPS_UP",
   1: "FLAPS_1",
   2: "FLAPS_2",
@@ -28,7 +28,7 @@ const keyEventMap: Record<number, string> = {
   4: "FLAPS_DOWN"
 }
 
-const soundMap: Record<number, string> = {
+const SOUND_MAP: Record<number, string> = {
   0: "flaps_0.ogg",
   1: "flaps_1.ogg",
   2: "flaps_2.ogg",
@@ -59,14 +59,14 @@ export async function setFlaps(setting: number, skipAnnouncement = false) {
 
     const effectiveVariant: A350Variant = variant ?? "A350-900"
 
-    const speedLimit = flapSpeedLimits[effectiveVariant][setting]
+    const speedLimit = FLAP_SPEED_LIMITS[effectiveVariant][setting]
 
     if (speedLimit && currentSpeed > speedLimit) {
       playSound("check_speed.ogg")
       return
     }
 
-    const keyEvent = keyEventMap[setting]
+    const keyEvent = KEY_EVENT_MAP[setting]
     if (!keyEvent) {
       return
     }
@@ -81,13 +81,13 @@ export async function setFlaps(setting: number, skipAnnouncement = false) {
       await simvarSet(commandExpression)
 
       await delay(1000)
-      const sound = soundMap[setting]
+      const sound = SOUND_MAP[setting]
       if (sound) playSound(sound)
     } else {
       await simvarSet(commandExpression)
 
       await delay(1000)
-      const sound = soundMap[setting]
+      const sound = SOUND_MAP[setting]
       if (sound) playSound(sound)
     }
   } catch (error) {

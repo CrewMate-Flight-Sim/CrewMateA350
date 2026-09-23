@@ -24,6 +24,7 @@ set speed two five zero
 speed one eight zero knots
 set speed three two zero
 
+ 
 
 # ── Transponder ───────────────────────────────────────────────────────────────
 squawk two zero zero zero
@@ -193,6 +194,5 @@ signaled
 stop
 medium
 go around flaps
-abort takeoff
 continue
 land

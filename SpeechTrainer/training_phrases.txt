@@ -194,6 +194,5 @@ signaled
 stop
 medium
 go around flaps
-abort takeoff
 continue
 land

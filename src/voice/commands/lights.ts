@@ -1,28 +1,13 @@
-import { simvarSet } from "@/API/simvarApi"
+import { setLvar } from "@/API/simvarApi"
 
 export async function setLandingLights(position: number) {
-  try {
-    const expression = `${position} (>L:INI_LIGHTS_LANDING)`
-    await simvarSet(expression)
-  } catch (error) {
-    console.error("Error setting landing lights:", error)
-  }
+  await setLvar(position, "INI_LIGHTS_LANDING", "landing lights")
 }
 
 export async function setStrobeLights(position: number) {
-  try {
-    const expression = `${position} (>L:INI_LIGHTS_STROBE)`
-    await simvarSet(expression)
-  } catch (error) {
-    console.error("Error setting strobe lights:", error)
-  }
+  await setLvar(position, "INI_LIGHTS_STROBE", "strobe lights")
 }
 
 export async function setTaxiLights(position: number) {
-  try {
-    const expression = `${position} (>L:INI_LIGHTS_NOSE)`
-    await simvarSet(expression)
-  } catch (error) {
-    console.error("Error setting taxi lights:", error)
-  }
+  await setLvar(position, "INI_LIGHTS_NOSE", "taxi lights")
 }

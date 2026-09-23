@@ -19,7 +19,7 @@ interface TelemetryStore {
   setAircraftTitle: (title: string | null) => void
 }
 
-export const useTelemetryStore = create<TelemetryStore>((set) => ({
+export const useTelemetryStore = create<TelemetryStore>()((set) => ({
   telemetry: null,
   status: "disconnected",
   aircraftTitle: null,
