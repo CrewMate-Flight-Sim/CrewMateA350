@@ -8,18 +8,25 @@ import { cn } from "@/lib/utils"
 import { useFlowStore } from "@/store/flowStore"
 import { usePreflightTimerStore } from "@/store/preflightTimerStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
+import type { VoiceMode } from "@/types/input"
 import { openLandingWindow, openSettingsWindow, openTakeoffWindow } from "@/windows/windowsHandler"
 
 type IconToolbarProps = {
   voiceEnabled: boolean
+  voiceMode: VoiceMode
+  pttHeld: boolean
   onToggleVoice: () => void
   voiceDisabled: boolean
 }
 
 const baseBtn = "w-9 h-9 p-0 bg-transparent border border-slate-700/50 transition"
 
-export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: IconToolbarProps) {
+export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, voiceDisabled }: IconToolbarProps) {
   const [alwaysOnTop, setAlwaysOnTop] = useState(false)
+
+  // In push-to-talk the mic is only armed; it goes live while the PTT button is held
+  const pttArmed = voiceEnabled && voiceMode === "ptt"
+  const micLive = voiceEnabled && (!pttArmed || pttHeld)
 
   const timerRunning = usePreflightTimerStore((s) => s.isRunning)
   const remainingSeconds = usePreflightTimerStore((s) => s.remainingSeconds)
@@ -57,12 +64,29 @@ export function IconToolbar({ voiceEnabled, onToggleVoice, voiceDisabled }: Icon
             <Button
               onClick={onToggleVoice}
               disabled={voiceDisabled}
-              className={cn(baseBtn, "hover:bg-cyan-400/10", voiceEnabled && "border-red-400 hover:border-red-400")}
+              className={cn(
+                baseBtn,
+                "hover:bg-cyan-400/10",
+                micLive && pttArmed && "border-emerald-400 hover:border-emerald-400",
+                micLive && !pttArmed && "border-red-400 hover:border-red-400",
+                !micLive && pttArmed && "border-red-400/40 hover:border-red-400/40"
+              )}
             >
-              {voiceEnabled ? <Mic className="w-5 h-5 text-red-400" /> : <MicOff className="w-5 h-5 text-cyan-300" />}
+              {!voiceEnabled ? (
+                <MicOff className="w-5 h-5 text-cyan-300" />
+              ) : (
+                <Mic
+                  className={cn(
+                    "w-5 h-5",
+                    pttArmed ? (pttHeld ? "text-emerald-400" : "text-red-400/40") : "text-red-400"
+                  )}
+                />
+              )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{voiceEnabled ? "Stop Listening" : "Start Listening"}</TooltipContent>
+          <TooltipContent side="bottom">
+            {!voiceEnabled ? "Start Listening" : pttArmed ? "Stop Listening (push-to-talk)" : "Stop Listening"}
+          </TooltipContent>
         </Tooltip>
 
         <Tooltip>

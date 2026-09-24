@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
 import { getCurrentWindow } from "@tauri-apps/api/window"
-import { FolderOpen, Volume2, Option } from "lucide-react"
+import { FolderOpen, Volume2, Option, Mic, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { useSettingsStore } from "@/store/settingsStore"
+import type { InputBinding, VoiceMode } from "@/types/input"
+
+type BindingTarget = "ptt" | "toggle"
 
 export function SettingsWindow() {
   const [availableSoundPacks, setAvailableSoundPacks] = useState<string[]>([])
@@ -43,6 +46,15 @@ export function SettingsWindow() {
 
   const lightsControlMode = useSettingsStore((s) => s.lightsControlMode)
   const setLightsControlMode = useSettingsStore((s) => s.setLightsControlMode)
+
+  const voiceMode = useSettingsStore((s) => s.voiceMode)
+  const setVoiceMode = useSettingsStore((s) => s.setVoiceMode)
+  const pttBinding = useSettingsStore((s) => s.pttBinding)
+  const setPttBinding = useSettingsStore((s) => s.setPttBinding)
+  const micToggleBinding = useSettingsStore((s) => s.micToggleBinding)
+  const setMicToggleBinding = useSettingsStore((s) => s.setMicToggleBinding)
+
+  const [capturing, setCapturing] = useState<BindingTarget | null>(null)
 
   useEffect(() => {
     const fetchSoundPacks = async () => {
@@ -111,6 +123,28 @@ export function SettingsWindow() {
       .show()
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (!capturing) return
+    let active = true
+    const unlisten = Promise.all([
+      listen<InputBinding>("input_captured", (event) => {
+        if (capturing === "ptt") setPttBinding(event.payload)
+        else setMicToggleBinding(event.payload)
+        setCapturing(null)
+      }),
+      listen("input_capture_cancelled", () => setCapturing(null))
+    ])
+    // Listeners must be live before Rust starts scanning, or a quick press is lost
+    unlisten.then(() => {
+      if (active) invoke("start_input_capture").catch(() => setCapturing(null))
+    })
+    return () => {
+      active = false
+      invoke("cancel_input_capture").catch(() => {})
+      unlisten.then((fns) => fns.forEach((f) => f()))
+    }
+  }, [capturing, setPttBinding, setMicToggleBinding])
 
   return (
     <div className="min-h-screen bg-black text-white p-4">
@@ -211,6 +245,45 @@ export function SettingsWindow() {
           step={1}
         />
 
+        <SectionHeader icon={<Mic className="h-3 w-3 text-cyan-400 shrink-0" />} label="Microphone" />
+
+        <div className="grid grid-cols-[110px_1fr] items-center gap-3">
+          <Label className="text-sm text-slate-300">Voice Mode</Label>
+          <Select value={voiceMode} onValueChange={(v) => setVoiceMode(v as VoiceMode)}>
+            <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900 border-slate-600 text-white max-w-[20rem]">
+              <SelectItem value="continuous">Always listening</SelectItem>
+              <SelectItem value="ptt">Push-to-talk</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <BindingRow
+          label="PTT Button"
+          binding={pttBinding}
+          capturing={capturing === "ptt"}
+          disabled={capturing === "toggle"}
+          onSet={() => setCapturing("ptt")}
+          onCancel={() => setCapturing(null)}
+          onClear={() => setPttBinding(null)}
+        />
+        <BindingRow
+          label="Mic On/Off"
+          binding={micToggleBinding}
+          capturing={capturing === "toggle"}
+          disabled={capturing === "ptt"}
+          onSet={() => setCapturing("toggle")}
+          onCancel={() => setCapturing(null)}
+          onClear={() => setMicToggleBinding(null)}
+        />
+        <p className="text-xs text-slate-400">
+          {voiceMode === "ptt" && !pttBinding
+            ? "Push-to-talk needs a PTT button, or the FO hears nothing."
+            : "Keys and joystick buttons work while MSFS has focus. Pick ones not bound in the sim."}
+        </p>
+
         <SectionHeader icon={<Option className="h-3 w-3 text-cyan-400 shrink-0" />} label="Options" />
 
         <div className="grid grid-cols-[1fr_auto] items-center gap-3">
@@ -271,6 +344,55 @@ function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }
       {icon}
       <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">{label}</span>
       <div className="flex-1 h-px bg-slate-700/60" />
+    </div>
+  )
+}
+
+function BindingRow({
+  label,
+  binding,
+  capturing,
+  disabled,
+  onSet,
+  onCancel,
+  onClear
+}: {
+  label: string
+  binding: InputBinding | null
+  capturing: boolean
+  disabled: boolean
+  onSet: () => void
+  onCancel: () => void
+  onClear: () => void
+}) {
+  return (
+    <div className="grid grid-cols-[110px_1fr] items-center gap-3">
+      <Label className="text-sm text-slate-300">{label}</Label>
+      <div className="flex items-center gap-2 w-56">
+        <span
+          className={`flex-1 truncate text-xs font-mono ${capturing ? "text-amber-300 animate-pulse" : binding ? "text-cyan-400" : "text-slate-500"}`}
+          title={binding?.label}
+        >
+          {capturing ? "Press a key or button…" : (binding?.label ?? "Not set")}
+        </span>
+        <Button
+          onClick={capturing ? onCancel : onSet}
+          disabled={disabled}
+          className="h-7 px-2 text-xs bg-slate-800 border border-slate-500 text-white hover:bg-slate-700"
+        >
+          {capturing ? "Cancel" : "Set"}
+        </Button>
+        {binding && !capturing && (
+          <Button
+            onClick={onClear}
+            disabled={disabled}
+            title="Clear"
+            className="h-7 w-7 p-0 bg-transparent border border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

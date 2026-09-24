@@ -845,6 +845,7 @@ dependencies = [
  "tauri-plugin-window-state",
  "thiserror 1.0.69",
  "tokio",
+ "windows 0.61.3",
 ]
 
 [[package]]
