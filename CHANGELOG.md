@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-09-25
 
 - Flow steps can drive a control until a target value is reached, then release it - @marxio09dio
 - Rejected takeoff callouts, triggered by "stop" (replaces "abort takeoff"): "reverse green" if reverse is selected, then "decel" or "no decel" - no "no reverse" or spoilers call on a reject - @marxio09dio
