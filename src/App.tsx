@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core"
+import { listen } from "@tauri-apps/api/event"
 import { getCurrentWindow } from "@tauri-apps/api/window"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { ChecklistPanel } from "@/components/ChecklistPanel"
 import { ConnectionError } from "@/components/ConnectionError"
@@ -36,6 +37,8 @@ function App() {
 
   const voiceEnabled = useSettingsStore((state) => state.voiceEnabled)
   const setVoiceEnabled = useSettingsStore((state) => state.setVoiceEnabled)
+  const voiceMode = useSettingsStore((state) => state.voiceMode)
+  const [pttHeld, setPttHeld] = useState(false)
   const takeoffVr = usePerformanceStore((state) => state.takeoff.vr)
 
   const { currentFlow, executionState } = useFlowStore()
@@ -44,6 +47,8 @@ function App() {
   // Ref to track the latest voiceEnabled without triggering re-renders in connection effect
   const voiceEnabledRef = useRef(voiceEnabled)
   voiceEnabledRef.current = voiceEnabled
+  const connectedRef = useRef(connected)
+  connectedRef.current = connected
 
   // Mutable memory to persist preference state across connection dropouts
   const wasVoiceEnabledBeforeDisconnect = useRef<boolean | null>(null)
@@ -86,6 +91,18 @@ function App() {
     }
   }, [connected, setVoiceEnabled])
 
+  // Only the main window acts on hardware mic buttons, so an open Settings window can't toggle twice
+  useEffect(() => {
+    const unlistenToggle = listen("mic_toggle_pressed", () => {
+      if (connectedRef.current) setVoiceEnabled(!voiceEnabledRef.current)
+    })
+    const unlistenPtt = listen<{ held: boolean }>("ptt_state", (event) => setPttHeld(event.payload.held))
+    return () => {
+      unlistenToggle.then((f) => f())
+      unlistenPtt.then((f) => f())
+    }
+  }, [setVoiceEnabled])
+
   return (
     <div className="flex bg-black flex-col min-h-screen">
       <main className="flex-1 text-white p-2 flex flex-col">
@@ -102,6 +119,8 @@ function App() {
             <>
               <IconToolbar
                 voiceEnabled={voiceEnabled}
+                voiceMode={voiceMode}
+                pttHeld={pttHeld}
                 onToggleVoice={() => setVoiceEnabled(!voiceEnabled)}
                 voiceDisabled={false}
               />

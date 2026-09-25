@@ -56,14 +56,13 @@ fn set_confidence_threshold(state: tauri::State<'_, SpeechBridgeState>, threshol
     state.inner().bridge.send_config(&json);
 }
 
-#[tauri::command]
-fn set_muted(state: tauri::State<'_, SpeechBridgeState>, muted: bool) {
-    let json = format!(r#"{{"muted":{}}}"#, muted);
-    state.inner().bridge.send_config(&json);
-}
+mod input;
+use input::{
+    cancel_input_capture, set_mic_bindings, set_muted, set_voice_mode, start_input_capture,
+};
 
 mod windows;
-use windows::{
+use crate::windows::{
     close_app, open_landing_window, open_settings_window, open_takeoff_window, set_always_on_top,
 };
 
@@ -125,6 +124,13 @@ pub fn run() {
             app.manage(SpeechBridgeState {
                 bridge: speech.clone(),
             });
+
+            // DirectInput needs a top-level window of ours to read joysticks in the background
+            let main_hwnd = app
+                .get_webview_window("main")
+                .and_then(|w| w.hwnd().ok())
+                .map_or(0, |h| h.0 as isize);
+            app.manage(input::start(app.handle().clone(), main_hwnd));
 
             // Initialize audio player
             let audio_player = AudioPlayer::new().expect("Failed to initialize audio player");
@@ -227,7 +233,11 @@ pub fn run() {
             get_speech_engine_error,
             set_confidence_threshold,
             get_speech_input_devices,
-            set_muted
+            set_muted,
+            set_voice_mode,
+            set_mic_bindings,
+            start_input_capture,
+            cancel_input_capture
         ]);
 
     builder

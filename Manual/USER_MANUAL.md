@@ -28,12 +28,32 @@
 
 ### Voice Modes
 
-CrewmateA350 supports two voice recognition modes:
+CrewmateA350 supports two voice recognition modes, chosen with **Voice Mode** in Settings:
 
-| Mode                   | How it works                                         |
-| ---------------------- | ---------------------------------------------------- |
-| **Continuous**         | The microphone is always listening. Speak naturally. |
-| **Push-to-Talk (PTT)** | Not implemented yet.                                 |
+| Mode                 | How it works                                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Always listening** | The microphone is always listening. Speak naturally.                                                            |
+| **Push-to-talk**     | The FO only listens while you hold the **PTT button**. Keep holding until you finish the command, then release. |
+
+The mic button on the toolbar is the master switch in both modes. When it is off the FO hears nothing, even with PTT held. The icon shows what the FO can hear:
+
+| Toolbar mic | Meaning                                            |
+| ----------- | -------------------------------------------------- |
+| Crossed out | Off. The FO hears nothing.                         |
+| Red         | Always listening. The FO hears everything.         |
+| Faded red   | Push-to-talk, ready. Hold the PTT button to speak. |
+| Green       | Push-to-talk, PTT held. The FO is listening.       |
+
+### PTT and Mic On/Off Buttons
+
+Both buttons can be a keyboard key, mouse button 4 or 5, or a button or hat on a joystick, yoke, throttle or game controller. They work while MSFS has focus, including in fullscreen.
+
+- **PTT Button**: hold to talk in Push-to-talk mode.
+- **Mic On/Off**: works like clicking the toolbar mic, in either mode. It only works while the sim is connected.
+
+To set one, open **Settings → Microphone**, click **Set** and press the key or button. Press **Esc** or click **Cancel** to stop without changing it, and click **×** to clear it.
+
+CrewMate does not take the key or button away from MSFS, so pick one that is not bound to anything in the sim. Analog triggers and axes cannot be bound.
 
 ### Settings
 
@@ -45,6 +65,9 @@ CrewmateA350 supports two voice recognition modes:
 | **Input Device**                             | Which microphone the speech engine listens to.                                                                                                     |
 | **Sound Volume**                             | How loud the FO's audio is (0–200; above 100 amplifies).                                                                                           |
 | **Voice Sensitivity**                        | How confident the engine must be before accepting a command (50–100). Lower is more tolerant and may accept the wrong command; higher is stricter. |
+| **Voice Mode**                               | **Always listening** or **Push-to-talk**. See [Voice Modes](#voice-modes).                                                                         |
+| **PTT Button**                               | The key or button held to talk in Push-to-talk mode.                                                                                               |
+| **Mic On/Off**                               | A key or button that switches the mic on and off, like the toolbar mic.                                                                            |
 | **Hold checklist on incorrect item**         | On: the FO repeats the challenge until the item is answered correctly. Off: the item is skipped and the checklist moves on.                        |
 | **Auto Ground lights control**               | On: the FO operates landing, taxi and strobe lights during the flows. Off: the lights are left to you.                                             |
 | **5 minutes cool down (for engine shutoff)** | On: the FO refuses to shut an engine down until five minutes have passed since landing, and says so. Off: engines can be shut down at any time.    |
@@ -476,6 +499,11 @@ Run silently — the FO checks spoilers armed, flaps and gear down, and calls ou
 
 - Check that your microphone is selected and working.
 - Adjust the **Voice Sensitivity** setting.
+- In Push-to-talk mode, check that a **PTT Button** is set and that the toolbar mic turns green while you hold it.
+
+**My PTT or Mic On/Off key does nothing while MSFS has focus**
+
+- MSFS is probably running as administrator. Run CrewMate as administrator too.
 
 **The FO ignores everything I say before departure**
 
