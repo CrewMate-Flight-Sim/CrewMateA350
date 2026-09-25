@@ -8,13 +8,13 @@ const VK_XBUTTON2: u16 = 0x06;
 
 // Left/right/middle click would bind the Set button itself; generic Shift/Ctrl/Alt duplicate their L/R codes
 const SKIPPED_VKS: [u16; 6] = [0x01, 0x02, 0x04, 0x10, 0x11, 0x12];
-// PgUp, PgDn, End, Home, arrows, PrtSc, Ins, Del, Win keys, Menu, numpad /, Right Ctrl, Right Alt
+// Share scan codes with numpad keys and map back without the E0 prefix, so labels would name the numpad twin
 const EXTENDED_VKS: [u16; 17] = [
     0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x2C, 0x2D, 0x2E, 0x5B, 0x5C, 0x5D, 0x6F, 0xA3,
     0xA5,
 ];
 
-// Physical state regardless of focus, and the key still reaches MSFS; blind while an elevated app is focused (UIPI)
+// Works without focus and leaves the key to MSFS, but Windows hides input while an elevated app has focus
 pub fn is_down(vk: u16) -> bool {
     unsafe { GetAsyncKeyState(vk as i32) as u16 & 0x8000 != 0 }
 }
@@ -31,7 +31,6 @@ pub fn label(vk: u16) -> String {
         VK_XBUTTON2 => "Mouse 5".into(),
         _ => {
             let scan = unsafe { MapVirtualKeyW(vk as u32, MAPVK_VK_TO_VSC_EX) };
-            // Arrows and the nav block share scan codes with the numpad and map back without the E0 prefix
             let extended = if scan & 0xFF00 == 0xE000 || EXTENDED_VKS.contains(&vk) {
                 1 << 24
             } else {

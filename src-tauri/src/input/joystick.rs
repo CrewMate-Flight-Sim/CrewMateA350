@@ -128,7 +128,7 @@ impl Joysticks {
         self.last_enum = None;
     }
 
-    // Opens every attached controller while capturing, otherwise only the bound ones
+    // Capture must see every controller, but outside it idle devices aren't worth polling
     pub fn sync(&mut self, wanted: &[(&str, &str)], all: bool) {
         if !all {
             self.devices
