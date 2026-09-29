@@ -98,6 +98,11 @@ pub static SPEECH_BRIDGE_STATE: OnceLock<Arc<SpeechBridge>> = OnceLock::new();
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(debug_assertions)]
+    std::env::set_var(
+        "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+        "--remote-debugging-port=9222",
+    );
     let worker_tx = spawn_simvar_worker();
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
