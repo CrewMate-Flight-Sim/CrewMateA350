@@ -22,7 +22,7 @@ Prerequisites
 Basic setup
 
 ```bash
-git clone https://github.com/marxio09dio/CrewMateA350.git
+git clone https://github.com/CrewMate-Flight-Sim/CrewMateA350.git
 cd crewmatea350
 npm install
 ```
@@ -91,7 +91,7 @@ PR checklist
 
 Do not commit secrets or sensitive credentials (API keys, passwords, certificates) to the repository. Use environment variables or a secure secret store for any runtime secrets.
 
-To report a security vulnerability or disclose sensitive issues privately, follow the instructions in https://github.com/marxio09dio/CrewMateA350?tab=security-ov-file.
+To report a security vulnerability or disclose sensitive issues privately, follow the instructions in https://github.com/CrewMate-Flight-Sim/CrewMateA350?tab=security-ov-file.
 
 ## Questions
 

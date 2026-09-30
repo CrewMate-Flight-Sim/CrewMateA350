@@ -1,6 +1,6 @@
 # CrewMate A350
 
-[![Latest Release](https://img.shields.io/github/v/release/marxio09dio/CrewMateA350?label=Latest%20Release)](https://github.com/marxio09dio/CrewMateA350/releases)
+[![Latest Release](https://img.shields.io/github/v/release/CrewMate-Flight-Sim/CrewMateA350?label=Latest%20Release)](https://github.com/CrewMate-Flight-Sim/CrewMateA350/releases)
 ![GitHub all releases](https://img.shields.io/github/downloads/CrewMate-Flight-Sim/CrewMateA350/total?label=Downloads&style=plastic)
 
 [![Discord](https://img.shields.io/badge/discord-CrewMate-5865F2?logo=discord&logoColor=white)](https://discord.gg/aBZZWG2Y6F)
@@ -71,7 +71,7 @@
 
 ## Reporting Bugs & Requesting Features
 
-If you encounter a problem or want to request a new feature, please [open an issue](https://github.com/marxio09dio/CrewMateA350/issues).
+If you encounter a problem or want to request a new feature, please [open an issue](https://github.com/CrewMate-Flight-Sim/CrewMateA350/issues).
 
 ---
 
