@@ -139,7 +139,8 @@ engine.SpeechRecognized += (sender, e) =>
     EmitSpeech(command, e.Result.Confidence);
 };
 
-engine.SpeechRecognitionRejected += (sender, e) => {
+engine.SpeechRecognitionRejected += (sender, e) =>
+{
     // Heard something but confidence was too low even
 };
 
@@ -282,7 +283,7 @@ static WaveInStream? SetInputToNamedDevice(SpeechRecognitionEngine engine, strin
             || deviceName.Contains(caps.ProductName, StringComparison.OrdinalIgnoreCase)
         )
         {
-            var waveIn = new WaveIn
+            var waveIn = new WaveInEvent
             {
                 DeviceNumber = i,
                 WaveFormat = new WaveFormat(16000, 16, 1),
@@ -346,13 +347,13 @@ static void WriteLine(object payload)
 
 public sealed class WaveInStream : Stream
 {
-    private readonly WaveIn _waveIn;
+    private readonly WaveInEvent _waveIn;
     private readonly BlockingCollection<byte[]> _queue = new(64);
     private byte[]? _current;
     private int _offset;
     private long _position;
 
-    public WaveInStream(WaveIn waveIn)
+    public WaveInStream(WaveInEvent waveIn)
     {
         _waveIn = waveIn;
         _waveIn.DataAvailable += OnData;
