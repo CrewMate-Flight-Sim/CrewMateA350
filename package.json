@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "voice:fetch": "powershell -NoProfile -ExecutionPolicy Bypass -File Scripts/fetch-voice.ps1",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",

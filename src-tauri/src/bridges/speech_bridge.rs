@@ -530,6 +530,14 @@ fn handle_stdout_line(line: &[u8], shared: &SidecarShared) {
         }
         "status" => {
             log::info!("[Speech] Engine status: {}", value);
+            // Engine builds before CrewMate-Voice 1.0.0 don't report a version
+            if let Some(version) = value["details"]["engineVersion"].as_str() {
+                log::info!(
+                    "[Speech] Engine {}, protocol {}",
+                    version,
+                    value["details"]["protocol"]
+                );
+            }
             let _ = shared.app.emit("speech_engine_status", value);
         }
         "error" => {
