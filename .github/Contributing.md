@@ -17,7 +17,7 @@ Prerequisites
 
 - Node.js (LTS recommended) and npm
 - Tauri (see https://v2.tauri.app/start/)
-- .NET SDK to build `CopilotSpeech` if you need to modify it
+- No .NET SDK: the speech engine comes prebuilt from [CrewMate-Voice](https://github.com/CrewMate-Flight-Sim/CrewMate-Voice), pinned in `voice.version`
 
 Basic setup
 
@@ -33,17 +33,19 @@ Run the app in development
 npm run tauri dev
 ```
 
+The first run downloads the pinned speech engine (`npm run voice:fetch`, called automatically before dev and build). Run it once by hand before `cargo check` in a fresh clone, because the Tauri build needs the engine exe in `src-tauri/bin`.
+
 Build a packaged app
 
 ```bash
 npm run tauri build
 ```
 
-Build/Publish SideCar
+Voice commands and training phrases
 
-```powershell
-.\build-sidecar.ps1
-```
+- Grammar: `voice/grammar.xml`. After changing discrete command ids or `src/voice/commandDispatch.ts`, run `python Scripts/validate-voice.py`.
+- Training phrases: `voice/training_phrases.txt`.
+- Engine changes (sidecar or trainer code) go to [CrewMate-Voice](https://github.com/CrewMate-Flight-Sim/CrewMate-Voice).
 
 ## Commands reference
 
@@ -73,7 +75,7 @@ npm run check
 - Flows: `src/data/flows/`
 - Voice code: `src/voice/`
 - Native/Tauri: `src-tauri/`
-- Windows sidecar helper: `CopilotSpeech/`
+- Voice grammar and training phrases: `voice/`
 
 ## Pull Request process and checklist
 

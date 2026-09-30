@@ -7,7 +7,7 @@ from pathlib import Path
 # Only literal ids are compared; training phrases are composed from SRGS rules and can't be matched as text.
 
 ROOT = Path(__file__).resolve().parent.parent
-GRAMMAR = ROOT / 'CopilotSpeechNew' / 'grammar.xml'
+GRAMMAR = ROOT / 'voice' / 'grammar.xml'
 DISPATCH_TS = ROOT / 'src' / 'voice' / 'commandDispatch.ts'
 
 NS = {'g': 'http://www.w3.org/2001/06/grammar'}
