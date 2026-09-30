@@ -33,15 +33,17 @@ def rule_ids(tree, rule_id):
 
 
 def ts_set(source, name):
-    match = re.search(rf'export const {name} = new Set\(\[(.*?)\]\)', source, re.S)
+    match = re.search(rf'(?:export )?const {name} = new Set\(\[(.*?)\]\)', source, re.S)
     if not match:
-        errors.append(f'commandDispatch.ts has no {name}')
+        # Optional: not every aircraft app has every command set
+        warnings.append(f'commandDispatch.ts has no {name}; skipped')
         return set()
     return set(re.findall(r'"(\w+)"', match.group(1)))
 
 
 def ts_map_keys(source):
-    start = source.find('export const discreteCommandMap')
+    match = re.search(r'(?:export )?const discreteCommandMap', source)
+    start = match.start() if match else -1
     if start < 0:
         errors.append('commandDispatch.ts has no discreteCommandMap')
         return set()

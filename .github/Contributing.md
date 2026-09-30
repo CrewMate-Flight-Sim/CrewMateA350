@@ -45,7 +45,19 @@ Voice commands and training phrases
 
 - Grammar: `voice/grammar.xml`. After changing discrete command ids or `src/voice/commandDispatch.ts`, run `python Scripts/validate-voice.py`.
 - Training phrases: `voice/training_phrases.txt`.
-- Engine changes (sidecar or trainer code) go to [CrewMate-Voice](https://github.com/CrewMate-Flight-Sim/CrewMate-Voice).
+- Engine changes (sidecar or trainer code) go to [CrewMate-Voice](https://github.com/CrewMate-Flight-Sim/CrewMate-Voice); see its Contributing guide.
+
+Updating the voice engine version
+
+The engine version this app uses is pinned in `voice.version`. To move to a newer [CrewMate-Voice release](https://github.com/CrewMate-Flight-Sim/CrewMate-Voice/releases):
+
+1. Read that release's changelog entry. A new major version can need grammar or code changes here.
+2. Put the new version in `voice.version` (for example `1.1.0`, without the `v`).
+3. Run `npm run voice:fetch`. It downloads the engine into `.voice-cache/`, checks it against the release's `SHA256SUMS` and deploys it to `src-tauri/bin` and `src-tauri/Trainer`.
+4. Run `npm run tauri dev`. The log shows `[Speech] Engine <version>, protocol <n>`. Speak a few commands and open the voice trainer from `src-tauri/Trainer` once.
+5. Commit `voice.version` (the engine files themselves are gitignored) and ship it in a normal release, after installing a build over the current public release and checking that voice commands and the trainer work.
+
+To try an engine build that isn't released yet, build it in CrewMate-Voice and set `CREWMATE_VOICE_DIST` to its `dist/` folder before `npm run tauri dev`. Remove the variable afterwards; never ship a build made that way.
 
 ## Commands reference
 
