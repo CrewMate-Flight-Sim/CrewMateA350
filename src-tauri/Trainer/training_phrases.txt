@@ -140,7 +140,6 @@ clear to line up
 clear for takeoff
 takeoff
 approach
-shutdown
 
 # ── Systems ───────────────────────────────────────────────────────────────────
 flight controls check

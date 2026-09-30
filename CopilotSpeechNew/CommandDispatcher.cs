@@ -12,17 +12,18 @@ namespace VoiceSidecar
             string rawText
         )
         {
-            if (!int.TryParse(cmdId, out var pid))
-                return null;
-
             return actionRuleId switch
             {
-                "FO_COMMANDS" => DispatchFo(pid, cmdValue, rawText),
+                "FO_COMMANDS" => int.TryParse(cmdId, out var pid) ? DispatchFo(pid, cmdValue, rawText) : null,
                 "FMA_CALLOUTS" => DispatchFma(cmdValue, rawText),
-                "DISCRETE_COMMANDS" => DispatchDiscrete(pid, rawText),
+                "DISCRETE_COMMANDS" => DispatchDiscrete(cmdId, rawText),
                 _ => null,
             };
         }
+
+        // Grammar ids are the command names (brake_fan_on), so a numeric id means an old grammar
+        public static bool IsNumericDiscreteId(string actionRuleId, string cmdId) =>
+            actionRuleId == "DISCRETE_COMMANDS" && cmdId.Length > 0 && cmdId.All(char.IsAsciiDigit);
 
         // FO_COMMANDS
         private static VoiceCommand? DispatchFo(int pid, string cval, string raw)
@@ -321,158 +322,13 @@ namespace VoiceSidecar
 
         // ─── DISCRETE_COMMANDS ────────────────────────────────────────────────────
 
-        private static readonly Dictionary<int, string> DiscreteNames = new()
-        {
-            // Gear
-            [1] = "gear_up",
-            [2] = "gear_down",
-            // Flaps
-            [3] = "flaps_0",
-            [4] = "flaps_1",
-            [5] = "flaps_2",
-            [6] = "flaps_3",
-            [7] = "flaps_full",
-            // Autopilot
-            [8] = "autopilot_engage",
-            [9] = "autopilot_disconnect",
-            [65] = "set_runway_track",
-            [102] = "pull_altitude",
-            [103] = "manage_altitude",
-            [104] = "pull_speed",
-            [105] = "manage_speed",
-            [106] = "pull_heading",
-            [107] = "manage_nav",
-            [110] = "push_to_level_off",
-            [111] = "arm_approach",
-            [112] = "arm_localizer",
-            // Lights
-            [12] = "landing_lights_on",
-            [13] = "landing_lights_off",
-            [14] = "strobe_lights_on",
-            [15] = "strobe_lights_auto",
-            [16] = "strobe_lights_off",
-            [17] = "taxi_lights_on",
-            [18] = "taxi_lights_off",
-            [69] = "takeoff_lights_on",
-            // Flight director
-            [19] = "flight_director_on",
-            [20] = "flight_director_off",
-            [21] = "flight_director_off_bird_on",
-            [67] = "bird_on",
-            [68] = "bird_off",
-            // Checklists
-            [22] = "checklist_cockpit_preparation",
-            [23] = "checklist_departure_change",
-            [24] = "checklist_before_start",
-            [25] = "checklist_after_start",
-            [26] = "checklist_taxi",
-            [27] = "checklist_lineup",
-            [28] = "checklist_approach",
-            [29] = "checklist_landing",
-            [30] = "checklist_parking",
-            [31] = "checklist_secure_aircraft",
-            [32] = "checklist_cancel",
-            // Start preflight
-            [33] = "prepare_aircraft",
-            // Engine/apu start
-            [34] = "engine_start_1",
-            [35] = "engine_start_2",
-            [36] = "apu_start",
-            // Flows
-            [37] = "clear_left",
-            [38] = "runway_entry_procedure",
-            [39] = "start_engine_2",
-            [40] = "clear_for_takeoff",
-            [123] = "before_start",
-            // Shutdown
-            [41] = "shutdown_engine_1",
-            [42] = "shutdown_engine_2",
-            [43] = "shutdown",
-            // Flight controls
-            [44] = "flight_controls_check",
-            // Anti ice
-            [45] = "wing_anti_ice_on",
-            [46] = "wing_anti_ice_off",
-            [47] = "engine_anti_ice_on",
-            [48] = "engine_anti_ice_off",
-            // Wipers
-            [49] = "wipers_off",
-            [50] = "wipers_slow",
-            [51] = "wipers_fast",
-            [52] = "wipers_slow_intermittent",
-            [53] = "wipers_medium_intermittent",
-            [54] = "wipers_fast_intermittent",
-            // Seat belts
-            [55] = "seat_belts_on",
-            [56] = "seat_belts_off",
-            [57] = "seat_belts_auto",
-            // Parking
-            [58] = "chocks_in_place",
-            [59] = "parking_brake_set",
-            // Cabin crew
-            [60] = "cabin_crew_arm_slides",
-            [121] = "cabin_crew_disarm_slides",
-            // Brake
-            [61] = "brake_check",
-            [125] = "brake_fan_on",
-            [126] = "brake_fan_off",
-            // Control Handover
-            [127] = "you_have_ctrl", 
-            [128] = "i_have_ctrl",
-            // Altimeter
-            [64] = "set_standard",
-            [122] = "set_altimeter",
-            // Generic checklist responses
-            [70] = "confirm",
-            [71] = "negative",
-            [72] = "set",
-            [73] = "checked",
-            [74] = "on",
-            [75] = "off",
-            [76] = "armed",
-            [77] = "auto",
-            [78] = "normal",
-            [79] = "retracted",
-            [80] = "down",
-            [81] = "secured",
-            [82] = "removed",
-            [83] = "released",
-            [84] = "received",
-            [85] = "started",
-            [86] = "running",
-            [87] = "advised",
-            [88] = "signaled",
-            [90] = "medium",
-            [91] = "btv",
-            [92] = "engines_on",
-            [93] = "engines_on_wings_on",
-            [94] = "on_supplied_by_apu",
-            [95] = "config_1",
-            [96] = "config_1f",
-            [97] = "config_2",
-            [98] = "config_3",
-            [10] = "rwy_cond",
-            // Go around / abort
-            [99] = "go_around_flaps",
-            [100] = "abort_takeoff",
-            [101] = "continue",
-            // Ground engineer
-            [113] = "ground_call",
-            [114] = "connect_gpu",
-            [115] = "disconnect_gpu",
-            [116] = "connect_asu",
-            [117] = "disconnect_asu",
-            [118] = "connect_acu",
-            [119] = "disconnect_acu",
-            [120] = "disconnect_all_ground",
-            [124] = "pushback_request",
-        };
+        private static readonly System.Text.RegularExpressions.Regex SnakeCase = new("^[a-z][a-z0-9_]*$");
 
-        private static VoiceCommand? DispatchDiscrete(int pid, string raw)
+        private static VoiceCommand? DispatchDiscrete(string cmdId, string raw)
         {
-            if (!DiscreteNames.TryGetValue(pid, out var name))
+            if (!SnakeCase.IsMatch(cmdId))
                 return null;
-            return Cmd("discrete", raw, new() { ["command"] = name });
+            return Cmd("discrete", raw, new() { ["command"] = cmdId });
         }
 
         // ─── Helper ───────────────────────────────────────────────────────────────

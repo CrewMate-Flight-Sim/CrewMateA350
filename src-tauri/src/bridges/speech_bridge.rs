@@ -516,9 +516,11 @@ fn handle_stdout_line(line: &[u8], shared: &SidecarShared) {
     match value["type"].as_str().unwrap_or("") {
         "speech" => {
             log::info!(
-                "[Speech] Recognized: \"{}\" (confidence: {:.2})",
+                "[Speech] Recognized: \"{}\" (confidence: {:.2}) {} {}",
                 value["text"].as_str().unwrap_or("?"),
-                value["confidence"].as_f64().unwrap_or(0.0)
+                value["confidence"].as_f64().unwrap_or(0.0),
+                value["commandType"].as_str().unwrap_or("?"),
+                value["payload"]
             );
             let _ = shared.app.emit("speech_recognized", value);
         }
@@ -540,6 +542,9 @@ fn handle_stdout_line(line: &[u8], shared: &SidecarShared) {
             }
             log::error!("[Speech] Engine error: {}", value);
             let _ = shared.app.emit("speech_engine_error", value);
+        }
+        "rejected" => {
+            log::warn!("[Speech] Rejected: {}", value);
         }
         "inputDevices" => {
             if let Some(arr) = value["devices"].as_array() {
