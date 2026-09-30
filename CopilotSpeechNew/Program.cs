@@ -128,6 +128,12 @@ engine.SpeechRecognized += (sender, e) =>
     var cmdId = sem["CmdId"].Value?.ToString() ?? "";
     var cmdValue = sem.ContainsKey("CmdValue") ? sem["CmdValue"].Value?.ToString() ?? "" : "";
 
+    if (CommandDispatcher.IsNumericDiscreteId(actionRuleId, cmdId))
+    {
+        EmitRejected(e.Result.Text, e.Result.Confidence, "numeric_discrete_id", always: true);
+        return;
+    }
+
     var command = CommandDispatcher.Dispatch(actionRuleId, cmdId, cmdValue, e.Result.Text);
 
     if (command is null)
@@ -321,10 +327,18 @@ static void EmitError(string message)
     WriteLine(new { type = "error", message });
 }
 
-static void EmitRejected(string text, float confidence, string reason = "low_confidence")
+static void EmitRejected(
+    string text,
+    float confidence,
+    string reason = "low_confidence",
+    bool always = false
+)
 {
-    // Only emit in debug builds to avoid noise in production
-#if DEBUG
+    // Only emit in debug builds to avoid noise in production, except for grammar/sidecar mismatches
+#if !DEBUG
+    if (!always)
+        return;
+#endif
     WriteLine(
         new
         {
@@ -334,7 +348,6 @@ static void EmitRejected(string text, float confidence, string reason = "low_con
             reason,
         }
     );
-#endif
 }
 
 static void WriteLine(object payload)
