@@ -277,7 +277,7 @@ def find_browser() -> str:
     for path in BROWSERS:
         if os.path.exists(path):
             return path
-    sys.exit("Chrome or Edge not found — install one, or add its path to BROWSERS.")
+    sys.exit("[build-manual-pdf] Chrome or Edge not found — install one, or add its path to BROWSERS.")
 
 
 def page_socket() -> str:
@@ -290,7 +290,7 @@ def page_socket() -> str:
         except Exception:
             pass
         time.sleep(0.2)
-    sys.exit("The browser did not expose a debugging target.")
+    sys.exit("[build-manual-pdf] The browser did not expose a debugging target.")
 
 
 def main() -> None:
@@ -346,7 +346,7 @@ def main() -> None:
                 if message.get("id") == 1:
                     break
             if "error" in message:
-                sys.exit(f"printToPDF failed: {message['error']}")
+                sys.exit(f"[build-manual-pdf] printToPDF failed: {message['error']}")
             OUT.parent.mkdir(parents=True, exist_ok=True)
             OUT.write_bytes(base64.b64decode(message["result"]["data"]))
         finally:
@@ -355,7 +355,7 @@ def main() -> None:
             chrome.terminate()
             chrome.wait(timeout=30)
 
-    print(f"Wrote {OUT} ({OUT.stat().st_size / 1_048_576:.1f} MB)")
+    print(f"[build-manual-pdf] Wrote {OUT} ({OUT.stat().st_size / 1_048_576:.1f} MB)")
 
 
 if __name__ == "__main__":

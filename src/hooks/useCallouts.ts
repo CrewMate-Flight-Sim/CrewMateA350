@@ -119,7 +119,7 @@ function handleDecelPhase(ls: LandingSequenceState, t: Telemetry, elapsed: numbe
   }
 }
 
-const phaseHandlers: Record<
+const PHASE_HANDLERS: Record<
   Exclude<LandingPhase, "idle">,
   (ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) => void
 > = {
@@ -453,7 +453,7 @@ export function useCallouts(vrSpeed: number) {
     // Process landing phases (skip if idle or audio still playing)
     if (ls.phase !== "idle" && !(await isSoundPlaying())) {
       const elapsed = ls.phaseStartTime ? now - ls.phaseStartTime : 0
-      const handler = (phaseHandlers as Record<string, (...args: unknown[]) => unknown>)[ls.phase]
+      const handler = (PHASE_HANDLERS as Record<string, (...args: unknown[]) => unknown>)[ls.phase]
       if (typeof handler === "function") {
         handler(ls, t, elapsed, now)
       } else {

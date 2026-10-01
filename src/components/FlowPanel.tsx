@@ -2,7 +2,7 @@ import { Play, Square } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import { allFlows } from "@/services/flowLoader"
+import { ALL_FLOWS } from "@/services/flowLoader"
 import { executeFlow, abortFlow } from "@/services/flowRunner"
 import { useFlowStore } from "@/store/flowStore"
 
@@ -10,7 +10,7 @@ export function FlowPanel() {
   const { currentFlow, executionState } = useFlowStore()
   const isRunning = executionState === "running"
 
-  const [selectedFlowId, setSelectedFlowId] = useState<string | null>(allFlows[0]?.id ?? null)
+  const [selectedFlowId, setSelectedFlowId] = useState<string | null>(ALL_FLOWS[0]?.id ?? null)
 
   useEffect(() => {
     if (currentFlow) setSelectedFlowId(currentFlow.id)
@@ -29,7 +29,7 @@ export function FlowPanel() {
           disabled={isRunning && currentFlow?.id !== selectedFlowId}
           className="flex-1 min-w-0 h-6 px-1.5 text-xs bg-transparent border border-slate-700/50 text-slate-200 rounded"
         >
-          {allFlows.map((flow) => (
+          {ALL_FLOWS.map((flow) => (
             <option key={flow.id} value={flow.id} className="bg-slate-900 text-slate-200">
               {flow.name}
             </option>

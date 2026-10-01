@@ -24,7 +24,7 @@ import table_open from "@/data/flows/table_open.json"
 import { usePerformanceStore } from "@/store/performanceStore"
 import type { Flow, FlowStep } from "@/types/flow"
 
-export const allFlows: Flow[] = [
+export const ALL_FLOWS: Flow[] = [
   prelimCockpitPrep,
   cockpitPrep,
   beforeStart,
@@ -50,7 +50,7 @@ export const allFlows: Flow[] = [
 ] as Flow[]
 
 export function getFlowById(id: string): Flow | undefined {
-  return allFlows.find((f) => f.id === id)
+  return ALL_FLOWS.find((f) => f.id === id)
 }
 
 async function getTemplateVars(): Promise<Record<string, string>> {

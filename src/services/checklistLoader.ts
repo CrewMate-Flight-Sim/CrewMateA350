@@ -10,7 +10,7 @@ import parking from "@/data/checklists/8_parking.json"
 import secureAircraft from "@/data/checklists/9_secure_aircraft.json"
 import type { Checklist } from "@/types/checklist"
 
-export const allChecklists: Checklist[] = [
+export const ALL_CHECKLISTS: Checklist[] = [
   cockpitPrep,
   beforeStart,
   afterStart,
@@ -24,5 +24,5 @@ export const allChecklists: Checklist[] = [
 ] as Checklist[]
 
 export function getChecklistById(id: string): Checklist | undefined {
-  return allChecklists.find((c) => c.id === id)
+  return ALL_CHECKLISTS.find((c) => c.id === id)
 }

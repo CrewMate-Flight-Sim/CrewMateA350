@@ -20,7 +20,7 @@ New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $ffmpegExe = Get-Command ffmpeg -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
 
 if (-not (Test-Path $ffmpegExe)) {
-    Write-Error "FFmpeg not found at: $ffmpegExe"
+    Write-Error "[GEvoices] FFmpeg not found at: $ffmpegExe"
     exit 1
 }
 
@@ -33,7 +33,7 @@ foreach ($file in $phrases.Keys) {
     $mp3Path = "$outDir\$file.mp3"
     $oggPath = "$outDir\$file.ogg"
 
-    Write-Host "[$count/$total] Generating Ground Staff: $file"
+    Write-Host "[GEvoices] [$count/$total] Generating Ground Staff: $file"
 
     try {
         # Call the Python tool you installed via npm/pip
@@ -48,15 +48,15 @@ foreach ($file in $phrases.Keys) {
             
             if ($process.ExitCode -eq 0) {
                 Remove-Item $mp3Path -ErrorAction SilentlyContinue
-                Write-Host "  [OK] $file (Radio effect applied)" -ForegroundColor Green
+                Write-Host "[GEvoices] [OK] $file (Radio effect applied)" -ForegroundColor Green
             }
         }
     }
     catch {
-        Write-Error "Error processing $file : $_"
+        Write-Error "[GEvoices] Error processing $file : $_"
     }
 }
 
 
 Write-Host ""
-Write-Host "✓ Completed! Audio files created in $outDir"
+Write-Host "[GEvoices] ✓ Completed! Audio files created in $outDir"

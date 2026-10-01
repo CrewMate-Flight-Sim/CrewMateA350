@@ -2,7 +2,7 @@ import { Loader2, Mic, Play, Square, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import { allChecklists } from "@/services/checklistLoader"
+import { ALL_CHECKLISTS } from "@/services/checklistLoader"
 import { abortChecklist, executeChecklist } from "@/services/checklistRunner"
 import { useChecklistStore } from "@/store/checklistStore"
 import type { ChecklistItem } from "@/types/checklist"
@@ -13,13 +13,13 @@ export function ChecklistPanel() {
   const totalItems = currentChecklist?.items.length ?? 0
   const completedItems = stepStatuses.filter((s) => s === "complete").length
 
-  const [selectedId, setSelectedId] = useState<string>(allChecklists[0]?.id ?? "")
+  const [selectedId, setSelectedId] = useState<string>(ALL_CHECKLISTS[0]?.id ?? "")
 
   useEffect(() => {
     if (currentChecklist) setSelectedId(currentChecklist.id)
   }, [currentChecklist])
 
-  const isSilent = allChecklists.find((c) => c.id === selectedId)?.mode === "silent"
+  const isSilent = ALL_CHECKLISTS.find((c) => c.id === selectedId)?.mode === "silent"
   const activeItem: ChecklistItem | null =
     isRunning && currentChecklist ? (currentChecklist.items[currentStepIndex] ?? null) : null
 
@@ -35,7 +35,7 @@ export function ChecklistPanel() {
           disabled={isRunning && currentChecklist?.id !== selectedId}
           className="flex-1 min-w-0 h-6 px-1.5 text-xs bg-transparent border border-slate-700/50 text-slate-200 rounded"
         >
-          {allChecklists.map((cl) => (
+          {ALL_CHECKLISTS.map((cl) => (
             <option key={cl.id} value={cl.id} className="bg-slate-900 text-slate-200">
               {cl.name}
             </option>

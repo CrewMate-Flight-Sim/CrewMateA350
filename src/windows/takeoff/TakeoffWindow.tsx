@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { usePerformanceStore } from "@/store/performanceStore"
 
-const selectCls =
+const SELECT_CLS =
   "w-full h-8 bg-slate-900/50 border border-slate-600 text-white text-xs rounded-md px-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
 
 export function TakeoffWindow() {
@@ -74,7 +74,7 @@ export function TakeoffWindow() {
             name="thrustSetting"
             value={takeoff.thrustSetting}
             onChange={handleSelectChange}
-            className={selectCls}
+            className={SELECT_CLS}
           >
             <option value="toga">TOGA</option>
             <option value="flex">FLEX</option>
@@ -88,7 +88,7 @@ export function TakeoffWindow() {
             </Label>
           </div>
 
-          <select id="packs" name="packs" value={takeoff.packs} onChange={handleSelectChange} className={selectCls}>
+          <select id="packs" name="packs" value={takeoff.packs} onChange={handleSelectChange} className={SELECT_CLS}>
             <option value="on">ON</option>
             <option value="off">OFF</option>
             <option value="apu">APU TO PACK</option>
@@ -119,7 +119,7 @@ export function TakeoffWindow() {
             name="antiIce"
             value={takeoff.antiIce}
             onChange={handleSelectChange}
-            className={selectCls}
+            className={SELECT_CLS}
           >
             <option value="off">OFF</option>
             <option value="oneng">ENG</option>
