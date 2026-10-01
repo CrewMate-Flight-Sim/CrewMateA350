@@ -23,19 +23,20 @@ export const buildPassingAltitudeSequence = (targetAlt: number): string[] => {
   return sequence
 }
 
-/**
- * Build the go-around altitude readback. Only exact thousands up to 10000 can be
- * spoken — the packs carry 0-9, thousand and ten_thousand, but no "hundred" — so
- * anything else falls back to "go around altitude set" rather than a wrong or
- * missing number file.
- */
+// Packs carry 0-9, "thousand", "ten thousand" and "hundred"; anything they can't say falls back to "go around altitude set"
 export const buildGoAroundAltSequence = (altValue: number): string[] => {
-  if (altValue === 10000) {
-    return ["go_around_alt.ogg", "ten_thousand.ogg", "feet_set.ogg"]
-  }
-  const thousands = altValue / 1000
-  if (Number.isInteger(thousands) && thousands >= 1 && thousands <= 9) {
-    return ["go_around_alt.ogg", `${thousands}.ogg`, "thousand.ogg", "feet_set.ogg"]
-  }
-  return ["go_around_alt.ogg", "set.ogg"]
+  const fallback = ["go_around_alt.ogg", "set.ogg"]
+  if (!Number.isInteger(altValue / 100) || altValue <= 0) return fallback
+
+  const thousands = Math.floor(altValue / 1000)
+  const hundreds = (altValue % 1000) / 100
+  const words: string[] = []
+
+  if (thousands === 10) words.push("ten_thousand.ogg")
+  else if (thousands >= 1 && thousands <= 9) words.push(`${thousands}.ogg`, "thousand.ogg")
+  else if (thousands > 10) return fallback
+
+  if (hundreds > 0) words.push(`${hundreds}.ogg`, "hundred.ogg")
+
+  return ["go_around_alt.ogg", ...words, "feet_set.ogg"]
 }

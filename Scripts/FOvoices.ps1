@@ -1,3 +1,6 @@
+# Pass -Only <name>[,<name>] to regenerate just those phrases; a full run rewrites every ogg in every pack
+param([string[]]$Only)
+
 # === CONFIGURATION ===
 
 $voicesToGenerate = @(
@@ -18,6 +21,7 @@ $phrases = @{
     "positive_climb"                            = "Positive climb"
     "fl_100"                                    = "Flight level one hundred"
     "ten_thousand"                              = "Ten thousand"
+    "hundred"                                   = "Hundred"
     "transiton_altitude"                        = "Transition altitude"
     "transiton_level"                           = "Transition level"
     "spoilers"                                  = "Spoilers"
@@ -163,6 +167,7 @@ foreach ($voiceName in $voicesToGenerate) {
     Write-Host "`n[FOvoices] >>> STARTING VOICE: $voiceShortName" -ForegroundColor Cyan
 
     foreach ($file in $phrases.Keys) {
+        if ($Only -and $Only -notcontains $file) { continue }
         $text = $phrases[$file]
         $mp3Path = "$outDir\$file.mp3"
         $oggPath = "$outDir\$file.ogg"
