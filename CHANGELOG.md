@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [1.0.1] - 2026-XX-XX
 
 - A go-around altitude with hundreds (e.g. 3500) was read back as "go around altitude set" with no number - the FO now reads it in full, "three thousand five hundred feet set" - @marxio09dio
 
