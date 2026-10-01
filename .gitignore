@@ -34,3 +34,5 @@ Scripts/.env
 src-tauri/bin/*.exe
 src-tauri/bin/grammar.xml
 src-tauri/Trainer/
+# Local CrewMate-Core override for testing an untagged core (see Contributing.md)
+src-tauri/.cargo/
