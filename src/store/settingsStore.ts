@@ -7,7 +7,7 @@ import type { InputBinding, VoiceMode } from "@/types/input"
 
 export type LightsControlMode = "virtual" | "user"
 
-const defaultLightsControlMode: LightsControlMode = "user"
+const DEFAULT_LIGHTS_CONTROL_MODE: LightsControlMode = "user"
 
 interface SettingsStore {
   voiceEnabled: boolean
@@ -68,7 +68,7 @@ export const useSettingsStore = create<SettingsStore>()(
       outputDevice: null,
       inputDevice: null,
       holdOnIncorrect: false,
-      lightsControlMode: defaultLightsControlMode,
+      lightsControlMode: DEFAULT_LIGHTS_CONTROL_MODE,
       confidenceThreshold: 85,
       postLandingShutdownEnabled: true,
 

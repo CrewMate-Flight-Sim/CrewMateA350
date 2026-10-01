@@ -11,7 +11,7 @@ interface Step {
   sound: string
 }
 
-const steps: Step[] = [
+const STEPS: Step[] = [
   { condition: (t) => t.elevatorPosition > FULL_THRESHOLD, sound: "full_up.ogg" },
   { condition: (t) => t.elevatorPosition < -FULL_THRESHOLD, sound: "full_down.ogg" },
   { condition: (t) => Math.abs(t.elevatorPosition) < NEUTRAL_THRESHOLD, sound: "neutral.ogg" },
@@ -48,7 +48,7 @@ function waitFor(condition: (t: Telemetry) => boolean): Promise<void> {
 export async function flightControlsCheck() {
   await waitForSoundFinished()
 
-  for (const step of steps) {
+  for (const step of STEPS) {
     await waitFor(step.condition)
     await playSound(step.sound)
     await waitForSoundFinished()

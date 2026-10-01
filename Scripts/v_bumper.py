@@ -27,7 +27,7 @@ def update_json_files(new_version):
         package_json['version'] = new_version
     with open('../package.json', 'w') as f:
         json.dump(package_json, f, indent=2)
-    print('Version bumped in package.json')
+    print('[v_bumper] Version bumped in package.json')
 
 
 def update_cargo_toml(new_version):
@@ -42,7 +42,7 @@ def update_cargo_toml(new_version):
     with open('../src-tauri/Cargo.toml', 'w') as f:
         f.write(updated_cargo_content)
 
-    print('Version bumped in src-tauri/Cargo.toml')
+    print('[v_bumper] Version bumped in src-tauri/Cargo.toml')
 
 def update_tauri_conf(new_version):
     # Bump version in tauri.conf.json
@@ -51,21 +51,21 @@ def update_tauri_conf(new_version):
         tauri_conf['version'] = new_version
     with open('../src-tauri/tauri.conf.json', 'w') as f:
         json.dump(tauri_conf, f, indent=2)
-    print('Version bumped in src-tauri/tauri.conf.json')
+    print('[v_bumper] Version bumped in src-tauri/tauri.conf.json')
 
 def main():
     # Read current version from package.json
     with open('../package.json', 'r') as f:
         package_json = json.load(f)
         current_version = package_json['version']
-        print(f'Current versionings: {current_version}')
+        print(f'[v_bumper] Current versionings: {current_version}')
 
     # Prompt for the increment type
     increment_type = input("major, feature or fix? ").strip().lower()
 
     # Bump version
     new_version = bump_version(current_version, increment_type)
-    print(f'New version: {new_version}')
+    print(f'[v_bumper] New version: {new_version}')
 
     # Bump version in JSON files
     update_json_files(new_version)

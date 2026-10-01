@@ -11,7 +11,7 @@ import type { Telemetry } from "@/store/telemetryStore"
  * These are sent to the backend once on startup — the backend then pushes values back
  * via the "telemetry_data" event at the requested interval.
  */
-const simVars: { key: string; expression: string }[] = [
+const SIM_VARS: { key: string; expression: string }[] = [
   { key: "timeOfDay", expression: "(E:TIME OF DAY,Enum)" },
   { key: "ias", expression: "(A:AIRSPEED INDICATED,Knots)" },
   { key: "alt", expression: "(A:INDICATED ALTITUDE,Feet)" },
@@ -90,7 +90,7 @@ export function useSimConnection() {
         // Always stop first to ensure a clean reconnect when the flight reloads.
         await invoke("stop_telemetry_stream").catch(() => {})
         await invoke("start_telemetry_stream", {
-          variables: simVars,
+          variables: SIM_VARS,
           intervalMs: STREAM_INTERVAL_MS
         })
       } catch {

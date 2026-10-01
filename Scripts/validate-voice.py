@@ -42,10 +42,10 @@ def ts_set(source, name):
 
 
 def ts_map_keys(source):
-    match = re.search(r'(?:export )?const discreteCommandMap', source)
+    match = re.search(r'(?:export )?const DISCRETE_COMMAND_MAP', source)
     start = match.start() if match else -1
     if start < 0:
-        errors.append('commandDispatch.ts has no discreteCommandMap')
+        errors.append('commandDispatch.ts has no DISCRETE_COMMAND_MAP')
         return set()
     body = source[start:source.index('\n}\n', start)]
     return set(re.findall(r'^  (\w+):', body, re.M))
@@ -60,7 +60,7 @@ handlers = ts_map_keys(ts_source)
 
 for pid, phrase in sorted(commands.items()):
     if pid not in handlers:
-        errors.append(f'DISCRETE_COMMANDS id "{pid}" ("{phrase}") has no discreteCommandMap handler')
+        errors.append(f'DISCRETE_COMMANDS id "{pid}" ("{phrase}") has no DISCRETE_COMMAND_MAP handler')
 
 for pid, phrase in sorted(responses.items()):
     if not SNAKE_CASE.match(pid):
@@ -68,12 +68,12 @@ for pid, phrase in sorted(responses.items()):
     if pid in handlers:
         warnings.append(f'CHECKLIST_RESPONSES id "{pid}" has a handler; move it to DISCRETE_COMMANDS')
 
-for name in ('foAwayAllowedCommands', 'checklistAbortCommands'):
+for name in ('FO_AWAY_ALLOWED_COMMANDS', 'CHECKLIST_ABORT_COMMANDS'):
     for pid in sorted(ts_set(ts_source, name) - commands.keys()):
         errors.append(f'{name} names "{pid}", which is not a DISCRETE_COMMANDS id')
 
 for key in sorted(handlers - commands.keys()):
-    warnings.append(f'discreteCommandMap handler "{key}" is never produced by the grammar')
+    warnings.append(f'DISCRETE_COMMAND_MAP handler "{key}" is never produced by the grammar')
 
 for line in warnings:
     print(f'[validate-voice] WARN {line}')

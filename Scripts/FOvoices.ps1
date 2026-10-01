@@ -147,10 +147,10 @@ if (-not $ffmpegExe) {
 }
 
 if (-not (Test-Path $ffmpegExe)) {
-    Write-Error "FFmpeg NOT FOUND! Please install it or check the path: $ffmpegExe"
+    Write-Error "[FOvoices] FFmpeg NOT FOUND! Please install it or check the path: $ffmpegExe"
     exit 1
 }
-Write-Host "Using FFmpeg from: $ffmpegExe" -ForegroundColor Yellow
+Write-Host "[FOvoices] Using FFmpeg from: $ffmpegExe" -ForegroundColor Yellow
 
 # === VOICE GENERATION LOOP ===
 foreach ($voiceName in $voicesToGenerate) {
@@ -160,7 +160,7 @@ foreach ($voiceName in $voicesToGenerate) {
     $outDir = [System.IO.Path]::GetFullPath($outDir)
     New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
-    Write-Host "`n>>> STARTING VOICE: $voiceShortName" -ForegroundColor Cyan
+    Write-Host "`n[FOvoices] >>> STARTING VOICE: $voiceShortName" -ForegroundColor Cyan
 
     foreach ($file in $phrases.Keys) {
         $text = $phrases[$file]
@@ -175,13 +175,13 @@ foreach ($voiceName in $voicesToGenerate) {
             if (Test-Path $mp3Path) {
                 & $ffmpegExe -i "$mp3Path" -c:a libvorbis -q:a 4 "$oggPath" -y -loglevel error
                 Remove-Item $mp3Path -ErrorAction SilentlyContinue
-                Write-Host "  [OK] $file"
+                Write-Host "[FOvoices] [OK] $file"
             }
         }
         catch {
-            Write-Error "Failed $file : $_"
+            Write-Error "[FOvoices] Failed $file : $_"
         }
     }
 }
 
-Write-Host "Completed! Audio files created in $outDir"
+Write-Host "[FOvoices] Completed! Audio files created in $outDir"

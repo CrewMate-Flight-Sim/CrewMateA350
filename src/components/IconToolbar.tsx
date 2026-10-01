@@ -19,7 +19,7 @@ type IconToolbarProps = {
   voiceDisabled: boolean
 }
 
-const baseBtn = "w-9 h-9 p-0 bg-transparent border border-slate-700/50 transition"
+const BASE_BTN = "w-9 h-9 p-0 bg-transparent border border-slate-700/50 transition"
 
 export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, voiceDisabled }: IconToolbarProps) {
   const [alwaysOnTop, setAlwaysOnTop] = useState(false)
@@ -65,7 +65,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
               onClick={onToggleVoice}
               disabled={voiceDisabled}
               className={cn(
-                baseBtn,
+                BASE_BTN,
                 "hover:bg-cyan-400/10",
                 micLive && pttArmed && "border-emerald-400 hover:border-emerald-400",
                 micLive && !pttArmed && "border-red-400 hover:border-red-400",
@@ -93,7 +93,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
           <TooltipTrigger asChild>
             <Button
               onClick={handleToggleAlwaysOnTop}
-              className={cn(baseBtn, "hover:bg-amber-400/10", alwaysOnTop && "border-amber-400")}
+              className={cn(BASE_BTN, "hover:bg-amber-400/10", alwaysOnTop && "border-amber-400")}
             >
               {alwaysOnTop ? (
                 <PinOff className="w-5 h-5 text-amber-400" />
@@ -111,7 +111,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
               onClick={timerRunning ? skipMinute : startTimer}
               disabled={flowRunning || !onGround || enginesOn}
               className={cn(
-                baseBtn,
+                BASE_BTN,
                 timerRunning ? "border-blue-600 hover:bg-blue-600/10 w-auto px-2 gap-1.5" : "hover:bg-blue-400/10"
               )}
             >
@@ -124,7 +124,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={openTakeoffWindow} className={cn(baseBtn, "hover:bg-emerald-400/10")}>
+            <Button onClick={openTakeoffWindow} className={cn(BASE_BTN, "hover:bg-emerald-400/10")}>
               <PlaneTakeoff className="w-5 h-5 text-emerald-400" />
             </Button>
           </TooltipTrigger>
@@ -133,7 +133,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={openLandingWindow} className={cn(baseBtn, "hover:bg-violet-400/10")}>
+            <Button onClick={openLandingWindow} className={cn(BASE_BTN, "hover:bg-violet-400/10")}>
               <PlaneLanding className="w-5 h-5 text-violet-400" />
             </Button>
           </TooltipTrigger>
@@ -142,7 +142,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={openSettingsWindow} className={cn(baseBtn, "hover:bg-slate-400/10")}>
+            <Button onClick={openSettingsWindow} className={cn(BASE_BTN, "hover:bg-slate-400/10")}>
               <SettingsIcon className="w-5 h-5 text-slate-300" />
             </Button>
           </TooltipTrigger>

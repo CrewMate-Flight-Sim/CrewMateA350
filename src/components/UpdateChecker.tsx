@@ -23,7 +23,7 @@ const parseErrorMessage = (error: unknown): string => {
   }
 }
 
-const statusColour: Record<StatusKind, string> = {
+const STATUS_COLOUR: Record<StatusKind, string> = {
   idle: "text-slate-400",
   info: "text-blue-400",
   success: "text-green-400",
@@ -126,7 +126,7 @@ export function UpdateChecker() {
       </TooltipProvider>
 
       {status.message && (
-        <span aria-live="polite" className={cn("truncate max-w-[140px] transition-colors", statusColour[status.kind])}>
+        <span aria-live="polite" className={cn("truncate max-w-[140px] transition-colors", STATUS_COLOUR[status.kind])}>
           {status.message}
         </span>
       )}

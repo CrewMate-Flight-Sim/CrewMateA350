@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { usePerformanceStore } from "@/store/performanceStore"
 
-const selectCls =
+const SELECT_CLS =
   "w-full h-8 bg-slate-900/50 border border-slate-600 text-white text-xs rounded-md px-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
 
 export function LandingWindow() {
@@ -72,7 +72,7 @@ export function LandingWindow() {
           <Label htmlFor="flaps" className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
             Flaps
           </Label>
-          <select id="flaps" name="flaps" value={landing.flaps} onChange={handleSelectChange} className={selectCls}>
+          <select id="flaps" name="flaps" value={landing.flaps} onChange={handleSelectChange} className={SELECT_CLS}>
             <option value="3">3</option>
             <option value="Full">Full</option>
           </select>
@@ -126,7 +126,7 @@ export function LandingWindow() {
             name="antiIce"
             value={landing.antiIce}
             onChange={handleSelectChange}
-            className={selectCls}
+            className={SELECT_CLS}
           >
             <option value="off">OFF</option>
             <option value="oneng">ENG</option>
@@ -156,7 +156,7 @@ export function LandingWindow() {
             name="apuStart"
             value={landing.apuStart}
             onChange={handleSelectChange}
-            className={selectCls}
+            className={SELECT_CLS}
           >
             <option value="auto">Auto</option>
             <option value="manual">Manual</option>
