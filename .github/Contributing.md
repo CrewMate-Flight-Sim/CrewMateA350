@@ -61,7 +61,7 @@ Updating the CrewMate-Core version (repo owners)
 
 1. Read the [CrewMate-Core changelog](https://github.com/CrewMate-Flight-Sim/CrewMate-Core/blob/main/CHANGELOG.md) between the pinned tag and the new one. A new major version can need changes here.
 2. Change `tag` on the `crewmate-core` line in `src-tauri/Cargo.toml`.
-3. In `src-tauri`, run `cargo update -p crewmate-core`.
+3. In `src-tauri`, run `cargo check`. It fetches the new tag and updates `Cargo.lock`.
 4. Run `npm run check` and `npm run tauri dev`, and exercise what the new version changed.
 5. Commit `Cargo.toml` and `Cargo.lock`, and ship it in a normal release, after installing a build over the current public release.
 
