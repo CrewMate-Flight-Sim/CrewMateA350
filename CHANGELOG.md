@@ -3,6 +3,7 @@
 ## [1.0.1] - 2026-XX-XX
 
 - A go-around altitude with hundreds (e.g. 3500) was read back as "go around altitude set" with no number - the FO now reads it in full, "three thousand five hundred feet set" - @marxio09dio
+- Turning voice on while the sim was disconnected left the mic listening with no sim - it now stays muted until the sim reconnects - @marxio09dio
 
 ## [1.0.0] - 2026-09-25
 
