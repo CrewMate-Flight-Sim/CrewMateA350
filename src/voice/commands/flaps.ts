@@ -1,5 +1,5 @@
-import { simvarSet } from "@/API/simvarApi"
 import { delay } from "@/lib/utils"
+import { moveFlapsLever } from "@/services/flapsLever"
 import { playSound } from "@/services/playSounds"
 import { useTelemetryStore } from "@/store/telemetryStore"
 
@@ -18,14 +18,6 @@ const FLAP_SPEED_LIMITS: Record<A350Variant, Record<number, number>> = {
     3: 206,
     4: 192
   }
-}
-
-const KEY_EVENT_MAP: Record<number, string> = {
-  0: "FLAPS_UP",
-  1: "FLAPS_1",
-  2: "FLAPS_2",
-  3: "FLAPS_3",
-  4: "FLAPS_DOWN"
 }
 
 const SOUND_MAP: Record<number, string> = {
@@ -66,25 +58,18 @@ export async function setFlaps(setting: number, skipAnnouncement = false) {
       return
     }
 
-    const keyEvent = KEY_EVENT_MAP[setting]
-    if (!keyEvent) {
-      return
-    }
-
-    const commandExpression = `(>K:${keyEvent})`
-
     if (!isOnGround) {
       if (!skipAnnouncement) {
         playSound("speed_checked.ogg")
         await delay(1000)
       }
-      await simvarSet(commandExpression)
+      await moveFlapsLever(setting)
 
       await delay(1000)
       const sound = SOUND_MAP[setting]
       if (sound) playSound(sound)
     } else {
-      await simvarSet(commandExpression)
+      await moveFlapsLever(setting)
 
       await delay(1000)
       const sound = SOUND_MAP[setting]

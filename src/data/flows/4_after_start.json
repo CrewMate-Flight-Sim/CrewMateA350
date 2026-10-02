@@ -20,6 +20,7 @@
       "read": "(A:FLAPS HANDLE INDEX,Number)",
       "on": "(>K:FLAPS_{flaps})",
       "expect": "{flaps}",
+      "flaps_lever": true,
       "only_if": {
         "option": "takeoff.antiIce",
         "one_of": ["off"]

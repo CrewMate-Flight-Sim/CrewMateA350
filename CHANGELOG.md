@@ -4,6 +4,7 @@
 
 - A go-around altitude with hundreds (e.g. 3500) was read back as "go around altitude set" with no number - the FO now reads it in full, "three thousand five hundred feet set" - @marxio09dio
 - Turning voice on while the sim was disconnected left the mic listening with no sim - it now stays muted until the sim reconnects - @marxio09dio
+- Flaps 3 from the After Start flow or the "flaps 3" command moved the lever but the flaps stayed up - the FO now moves the lever through each position, so the flaps deploy - @marxio09dio
 
 ## [1.0.0] - 2026-09-25
 
