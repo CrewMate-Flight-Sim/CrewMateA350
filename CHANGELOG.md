@@ -9,6 +9,7 @@
 - Engine anti-ice selected for takeoff only switched on engine 2 - the FO now switches on both engines - @marxio09dio
 - After a go-around the Landing flow did not run again on the next gear down, so the ground spoilers stayed disarmed - it now runs on every approach - @marxio09dio
 - After Landing with the APU set to manual switched off an APU you had started - the FO now leaves the APU alone - @marxio09dio
+- Calling the flight controls check a second time made the FO call every control position twice - the new call now restarts the check - @marxio09dio
 - V1, VR and V2 in the takeoff window can be set with the mouse wheel, like the missed approach altitude - @marxio09dio
 - The FO now stows the table before start, turns the brake fans off at runway entry and switches the wing lights on at 10,000 ft in descent - @marxio09dio
 
