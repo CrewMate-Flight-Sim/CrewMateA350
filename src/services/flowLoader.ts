@@ -66,7 +66,8 @@ async function getTemplateVars(): Promise<Record<string, string>> {
     vars["flaps"] = ""
   }
 
-  const packsOn = takeoff.packs === "on"
+  // With APU TO PACK the packs stay on and run on APU bleed
+  const packsOn = takeoff.packs !== "off"
   const apuPacks = takeoff.packs === "apu"
   vars["pack1_cmd"] = packsOn ? "1 (>L:INI_AIR_PACK1_BUTTON)" : "0 (>L:INI_AIR_PACK1_BUTTON)"
   vars["pack2_cmd"] = packsOn ? "1 (>L:INI_AIR_PACK2_BUTTON)" : "0 (>L:INI_AIR_PACK2_BUTTON)"
@@ -95,12 +96,6 @@ async function getTemplateVars(): Promise<Record<string, string>> {
     : "0 (>L:INI_ENG_ANTI_ICE2_STATE)"
   vars["landing_anti_ice_eng1_expect"] = landingAntiIceOn ? "1" : "0"
   vars["landing_anti_ice_eng2_expect"] = landingAntiIceOn ? "1" : "0"
-
-  const landingApuAutoStart = (landing.apuStart ?? "auto") === "auto"
-  vars["landing_apu_master_cmd"] = landingApuAutoStart ? "1 (>L:INI_APU_MASTER_SWITCH)" : "0 (>L:INI_APU_MASTER_SWITCH)"
-  vars["landing_apu_master_expect"] = landingApuAutoStart ? "1" : "0"
-  vars["landing_apu_start_cmd"] = landingApuAutoStart ? "1 (>L:INI_APU_START_BUTTON)" : "0 (>L:INI_APU_START_BUTTON)"
-  vars["landing_apu_start_expect"] = landingApuAutoStart ? "1" : "0"
 
   const landingLSonoff = (landing.ls ?? false) === true
   vars["landing_ls_on"] = landingLSonoff ? "1 (>L:INI_LS_FO)" : "0 (>L:INI_LS_FO)"

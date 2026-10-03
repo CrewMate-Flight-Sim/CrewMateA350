@@ -1,5 +1,6 @@
 import { simvarGet, simvarSet } from "@/API/simvarApi"
 import { delay } from "@/lib/utils"
+import { moveFlapsLever } from "@/services/flapsLever"
 import { getFlowById, resolveFlow } from "@/services/flowLoader"
 import { playSound, waitForSoundFinished } from "@/services/playSounds"
 import { useFlowStore } from "@/store/flowStore"
@@ -331,7 +332,8 @@ class FlowRunner {
       return
     }
 
-    await writeSimvar(step.on)
+    if (step.flaps_lever) await moveFlapsLever(expectedValue)
+    else await writeSimvar(step.on)
     this.checkAbort(signal)
 
     await this.handlePostWrite(step, signal)

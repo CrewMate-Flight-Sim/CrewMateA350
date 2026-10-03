@@ -45,11 +45,16 @@ function waitFor(condition: (t: Telemetry) => boolean): Promise<void> {
   })
 }
 
+// Bumped on every call, so a check still waiting goes quiet once a newer one starts
+let latestCheck = 0
+
 export async function flightControlsCheck() {
+  const check = ++latestCheck
   await waitForSoundFinished()
 
   for (const step of STEPS) {
     await waitFor(step.condition)
+    if (check !== latestCheck) return
     await playSound(step.sound)
     await waitForSoundFinished()
   }

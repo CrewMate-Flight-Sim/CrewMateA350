@@ -15,6 +15,12 @@
       "expect": 1
     },
     {
+      "label": "Wing Lights",
+      "read": "(L:INI_LIGHTS_WING)",
+      "on": "1 (>L:INI_LIGHTS_WING)",
+      "expect": 1
+    },
+    {
       "label": "Seat belts",
       "read": "(L:INI_SEATBELTS_SWITCH)",
       "on": "0 (>L:INI_SEATBELTS_SWITCH)",

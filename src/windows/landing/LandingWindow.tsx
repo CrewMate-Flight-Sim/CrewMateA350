@@ -1,7 +1,7 @@
 import { emit } from "@tauri-apps/api/event"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { Info } from "lucide-react"
-import { useCallback, useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,10 @@ import { usePerformanceStore } from "@/store/performanceStore"
 
 const SELECT_CLS =
   "w-full h-8 bg-slate-900/50 border border-slate-600 text-white text-xs rounded-md px-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+
+const MISSED_ALT_MIN = 1000
+const MISSED_ALT_MAX = 20000
+const MISSED_ALT_STEP = 100
 
 export function LandingWindow() {
   const { landing, setLandingData } = usePerformanceStore()
@@ -22,6 +26,7 @@ export function LandingWindow() {
       .catch(() => {})
   }, [])
 
+  // React's onWheel is passive and can't stop the browser's own number input scrolling
   useEffect(() => {
     const input = missedRef.current
     if (!input) return
@@ -29,21 +34,6 @@ export function LandingWindow() {
     input.addEventListener("wheel", handler, { passive: false })
     return () => input.removeEventListener("wheel", handler)
   }, [])
-
-  const handleMissedWheel = useCallback(
-    (e: React.WheelEvent<HTMLInputElement>) => {
-      const step = 100
-      const min = 1000
-      const max = 20000
-      const input = missedRef.current
-      const current = input?.value ? Number(input.value) : 0
-      const next = Math.round((e.deltaY > 0 ? current - step : current + step) / step) * step
-      const clamped = Math.max(min, Math.min(max, next))
-      setLandingData({ missedAltitude: clamped })
-      emit("landing-updated", { ...landing, missedAltitude: clamped })
-    },
-    [landing, setLandingData]
-  )
 
   const handleChange = (name: string, value: string | number | boolean) => {
     setLandingData({ [name]: value } as Partial<typeof landing>)
@@ -60,6 +50,13 @@ export function LandingWindow() {
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleChange(e.target.name, e.target.checked)
+  }
+
+  // Rounds too, so a typed 3550 steps to 3500 or 3600
+  const handleMissedWheel = (deltaY: number) => {
+    const step = deltaY > 0 ? -MISSED_ALT_STEP : MISSED_ALT_STEP
+    const next = Math.round((landing.missedAltitude + step) / MISSED_ALT_STEP) * MISSED_ALT_STEP
+    handleChange("missedAltitude", Math.max(MISSED_ALT_MIN, Math.min(MISSED_ALT_MAX, next)))
   }
 
   const labelRow = "flex items-center gap-1 h-4"
@@ -85,16 +82,13 @@ export function LandingWindow() {
           <Input
             ref={missedRef}
             type="number"
-            min={1000}
-            max={20000}
+            min={MISSED_ALT_MIN}
+            max={MISSED_ALT_MAX}
             id="missedAltitude"
             name="missedAltitude"
             value={landing.missedAltitude}
             onChange={handleNumberInput}
-            onWheel={(e) => {
-              e.preventDefault()
-              handleMissedWheel(e)
-            }}
+            onWheel={(e) => handleMissedWheel(e.deltaY)}
             className="h-8 bg-slate-900/50 border-slate-600 text-white text-xs font-mono text-center px-1 focus-visible:ring-cyan-500"
             placeholder="4000"
           />
@@ -180,7 +174,7 @@ export function LandingWindow() {
                 <Info className="w-3 h-3 text-slate-400 cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="text-xs max-w-[200px]">
-                This will tell FO if he/she will select the LS button or not, deselect if flying RNP AR approach for
+                This tells the FO whether to select the LS button. Deselect it when flying an RNP AR approach, for
                 example.
               </TooltipContent>
             </Tooltip>
@@ -200,7 +194,7 @@ export function LandingWindow() {
       </div>
       <Button
         onClick={() => getCurrentWindow().close()}
-        className="w-full h-8 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold text-sm mt-3"
+        className="w-full h-8 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold text-sm mt-3"
       >
         Ok
       </Button>

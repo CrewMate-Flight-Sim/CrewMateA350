@@ -18,6 +18,7 @@ export interface FlowStep {
   until?: "at_least" | "at_most"
   release?: string
   timeout_ms?: number
+  flaps_lever?: boolean
 }
 
 export interface Flow {

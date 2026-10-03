@@ -44,7 +44,7 @@ function App() {
   const { currentFlow, executionState } = useFlowStore()
   const isRunning = executionState === "running"
 
-  // Ref to track the latest voiceEnabled without triggering re-renders in connection effect
+  // Latest values for the hardware mic listeners, without re-subscribing on every change
   const voiceEnabledRef = useRef(voiceEnabled)
   voiceEnabledRef.current = voiceEnabled
   const connectedRef = useRef(connected)
@@ -72,11 +72,11 @@ function App() {
   const currentEvent = usePreflightTimerStore((s) => s.currentEvent)
   const foAway = useFoPresenceStore((s) => s.isActive)
 
-  // Context-Aware Mute Engine: handle sim disconnect/reconnect and sync sidecar mute
+  // Context-Aware Mute Engine: re-runs on voice toggles too, so voice turned on while disconnected stays muted
   useEffect(() => {
     if (!connected) {
       if (wasVoiceEnabledBeforeDisconnect.current === null) {
-        wasVoiceEnabledBeforeDisconnect.current = voiceEnabledRef.current
+        wasVoiceEnabledBeforeDisconnect.current = voiceEnabled
       }
       invoke("set_muted", { muted: true }).catch(() => {})
     } else {
@@ -86,10 +86,10 @@ function App() {
         invoke("set_muted", { muted: !previousState }).catch(() => {})
         wasVoiceEnabledBeforeDisconnect.current = null
       } else {
-        invoke("set_muted", { muted: !voiceEnabledRef.current }).catch(() => {})
+        invoke("set_muted", { muted: !voiceEnabled }).catch(() => {})
       }
     }
-  }, [connected, setVoiceEnabled])
+  }, [connected, voiceEnabled, setVoiceEnabled])
 
   // Only the main window acts on hardware mic buttons, so an open Settings window can't toggle twice
   useEffect(() => {

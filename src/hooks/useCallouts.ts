@@ -62,6 +62,12 @@ const getTakeoffThrustTarget = (t: Telemetry) => {
   return t.iniThrustTogaN1 ?? 0
 }
 
+// Idle reverse reads -0.055 and forward idle +0.016, so this sits between them
+const REVERSE_LEVER_THRESHOLD = -0.02
+
+const isReverseSelected = (t: Telemetry) =>
+  t.throttleLever1 < REVERSE_LEVER_THRESHOLD || t.throttleLever2 < REVERSE_LEVER_THRESHOLD
+
 const crossedUp = (prev: number, curr: number, threshold: number) => prev < threshold && curr >= threshold
 
 const crossedDown = (prev: number, curr: number, threshold: number) => prev > threshold && curr <= threshold
@@ -100,7 +106,7 @@ function handleSpoilersPhase(ls: LandingSequenceState, t: Telemetry, elapsed: nu
 }
 
 function handleReverserPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) {
-  if (t.throttleLever1 < -0.1 || t.throttleLever2 < -0.1) {
+  if (isReverseSelected(t)) {
     playSound("reverse_green.ogg")
     advancePhase(ls, "decel", now)
   } else if (elapsed >= REVERSER_TIMEOUT) {
@@ -145,7 +151,7 @@ const resetRto = (rto: RtoState) => {
 }
 
 function handleRto(rto: RtoState, t: Telemetry, prevSpeed: number, now: number) {
-  if (!rto.calledReverse && (t.throttleLever1 < -0.1 || t.throttleLever2 < -0.1)) {
+  if (!rto.calledReverse && isReverseSelected(t)) {
     playSound("reverse_green.ogg")
     rto.calledReverse = true
     return
@@ -415,8 +421,8 @@ export function useCallouts(vrSpeed: number) {
 
     // Landing sequence
 
-    // Track sustained airborne (vs > 200 filters ground bounces)
-    if (!t.onGround && t.vs > 200) {
+    // Height rather than a climb, so a flight started on approach still arms; a bounce stays below 100 ft
+    if (!t.onGround && t.radioAlt > 100) {
       ls.wasAirborne = true
     }
 

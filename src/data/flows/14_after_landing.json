@@ -15,14 +15,22 @@
     {
       "label": "APU",
       "read": "(L:INI_APU_MASTER_SWITCH)",
-      "on": "{landing_apu_master_cmd}",
-      "expect": "{landing_apu_master_expect}"
+      "on": "1 (>L:INI_APU_MASTER_SWITCH)",
+      "expect": 1,
+      "only_if": {
+        "option": "landing.apuStart",
+        "one_of": ["auto"]
+      }
     },
     {
       "label": "APU Start",
       "read": "(L:INI_APU_START_BUTTON)",
-      "on": "{landing_apu_start_cmd}",
-      "expect": "{landing_apu_start_expect}"
+      "on": "1 (>L:INI_APU_START_BUTTON)",
+      "expect": 1,
+      "only_if": {
+        "option": "landing.apuStart",
+        "one_of": ["auto"]
+      }
     },
     {
       "label": "Engine 1 Anti Ice",

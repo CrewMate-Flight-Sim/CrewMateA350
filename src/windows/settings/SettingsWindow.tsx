@@ -152,9 +152,14 @@ export function SettingsWindow() {
         <SectionHeader icon={<Volume2 className="h-3 w-3 text-cyan-400 shrink-0" />} label="Audio" />
 
         <div className="grid grid-cols-[110px_1fr] items-center gap-3">
-          <Label className="text-sm text-slate-300">Copilot</Label>
+          <Label htmlFor="soundPack" className="text-sm text-slate-300">
+            Copilot
+          </Label>
           <Select value={soundPack} onValueChange={setSoundPack}>
-            <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate">
+            <SelectTrigger
+              id="soundPack"
+              className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-600 text-white max-w-[20rem]">
@@ -170,9 +175,14 @@ export function SettingsWindow() {
         </div>
 
         <div className="grid grid-cols-[110px_1fr] items-center gap-3">
-          <Label className="text-sm text-slate-300">Ground Eng.</Label>
+          <Label htmlFor="geSoundPack" className="text-sm text-slate-300">
+            Ground Eng.
+          </Label>
           <Select value={geSoundPack} onValueChange={setGeSoundPack}>
-            <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate">
+            <SelectTrigger
+              id="geSoundPack"
+              className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-600 text-white max-w-[20rem]">
@@ -188,7 +198,9 @@ export function SettingsWindow() {
         </div>
 
         <div className="grid grid-cols-[110px_1fr] items-center gap-3">
-          <Label className="text-sm text-slate-300">Output Device</Label>
+          <Label htmlFor="outputDevice" className="text-sm text-slate-300">
+            Output Device
+          </Label>
           <Select
             value={outputDevice ?? "default"}
             onValueChange={(v) => {
@@ -196,7 +208,10 @@ export function SettingsWindow() {
               invoke("set_output_device", { device: v === "default" ? null : v }).catch(() => {})
             }}
           >
-            <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate">
+            <SelectTrigger
+              id="outputDevice"
+              className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-600 text-white max-w-[20rem]">
@@ -210,7 +225,9 @@ export function SettingsWindow() {
         </div>
 
         <div className="grid grid-cols-[110px_1fr] items-center gap-3">
-          <Label className="flex items-center gap-1 text-sm text-slate-300">Input Device</Label>
+          <Label htmlFor="inputDevice" className="flex items-center gap-1 text-sm text-slate-300">
+            Input Device
+          </Label>
           <Select
             value={inputDevice ?? "default"}
             onValueChange={(v) => {
@@ -219,7 +236,10 @@ export function SettingsWindow() {
               invoke("set_input_device", { device }).catch(() => {})
             }}
           >
-            <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate">
+            <SelectTrigger
+              id="inputDevice"
+              className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-600 text-white max-w-[20rem]">
@@ -248,9 +268,14 @@ export function SettingsWindow() {
         <SectionHeader icon={<Mic className="h-3 w-3 text-cyan-400 shrink-0" />} label="Microphone" />
 
         <div className="grid grid-cols-[110px_1fr] items-center gap-3">
-          <Label className="text-sm text-slate-300">Voice Mode</Label>
+          <Label htmlFor="voiceMode" className="text-sm text-slate-300">
+            Voice Mode
+          </Label>
           <Select value={voiceMode} onValueChange={(v) => setVoiceMode(v as VoiceMode)}>
-            <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate">
+            <SelectTrigger
+              id="voiceMode"
+              className="bg-slate-900/50 border-slate-600 text-white text-sm focus:ring-cyan-500 w-56 truncate"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-600 text-white max-w-[20rem]">
@@ -278,11 +303,9 @@ export function SettingsWindow() {
           onCancel={() => setCapturing(null)}
           onClear={() => setMicToggleBinding(null)}
         />
-        <p className="text-xs text-slate-400">
-          {voiceMode === "ptt" && !pttBinding
-            ? "Push-to-talk needs a PTT button, or the FO hears nothing."
-            : "Keys and joystick buttons work while MSFS has focus. Pick ones not bound in the sim."}
-        </p>
+        {voiceMode === "ptt" && !pttBinding && (
+          <p className="text-xs text-slate-400">Push-to-talk needs a PTT button, or the FO hears nothing.</p>
+        )}
 
         <SectionHeader icon={<Option className="h-3 w-3 text-cyan-400 shrink-0" />} label="Options" />
 
@@ -329,7 +352,7 @@ export function SettingsWindow() {
 
         <Button
           onClick={() => getCurrentWindow().close()}
-          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2"
+          className="w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold py-2"
         >
           Close
         </Button>
@@ -417,6 +440,7 @@ function SliderRow({
       <Label className="text-sm text-slate-300">{label}</Label>
       <div className="flex items-center gap-3">
         <Slider
+          aria-label={label}
           className="flex-1"
           value={[value]}
           onValueChange={(v) => onChange(v[0])}
