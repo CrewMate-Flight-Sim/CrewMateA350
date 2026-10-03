@@ -303,11 +303,9 @@ export function SettingsWindow() {
           onCancel={() => setCapturing(null)}
           onClear={() => setMicToggleBinding(null)}
         />
-        <p className="text-xs text-slate-400">
-          {voiceMode === "ptt" && !pttBinding
-            ? "Push-to-talk needs a PTT button, or the FO hears nothing."
-            : "Keys and joystick buttons work while MSFS has focus. Pick ones not bound in the sim."}
-        </p>
+        {voiceMode === "ptt" && !pttBinding && (
+          <p className="text-xs text-slate-400">Push-to-talk needs a PTT button, or the FO hears nothing.</p>
+        )}
 
         <SectionHeader icon={<Option className="h-3 w-3 text-cyan-400 shrink-0" />} label="Options" />
 
