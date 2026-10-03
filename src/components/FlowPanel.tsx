@@ -45,6 +45,7 @@ export function FlowPanel() {
             }
           }}
           disabled={isRunning && currentFlow?.id !== selectedFlowId}
+          aria-label={isRunning && currentFlow?.id === selectedFlowId ? "Stop flow" : "Run flow"}
           className={`h-6 px-2 text-xs bg-transparent border border-slate-700/50 hover:bg-amber-400/10 transition shrink-0 ${
             isRunning && currentFlow?.id === selectedFlowId ? "border-amber-400 bg-amber-400/10" : ""
           } ${isRunning && currentFlow?.id !== selectedFlowId ? "opacity-40" : ""}`}

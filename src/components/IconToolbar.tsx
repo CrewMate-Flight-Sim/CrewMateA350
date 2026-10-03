@@ -46,6 +46,11 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
 
   const timeDisplay = String(Math.floor(remainingSeconds / 60)).padStart(2, "0")
 
+  // Each icon button shows its tooltip text and also uses it as the screen reader name
+  const micLabel = !voiceEnabled ? "Start Listening" : pttArmed ? "Stop Listening (push-to-talk)" : "Stop Listening"
+  const pinLabel = alwaysOnTop ? "Unpin App" : "Pin App"
+  const timerLabel = timerRunning ? "Skip 1 min" : "Start preflight countdown"
+
   const handleToggleAlwaysOnTop = async () => {
     const newValue = !alwaysOnTop
     try {
@@ -64,6 +69,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
             <Button
               onClick={onToggleVoice}
               disabled={voiceDisabled}
+              aria-label={micLabel}
               className={cn(
                 BASE_BTN,
                 "hover:bg-cyan-400/10",
@@ -84,15 +90,14 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">
-            {!voiceEnabled ? "Start Listening" : pttArmed ? "Stop Listening (push-to-talk)" : "Stop Listening"}
-          </TooltipContent>
+          <TooltipContent side="bottom">{micLabel}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               onClick={handleToggleAlwaysOnTop}
+              aria-label={pinLabel}
               className={cn(BASE_BTN, "hover:bg-amber-400/10", alwaysOnTop && "border-amber-400")}
             >
               {alwaysOnTop ? (
@@ -102,7 +107,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{alwaysOnTop ? "Unpin App" : "Pin App"}</TooltipContent>
+          <TooltipContent side="bottom">{pinLabel}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -110,6 +115,7 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
             <Button
               onClick={timerRunning ? skipMinute : startTimer}
               disabled={flowRunning || !onGround || enginesOn}
+              aria-label={timerLabel}
               className={cn(
                 BASE_BTN,
                 timerRunning ? "border-blue-600 hover:bg-blue-600/10 w-auto px-2 gap-1.5" : "hover:bg-blue-400/10"
@@ -119,12 +125,16 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
               {timerRunning && <span className="text-xs font-mono text-blue-300">{timeDisplay}m</span>}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{timerRunning ? "Skip 1 min" : "Start preflight countdown"}</TooltipContent>
+          <TooltipContent side="bottom">{timerLabel}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={openTakeoffWindow} className={cn(BASE_BTN, "hover:bg-emerald-400/10")}>
+            <Button
+              onClick={openTakeoffWindow}
+              aria-label="Takeoff Plan"
+              className={cn(BASE_BTN, "hover:bg-emerald-400/10")}
+            >
               <PlaneTakeoff className="w-5 h-5 text-emerald-400" />
             </Button>
           </TooltipTrigger>
@@ -133,7 +143,11 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={openLandingWindow} className={cn(BASE_BTN, "hover:bg-violet-400/10")}>
+            <Button
+              onClick={openLandingWindow}
+              aria-label="Landing Plan"
+              className={cn(BASE_BTN, "hover:bg-violet-400/10")}
+            >
               <PlaneLanding className="w-5 h-5 text-violet-400" />
             </Button>
           </TooltipTrigger>
@@ -142,7 +156,11 @@ export function IconToolbar({ voiceEnabled, voiceMode, pttHeld, onToggleVoice, v
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={openSettingsWindow} className={cn(BASE_BTN, "hover:bg-slate-400/10")}>
+            <Button
+              onClick={openSettingsWindow}
+              aria-label="Settings"
+              className={cn(BASE_BTN, "hover:bg-slate-400/10")}
+            >
               <SettingsIcon className="w-5 h-5 text-slate-300" />
             </Button>
           </TooltipTrigger>

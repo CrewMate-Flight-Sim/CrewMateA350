@@ -12,6 +12,7 @@
 - A flight started on approach got no spoilers, reverse or decel callouts on landing - they now arm whenever the aircraft is airborne - @marxio09dio
 - Idle reverse on landing or a rejected takeoff was not detected, so the FO called "no reverse" - idle reverse now gets "reverse green" - @marxio09dio
 - Calling the flight controls check a second time made the FO call every control position twice - the new call now restarts the check - @marxio09dio
+- Screen readers now announce every icon button, dropdown and slider by name, and the Ok buttons have stronger text contrast - @marxio09dio
 - V1, VR and V2 in the takeoff window can be set with the mouse wheel, like the missed approach altitude - @marxio09dio
 - The FO now stows the table before start, turns the brake fans off at runway entry and switches the wing lights on at 10,000 ft in descent - @marxio09dio
 

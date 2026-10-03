@@ -183,7 +183,7 @@ export function TakeoffWindow() {
 
       <Button
         onClick={() => getCurrentWindow().close()}
-        className="w-full h-8 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold text-sm mt-3"
+        className="w-full h-8 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold text-sm mt-3"
       >
         Ok
       </Button>

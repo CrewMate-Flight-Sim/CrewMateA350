@@ -51,6 +51,7 @@ export function ChecklistPanel() {
             }
           }}
           disabled={isRunning && currentChecklist?.id !== selectedId}
+          aria-label={isRunning && currentChecklist?.id === selectedId ? "Stop checklist" : "Run checklist"}
           className={`h-6 px-2 text-xs bg-transparent border border-slate-700/50 hover:bg-amber-400/10 transition shrink-0 ${
             isRunning && currentChecklist?.id === selectedId ? "border-amber-400 bg-amber-400/10" : ""
           } ${isRunning && currentChecklist?.id !== selectedId ? "opacity-40" : ""}`}
