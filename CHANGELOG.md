@@ -5,6 +5,12 @@
 - A go-around altitude with hundreds (e.g. 3500) was read back as "go around altitude set" with no number - the FO now reads it in full, "three thousand five hundred feet set" - @marxio09dio
 - Turning voice on while the sim was disconnected left the mic listening with no sim - it now stays muted until the sim reconnects - @marxio09dio
 - Flaps 3 from the After Start flow or the "flaps 3" command moved the lever but the flaps stayed up - the FO now moves the lever through each position, so the flaps deploy - @marxio09dio
+- Packs "APU TO PACK" switched both packs off at runway entry, leaving no air conditioning and failing the Line-Up checklist - the packs now stay on, supplied by the APU bleed - @marxio09dio
+- Engine anti-ice selected for takeoff only switched on engine 2 - the FO now switches on both engines - @marxio09dio
+- After a go-around the Landing flow did not run again on the next gear down, so the ground spoilers stayed disarmed - it now runs on every approach - @marxio09dio
+- After Landing with the APU set to manual switched off an APU you had started - the FO now leaves the APU alone - @marxio09dio
+- V1, VR and V2 in the takeoff window can be set with the mouse wheel, like the missed approach altitude - @marxio09dio
+- The FO now stows the table before start, turns the brake fans off at runway entry and switches the wing lights on at 10,000 ft in descent - @marxio09dio
 
 ## [1.0.0] - 2026-09-25
 

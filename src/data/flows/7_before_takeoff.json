@@ -23,6 +23,16 @@
       "expect": "{apu_bleed_expect}"
     },
     {
+      "label": "Brake Fan",
+      "read": "(L:INI_BRAKE_FAN_ON)",
+      "on": "0 (>L:INI_BRAKE_FAN_ON)",
+      "expect": 0,
+      "only_if": {
+        "read": "(L:INI_OPTION_BRAKE_FANS)",
+        "one_of": [1]
+      }
+    },
+    {
       "label": "ND SET",
       "read": "(L:INI_MAP_RANGE_FO_SWITCH)",
       "on": "6 (>L:INI_MAP_RANGE_FO_SWITCH)",

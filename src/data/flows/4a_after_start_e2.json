@@ -9,6 +9,12 @@
       "expect": 1
     },
     {
+      "label": "Engine 1 Anti Ice",
+      "read": "(L:INI_ENG_ANTI_ICE1_STATE)",
+      "on": "{anti_ice_eng1_cmd}",
+      "expect": "{anti_ice_eng1_expect}"
+    },
+    {
       "label": "Engine 2 Anti Ice",
       "read": "(L:INI_ENG_ANTI_ICE2_STATE)",
       "on": "{anti_ice_eng2_cmd}",

@@ -3,6 +3,12 @@
   "name": "Before Start",
   "steps": [
     {
+      "label": "Table",
+      "read": "(L:INI_FO_TRAY_COVER_TGT)",
+      "on": "0 (>L:INI_FO_TRAY_COVER_TGT)",
+      "expect": 0
+    },
+    {
       "label": "Cockpit Door close",
       "read": "(L:INI_COCKPIT_DOOR)",
       "on": "0 (>L:INI_COCKPIT_DOOR)",

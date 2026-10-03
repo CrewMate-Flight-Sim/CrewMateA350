@@ -65,6 +65,7 @@ export function useAutoFlows() {
       if (s.count !== goAroundCount.current) {
         goAroundCount.current = s.count
         triggered.current.afterTakeoff = false
+        triggered.current.landing = false
       }
     })
   }, [])
