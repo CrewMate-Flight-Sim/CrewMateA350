@@ -174,7 +174,7 @@ export function LandingWindow() {
                 <Info className="w-3 h-3 text-slate-400 cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="text-xs max-w-[200px]">
-                This will tell FO if he/she will select the LS button or not, deselect if flying RNP AR approach for
+                This tells the FO whether to select the LS button. Deselect it when flying an RNP AR approach, for
                 example.
               </TooltipContent>
             </Tooltip>
