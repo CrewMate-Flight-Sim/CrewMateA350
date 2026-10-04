@@ -51,9 +51,7 @@ const gePack = () => useSettingsStore.getState().geSoundPack
 // Commands that are allowed to fire even while a checklist is running.
 export const CHECKLIST_ABORT_COMMANDS = new Set(["checklist_cancel"])
 
-// Commands that still work while the FO is outside on the walkaround: the ground
-// engineer is a different person on the interphone, and the preflight timer is
-// how the pilot moves through the absence.
+// Still work during the walkaround: the ground engineer is someone else, and the timer is how the PF gets through it
 export const FO_AWAY_ALLOWED_COMMANDS = new Set([
   "ground_call",
   "pushback_request",
@@ -227,14 +225,9 @@ export const DISCRETE_COMMAND_MAP: Record<string, () => void | Promise<void>> = 
 
     setStdBaro(3)
 
-    // Only trigger passing altitude callout if:
-    // - Airborne
-    // - Climbing (VS > 100 fpm)
-    // - Not already tracking a passing altitude
     if (t && !t.onGround && t.vs > 100 && !passingAlt.isTracking()) {
       const targetAlt = t.pAlt + t.vs * (9 / 60)
 
-      // Play "standard crosschecked, passing FL XXX" sequence
       const sequence = buildPassingAltitudeSequence(targetAlt)
       playSoundSequence(sequence)
 

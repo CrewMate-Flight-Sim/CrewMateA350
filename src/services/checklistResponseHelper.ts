@@ -2,16 +2,16 @@ import { usePerformanceStore } from "@/store/performanceStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 import type { ChecklistItem } from "@/types/checklist"
 
-export const WEIGHT_UNITS = new Set(["tons", "kilograms", "pounds", "kilograms balanced", "pounds balanced"])
+const WEIGHT_UNITS = new Set(["tons", "kilograms", "pounds", "kilograms balanced", "pounds balanced"])
 
 /** Applies final display formatting: weight units → "xxx.x <unit>", feet → "xxxx feet" */
-export function renderResponseToken(token: string): string {
+function renderResponseToken(token: string): string {
   if (WEIGHT_UNITS.has(token)) return `xxx.x ${token}`
   if (token === "feet") return "xxxx feet"
   return token
 }
 
-export function formatResponseToken(token: string): string {
+function formatResponseToken(token: string): string {
   if (token === "#2") return "##"
   if (token === "#3") return "###"
   if (token === "#4") return "####"
@@ -67,9 +67,7 @@ export function getDisplayResponses(item: ChecklistItem): string[] {
     filtered = filtered.filter((s) => s.toLowerCase() !== "feet")
   }
 
-  // If the item is a baro confirmation (or we added baro-style set examples),
-  // hide the plain "set" token so pilots see only numeric-set variants like
-  // "#### set" / "qnh #### set" / "altimeter #### set". Keep "set and checked".
+  // A plain "set" isn't accepted on a baro item, so only the "#### set" forms (and "set and checked") are shown
   const hasBaroSetExample =
     filtered.some(
       (s) =>

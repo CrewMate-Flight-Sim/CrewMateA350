@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware"
 
 import type { InputBinding, VoiceMode } from "@/types/input"
 
-export type LightsControlMode = "virtual" | "user"
+type LightsControlMode = "virtual" | "user"
 
 const DEFAULT_LIGHTS_CONTROL_MODE: LightsControlMode = "user"
 

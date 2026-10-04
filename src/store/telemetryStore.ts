@@ -1,10 +1,6 @@
 import { create } from "zustand"
 
-/**
- * Dynamic telemetry payload — keys match the `SIM_VARS` array in useSimConnection.ts.
- * All values are numbers (booleans come through as floats from SimConnect).
- * Adding a new variable only requires adding an entry to `SIM_VARS` — no type changes needed.
- */
+// Keys are the SIM_VARS keys in useSimConnection.ts; SimConnect sends booleans as numbers too
 export type Telemetry = Record<string, number>
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error"

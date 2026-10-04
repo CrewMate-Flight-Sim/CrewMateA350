@@ -146,9 +146,7 @@ const PHASE_HANDLERS: Record<
 }
 
 // ─── Rejected takeoff ────────────────────────────────────────────────────────
-// Triggered by the pilot calling "stop". FCOM PRO-ABN-ABN-00: the F/O calls
-// REVERSE GREEN, then DECEL or NO DECEL. There is no spoilers call, and nothing
-// is said about reverse when it was never selected.
+// FCOM PRO-ABN-ABN-00: REVERSE GREEN, then DECEL or NO DECEL; no spoilers call, and nothing about a reverse never selected
 
 const RTO_ARM_MIN_IAS = 40
 const RTO_END_IAS = 30
@@ -183,8 +181,7 @@ function handleRto(rto: RtoState, t: Telemetry, prevSpeed: number, now: number) 
 }
 
 // ─── Approach deviation calls ────────────────────────────────────────────────
-// FCOM PRO-NOR-SCO "Flight parameters, approach". Each call plays once and re-arms
-// when the value is back inside its limit, at most every 5 s so a value on the limit doesn't chatter.
+// FCOM PRO-NOR-SCO "Flight parameters, approach"; re-armed at most every 5 s so a value on the limit doesn't chatter
 
 type DeviationCall = "speed" | "sinkRate" | "bank" | "pitch" | "loc" | "glide"
 
@@ -282,8 +279,7 @@ export function useCallouts(vrSpeed: number) {
     })
   }, [])
 
-  // Rejected takeoff: armed only by the pilot calling "stop", and only on the
-  // ground above 40 kt so a stray call at the gate or in the cruise does nothing
+  // Only on the ground above 40 kt, so a stray "stop" at the gate or in the cruise does nothing
   const rto = useRef<RtoState>({
     active: false,
     startedAt: null,
@@ -358,19 +354,15 @@ export function useCallouts(vrSpeed: number) {
       sp.vrInhibit = true
     }
 
-    // 100 knots callout
     if (t.onGround && crossedUp(p.speed, t.ias, 100) && !sp.called100) {
       playSound("100_knots.ogg")
       sp.called100 = true
     }
 
-    // 70 knots callout
     if (t.onGround && crossedDown(p.speed, t.ias, 70) && !sp.called70) {
       playSound("70_knots.ogg")
       sp.called70 = true
-      // 5 seconds after the 70-knot callout, press the chrono button and start the
-      // post-landing timer. The chrono counts up in seconds; when it reaches 300
-      // (5 minutes) the announcement plays.
+      // The FO chrono times the 5 minute engine cool down; the announcement plays when it reaches 300 s
       setTimeout(() => {
         if (useSettingsStore.getState().postLandingShutdownEnabled) {
           void simvarSet("1 (>L:INI_FO_CHRONO_BUTTON)")
@@ -378,7 +370,6 @@ export function useCallouts(vrSpeed: number) {
       }, 5000)
     }
 
-    // Thrust set callout
     if (
       t.onGround &&
       t.ias < 80 &&
@@ -391,18 +382,15 @@ export function useCallouts(vrSpeed: number) {
       sp.calledThrustSet = true
     }
 
-    // Cabin ready
     if (t.onGround && p.cabinIsReady === 0 && cabinIsReady === 1) {
       playSound("cabin_ready.ogg")
     }
 
-    // Positive climb
     if (!t.onGround && t.vs > 120 && t.radioAlt > 30 && !al.positiveClimb) {
       playSound("positive_climb.ogg")
       al.positiveClimb = true
     }
 
-    // Ten thousand feet
     if (!t.onGround && t.vs > 100 && !al.tenThousandClimb && crossedUp(p.alt, t.alt, 10000)) {
       playSound(t.transitionAltitude < 10000 ? "fl_100.ogg" : "ten_thousand.ogg")
       al.tenThousandClimb = true
@@ -413,7 +401,6 @@ export function useCallouts(vrSpeed: number) {
       al.tenThousandDescent = true
     }
 
-    // One to go
     if (!t.onGround && t.vs > 100 && !al.oneToGo && fcuAlt > 0 && crossedUp(p.alt, t.alt, fcuAlt - 1000)) {
       playSound("one_to_go.ogg")
       al.oneToGo = true
@@ -424,8 +411,7 @@ export function useCallouts(vrSpeed: number) {
       al.oneToGo = true
     }
 
-    // Transition altitude / level — both calls prompt an altimeter change, so they
-    // are skipped when it has already been made. XMLVAR_Baro1_Mode: 3 = STD.
+    // Both calls prompt an altimeter change, so they are skipped once it is made (XMLVAR_Baro1_Mode 3 = STD)
     const baroMode = t.baroMode ?? -1
     const onStandard = baroMode === 3
     const baroKnown = baroMode >= 0
@@ -455,14 +441,13 @@ export function useCallouts(vrSpeed: number) {
     // Passing altitude "now" callout
     const passingAltStore = usePassingAltitudeStore.getState()
     if (passingAltStore.targetAltitude !== null && !passingAltStore.hasCalled) {
-      // Check BOTH indicated and pressure altitude (use whichever is higher after setting standard)
+      // Pressure altitude too, because the indicated one jumps when standard is set
       const altReached = t.alt >= passingAltStore.targetAltitude
       const pAltReached = t.pAlt >= passingAltStore.targetAltitude
 
       if (altReached || pAltReached) {
         playSound("now_at.ogg")
         passingAltStore.markCalled()
-        // Clear state
         setTimeout(() => {
           passingAltStore.reset()
         }, 500)
@@ -475,7 +460,6 @@ export function useCallouts(vrSpeed: number) {
       sp.calledVr = false
       sp.called100 = false
       sp.vrInhibit = false
-      // Reset passing altitude state
       usePassingAltitudeStore.getState().reset()
     }
 
@@ -517,7 +501,6 @@ export function useCallouts(vrSpeed: number) {
       ls.wasAirborne = true
     }
 
-    // Arm: landing (was airborne → now on ground)
     if (t.onGround && ls.wasAirborne && ls.phase === "idle" && !ls.done) {
       advancePhase(ls, "spoilers", now)
       ls.wasAirborne = false
@@ -547,7 +530,7 @@ export function useCallouts(vrSpeed: number) {
       }
     }
 
-    // Process landing phases (skip if idle or audio still playing)
+    // Waits for the previous call to finish so the sequence never overlaps
     if (ls.phase !== "idle" && !(await isSoundPlaying())) {
       const elapsed = ls.phaseStartTime ? now - ls.phaseStartTime : 0
       const handler = (PHASE_HANDLERS as Record<string, (...args: unknown[]) => unknown>)[ls.phase]
@@ -560,7 +543,6 @@ export function useCallouts(vrSpeed: number) {
       }
     }
 
-    // Update previous values
     p.speed = t.ias
     p.alt = t.alt
     p.onGround = t.onGround

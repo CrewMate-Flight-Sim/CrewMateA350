@@ -1,19 +1,8 @@
-//
-// Thin client for GSX's Couatl Remote API v2 (WebSocket/JSON, local only).
-// Docs: GSX manual, "Couatl Remote API v2 — Developer Guide" section.
-//
+// GSX Couatl Remote API v2 (GSX manual, "Developer Guide"); only the pushback request is used
 
-type GsxCommandVerb = "service.trigger" | "menu.pick" | "command.run" | "input.submit" | "input.cancel"
-
-interface GsxService {
-  id: string
-  state: string
-  [k: string]: unknown
-}
+type GsxCommandVerb = "service.trigger"
 
 interface GsxState {
-  services?: GsxService[]
-  menu?: { entries?: string[]; disabled?: boolean[] } | null
   gsxRunning?: boolean
   engine?: { gsxRunning?: boolean }
   [k: string]: unknown
@@ -161,19 +150,6 @@ class GsxRemoteClient {
   /** Request a service by its canonical id, e.g. "Departure" (pushback), "OperateJetways". */
   triggerService(id: string) {
     return this.command("service.trigger", { service: id })
-  }
-
-  /** Pick an entry from the currently-open GSX menu, by index. */
-  pickMenu(index: number) {
-    return this.command("menu.pick", { index })
-  }
-
-  getServiceState(id: string): string | undefined {
-    return this.state.services?.find((s) => s.id === id)?.state
-  }
-
-  isRunning() {
-    return isGsxActive(this.state, this.ws)
   }
 }
 

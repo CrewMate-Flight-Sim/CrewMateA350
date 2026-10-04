@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 
-export const TELEMETRY_TICK_MS = 100
+const TELEMETRY_TICK_MS = 100
 
 export function useTelemetryTick(onTick: () => void | Promise<void>, intervalMs = TELEMETRY_TICK_MS) {
   const callback = useRef(onTick)

@@ -6,11 +6,7 @@ import { getAircraftTitle } from "@/API/simvarApi"
 import { useTelemetryStore } from "@/store/telemetryStore"
 import type { Telemetry } from "@/store/telemetryStore"
 
-/**
- * Single source of truth: maps each telemetry key to its SimConnect expression.
- * These are sent to the backend once on startup — the backend then pushes values back
- * via the "telemetry_data" event at the requested interval.
- */
+// Sent to the backend once per connection; it then pushes the values on "telemetry_data"
 const SIM_VARS: { key: string; expression: string }[] = [
   { key: "ias", expression: "(A:AIRSPEED INDICATED,Knots)" },
   { key: "alt", expression: "(A:INDICATED ALTITUDE,Feet)" },
@@ -116,9 +112,7 @@ export function useSimConnection() {
         }
       })
 
-      // After the listener is registered, query whether we're already in the cockpit.
-      // This handles the app being opened while already in a loaded flight — the Rust
-      // side emits with a 300ms delay now, but this is a belt-and-suspenders fallback.
+      // An app opened mid-flight may have missed the "sim-in-flight" event
       const alreadyInCockpit = await invoke<boolean>("get_in_cockpit").catch(() => false)
       if (alreadyInCockpit) {
         void startStream()

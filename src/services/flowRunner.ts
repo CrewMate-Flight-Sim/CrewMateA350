@@ -198,20 +198,18 @@ class FlowRunner {
   private async checkParkingBrakeAndTaxiLight(telemetry: Telemetry | null): Promise<void> {
     if (!telemetry) return
 
-    // Respect the same setting that gates Scenario 2 — if the post-landing
-    // shutdown guard is off, don't proactively nag either.
+    // With the cool down switched off there is nothing to warn about
     const { postLandingShutdownEnabled } = useSettingsStore.getState()
     if (!postLandingShutdownEnabled) return
 
-    // Check conditions: after_landing was last, timer active, brake ON, taxi light OFF (2)
     if (
       this.lastCompletedFlow === "after_landing" &&
       this.postLandingTimer.isActive &&
       !this.parkingSoundPlayedThisCycle &&
       telemetry.parkingBrake > 0.5 &&
-      telemetry.taxiLight === 2
+      telemetry.taxiLight === 2 // INI_LIGHTS_NOSE 2 = taxi light off
     ) {
-      this.parkingSoundPlayedThisCycle = true // Play once per cycle
+      this.parkingSoundPlayedThisCycle = true
       await playSound("five_minutes_not_passed.ogg")
     }
   }
@@ -353,9 +351,7 @@ class FlowRunner {
   }
 
   // ── Drive-until phase ─────────────────────────────────────────────────────
-  // Holds a control in its driving position until `read` passes `expect` (e.g. a
-  // seat that only moves while its switch is held). The release is always written,
-  // even on timeout or abort, so the control is never left running.
+  // For controls that only move while held; the release is always written so nothing is left running
 
   private async driveUntil(step: FlowStep, index: number, signal: AbortSignal): Promise<void> {
     const { setStepStatus } = useFlowStore.getState()
@@ -495,4 +491,3 @@ const runner = new FlowRunner()
 
 export const executeFlow = (flowId: string): Promise<void> => runner.execute(flowId)
 export const abortFlow = (): void => runner.abort()
-export const isPostLandingTimerActive = (): boolean => runner.postLandingTimer.isActive

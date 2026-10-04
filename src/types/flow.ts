@@ -1,7 +1,6 @@
 export type FlowConditionValue = number | string | boolean
 
-export type FlowCondition =
-  { read: string; one_of: FlowConditionValue[] } | { option: string; one_of: FlowConditionValue[] }
+type FlowCondition = { read: string; one_of: FlowConditionValue[] } | { option: string; one_of: FlowConditionValue[] }
 
 export interface FlowStep {
   label: string

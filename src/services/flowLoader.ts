@@ -114,7 +114,7 @@ function resolveString(str: string, vars: Record<string, string>): string {
   return str.replace(/\{(\w+)\}/g, (match, key: string) => vars[key] ?? match)
 }
 
-export async function resolveStep(step: FlowStep, vars?: Record<string, string>): Promise<FlowStep> {
+async function resolveStep(step: FlowStep, vars?: Record<string, string>): Promise<FlowStep> {
   const templateVars = vars ?? (await getTemplateVars())
   const resolvedOnlyIf = step.only_if
     ? {
