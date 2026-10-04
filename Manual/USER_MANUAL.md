@@ -71,6 +71,7 @@ CrewMate does not take the key or button away from MSFS, so pick one that is not
 | **Hold checklist on incorrect item**         | On: the FO repeats the challenge until the item is answered correctly. Off: the item is skipped and the checklist moves on.                        |
 | **Auto Ground lights control**               | On: the FO operates landing, taxi and strobe lights during the flows. Off: the lights are left to you.                                             |
 | **5 minutes cool down (for engine shutoff)** | On: the FO refuses to shut an engine down until five minutes have passed since landing, and says so. Off: engines can be shut down at any time.    |
+| **Approach deviation calls**                 | On: the FO calls speed, sink rate, bank, pitch, localizer and glide deviations between 1,000 ft and 50 ft. Off: no deviation calls.                |
 
 ---
 
@@ -83,10 +84,10 @@ This tutorial assumes you are parked at the gate with engines off. You are the C
 ### Typical preflight timeline (example)
 
 - 50 min: Cockpit door and curtains opened.
-- 48 min: PM starts preliminary cockpit preparation.
+- 48 min: PM starts preliminary cockpit preparation and sets the parking brake, so the brake wear indicators can be checked on the walkaround.
 - 44 min: PM departs for external walkaround. PF starts cockpit preparation.
   ![Cockpit Preparation flow pattern](Images/COCKPIT%20PREPARATION%20FLOW%20PATTERN.png)
-- 35 min: PM returns and starts cockpit preparation on the right-hand side.
+- 35 min: PM returns and starts cockpit preparation on the right-hand side. The FO reports the walkaround: "all good, no issues found", or each worn tyre or brake by gear (nose, left main, right main) followed by "we need maintenance". Worn means red on the EFB maintenance page.
 - 25 min: PF conducts the departure briefing (enter takeoff data in the Takeoff Performance window, including the departure **Runway** — the FO reads it back on the LINE-UP checklist).
 - 20 min: PF calls for the COCKPIT PREPARATION checklist.
 - 5 min: PM closes the table, and a reminder to start the APU is shown.
@@ -154,11 +155,13 @@ The before start flow takes TCAS out of standby and sets the transponder mode, t
 
 - After passing the transition level call for "set altimeters/QNH", complete the APPROACH checklist.
 - The transition altitude and transition level calls are skipped when the altimeter has already been set, so setting standard early does not produce a redundant call later.
+- Between 1,000 ft and 50 ft radio altitude with the gear down, the FO calls the FCOM approach deviations: "speed" (below the speed target -5 kt or above +10 kt), "sink rate" (more than 1,000 ft/min), "bank" (more than 6°), "pitch" (above 10° or below 0°), "localizer" and "glide" (more than ½ dot, ILS only). Each call is made once and again only after the value has come back inside the limit. They stop after a go-around until the next approach, and can be switched off in Settings.
 
 ### Landing
 
 - When LDG CONF is set and a cabin report is received, call for the LANDING checklist.
 - PF announces "Continue" at minima or "Go‑around - flaps" as appropriate.
+- After touchdown the FO calls "spoilers", "reverse green", the autobrake mode on the FMA ("BTV" or "brake med") and "decel". There is no "autobrake off" call: the aircraft announces that itself.
 
 ### After Landing
 
@@ -468,7 +471,7 @@ The answers that carry numbers — speeds, altimeter settings, minimums, the run
 | Barometric Reference | "altimeter \_\_\_\_ set" / "QNH \_\_\_\_ set" / "\_\_\_\_ set" / "set" — the FO reads the setting back. |
 | Minimums Reference   | "baro \_\_\_ feet" or "radio \_\_\_ feet"                                                               |
 | Runway Condition     | "dry" / "wet" / "compacted snow" / "snow" / "slippery" / "standing water" / "slush" / "ice"             |
-| Auto Brake           | "medium" / "BTV"                                                                                        |
+| Auto Brake           | "medium" / "brake medium" / "BTV" — checked against the FMA.                                            |
 
 ### Landing
 

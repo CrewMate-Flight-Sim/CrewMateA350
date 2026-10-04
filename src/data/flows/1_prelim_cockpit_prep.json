@@ -232,6 +232,12 @@
       "hold_ms": 300
     },
     {
+      "label": "Parking Brake ON",
+      "read": "(A:BRAKE PARKING INDICATOR, Bool)",
+      "on": "1 (>K:PARKING_BRAKE_SET)",
+      "expect": 1
+    },
+    {
       "label": "Check ENG",
       "read": "(L:INI_ECAM_ACTIVE_PAGE)",
       "on": "1 (>L:PUSH_ECAM_ENG)",

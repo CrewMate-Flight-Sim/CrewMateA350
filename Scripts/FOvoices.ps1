@@ -135,7 +135,21 @@ $phrases = @{
     "left" = "Left" # new
     "center" = "Center" # new
     "right" = "Right" # new
-} 
+    "speed"                                     = "Speed"
+    "sink_rate"                                 = "Sink rate"
+    "bank"                                      = "Bank"
+    "pitch"                                     = "Pitch"
+    "loc"                                       = "Localizer"
+    "glide"                                     = "Glide"
+    "brake_med"                                 = "Brake med"
+    "walkaround_findings"                       = "Walkaround completed, I found some issues"
+    "nose_tyre_worn"                            = "Nose gear tyre worn"
+    "left_tyre_worn"                            = "Left main gear tyre worn"
+    "left_brakes_worn"                          = "Left main gear brakes worn"
+    "right_tyre_worn"                           = "Right main gear tyre worn"
+    "right_brakes_worn"                         = "Right main gear brakes worn"
+    "need_maintenance"                          = "We need maintenance"
+}
 
 # Find Python automatically
 $pythonExe = Get-Command python.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source

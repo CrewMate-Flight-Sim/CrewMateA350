@@ -9,18 +9,6 @@
       "expect": 0
     },
     {
-      "label": "Terrain Display",
-      "read": "(L:INI_TERR_ON_FO)",
-      "on": "0 (>L:INI_TERR_ON_FO)",
-      "expect": 0
-    },
-    {
-      "label": "Weather Radar",
-      "read": "(L:INI_WXR2_ON)",
-      "on": "1 (>L:INI_WXR2_ON)",
-      "expect": 1
-    },
-    {
       "label": "ND SET",
       "read": "(L:INI_MAP_RANGE_FO_SWITCH)",
       "on": "8 (>L:INI_MAP_RANGE_FO_SWITCH)",

@@ -23,6 +23,7 @@ interface SettingsStore {
   lightsControlMode: LightsControlMode
   confidenceThreshold: number
   postLandingShutdownEnabled: boolean
+  deviationCallsEnabled: boolean
   setVoiceEnabled: (enabled: boolean) => void
   setVoiceMode: (mode: VoiceMode) => void
   setPttBinding: (binding: InputBinding | null) => void
@@ -36,6 +37,7 @@ interface SettingsStore {
   setLightsControlMode: (mode: LightsControlMode) => void
   setConfidenceThreshold: (threshold: number) => void
   setPostLandingShutdownEnabled: (enabled: boolean) => void
+  setDeviationCallsEnabled: (enabled: boolean) => void
 }
 
 let isUpdatingFromEvent = false
@@ -71,6 +73,7 @@ export const useSettingsStore = create<SettingsStore>()(
       lightsControlMode: DEFAULT_LIGHTS_CONTROL_MODE,
       confidenceThreshold: 85,
       postLandingShutdownEnabled: true,
+      deviationCallsEnabled: true,
 
       setVoiceEnabled: (enabled) => {
         set({ voiceEnabled: enabled })
@@ -163,6 +166,12 @@ export const useSettingsStore = create<SettingsStore>()(
         if (!isUpdatingFromEvent) {
           emit("settings-changed", { postLandingShutdownEnabled: enabled })
         }
+      },
+      setDeviationCallsEnabled: (enabled) => {
+        set({ deviationCallsEnabled: enabled })
+        if (!isUpdatingFromEvent) {
+          emit("settings-changed", { deviationCallsEnabled: enabled })
+        }
       }
     }),
     {
@@ -231,6 +240,9 @@ listen<Partial<SettingsValues>>("settings-changed", (event) => {
   }
   if (event.payload.postLandingShutdownEnabled !== undefined) {
     useSettingsStore.setState({ postLandingShutdownEnabled: event.payload.postLandingShutdownEnabled })
+  }
+  if (event.payload.deviationCallsEnabled !== undefined) {
+    useSettingsStore.setState({ deviationCallsEnabled: event.payload.deviationCallsEnabled })
   }
   if (event.payload.outputDevice !== undefined) {
     useSettingsStore.setState({ outputDevice: event.payload.outputDevice })

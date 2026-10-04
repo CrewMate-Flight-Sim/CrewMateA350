@@ -10,7 +10,7 @@ import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 import type { Telemetry } from "@/store/telemetryStore"
 
-type LandingPhase = "idle" | "spoilers" | "reverser" | "decel"
+type LandingPhase = "idle" | "spoilers" | "reverser" | "autobrake" | "decel"
 
 interface SpeedCalloutFlags {
   calledThrustSet: boolean
@@ -108,11 +108,21 @@ function handleSpoilersPhase(ls: LandingSequenceState, t: Telemetry, elapsed: nu
 function handleReverserPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) {
   if (isReverseSelected(t)) {
     playSound("reverse_green.ogg")
-    advancePhase(ls, "decel", now)
+    advancePhase(ls, "autobrake", now)
   } else if (elapsed >= REVERSER_TIMEOUT) {
     playSound("no_reverse_engine_1_and_2.ogg")
-    advancePhase(ls, "decel", now)
+    advancePhase(ls, "autobrake", now)
   }
+}
+
+// FCOM PRO-NOR-SOP-210: the PM announces the autobrake mode on the FMA between REVERSE GREEN and DECEL
+const AUTOBRAKE_BTV = 1
+const AUTOBRAKE_MED = 3
+
+function handleAutobrakePhase(ls: LandingSequenceState, t: Telemetry, _elapsed: number, now: number) {
+  if (t.autobrakeLevel === AUTOBRAKE_BTV) playSound("BTV.ogg")
+  else if (t.autobrakeLevel === AUTOBRAKE_MED) playSound("brake_med.ogg")
+  advancePhase(ls, "decel", now)
 }
 
 function handleDecelPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number) {
@@ -131,6 +141,7 @@ const PHASE_HANDLERS: Record<
 > = {
   spoilers: handleSpoilersPhase,
   reverser: handleReverserPhase,
+  autobrake: handleAutobrakePhase,
   decel: handleDecelPhase
 }
 
@@ -170,6 +181,49 @@ function handleRto(rto: RtoState, t: Telemetry, prevSpeed: number, now: number) 
     rto.calledDecel = true
   }
 }
+
+// ─── Approach deviation calls ────────────────────────────────────────────────
+// FCOM PRO-NOR-SCO "Flight parameters, approach". Each call plays once and re-arms
+// when the value is back inside its limit, at most every 5 s so a value on the limit doesn't chatter.
+
+type DeviationCall = "speed" | "sinkRate" | "bank" | "pitch" | "loc" | "glide"
+
+const DEVIATION_MIN_RA = 50
+const DEVIATION_MAX_RA = 1000
+const DEVIATION_REARM_MS = 5000
+const DOTS_LIMIT = 0.5
+
+const DEVIATION_SOUNDS: Record<DeviationCall, string> = {
+  speed: "speed.ogg",
+  sinkRate: "sink_rate.ogg",
+  bank: "bank.ogg",
+  pitch: "pitch.ogg",
+  loc: "loc.ogg",
+  glide: "glide.ogg"
+}
+
+function exceededDeviations(t: Telemetry): Record<DeviationCall, boolean> {
+  // The sim reports nose up as negative pitch
+  const pitchUp = -t.pitchDegrees
+  const lsValid = t.locValid > 0.5
+  return {
+    speed: t.speedTarget > 0 && (t.ias < t.speedTarget - 5 || t.ias > t.speedTarget + 10),
+    sinkRate: t.vs < -1000,
+    bank: Math.abs(t.bankDegrees) > 6,
+    pitch: pitchUp > 10 || pitchUp < 0,
+    loc: lsValid && Math.abs(t.locDeviation) > DOTS_LIMIT,
+    glide: lsValid && Math.abs(t.glideDeviation) > DOTS_LIMIT
+  }
+}
+
+const newDeviationState = (): Record<DeviationCall, number | null> => ({
+  speed: null,
+  sinkRate: null,
+  bank: null,
+  pitch: null,
+  loc: null,
+  glide: null
+})
 
 export function useCallouts(vrSpeed: number) {
   const speed = useRef<SpeedCalloutFlags>({
@@ -211,6 +265,11 @@ export function useCallouts(vrSpeed: number) {
   const vrSpeedRef = useRef(vrSpeed)
   vrSpeedRef.current = vrSpeed
 
+  // When each deviation call last played, or null while it is armed
+  const deviationCalledAt = useRef(newDeviationState())
+  // Go-around pitch and climb would trip the approach limits, so the calls wait until the next approach
+  const deviationInhibited = useRef(false)
+
   // Re-arm positive-climb callout on go-around
   const goAroundCount = useRef(useGoAroundStore.getState().count)
   useEffect(() => {
@@ -218,6 +277,7 @@ export function useCallouts(vrSpeed: number) {
       if (s.count !== goAroundCount.current) {
         goAroundCount.current = s.count
         altitude.current.positiveClimb = false
+        deviationInhibited.current = true
       }
     })
   }, [])
@@ -417,6 +477,37 @@ export function useCallouts(vrSpeed: number) {
       sp.vrInhibit = false
       // Reset passing altitude state
       usePassingAltitudeStore.getState().reset()
+    }
+
+    // Approach deviation calls
+    if (t.radioAlt > DEVIATION_MAX_RA || t.onGround) deviationInhibited.current = false
+
+    const inDeviationWindow =
+      useSettingsStore.getState().deviationCallsEnabled &&
+      !deviationInhibited.current &&
+      !t.onGround &&
+      t.landingGear > 0.5 &&
+      t.radioAlt >= DEVIATION_MIN_RA &&
+      t.radioAlt <= DEVIATION_MAX_RA
+
+    if (inDeviationWindow) {
+      const exceeded = exceededDeviations(t)
+      const calledAt = deviationCalledAt.current
+      const pending = (Object.keys(exceeded) as DeviationCall[]).filter((call) => {
+        if (!exceeded[call]) {
+          if (calledAt[call] !== null && now - calledAt[call] >= DEVIATION_REARM_MS) calledAt[call] = null
+          return false
+        }
+        return calledAt[call] === null
+      })
+
+      // One call per tick so they never talk over each other or the other callouts
+      if (pending.length > 0 && !(await isSoundPlaying())) {
+        playSound(DEVIATION_SOUNDS[pending[0]])
+        calledAt[pending[0]] = now
+      }
+    } else {
+      deviationCalledAt.current = newDeviationState()
     }
 
     // Landing sequence

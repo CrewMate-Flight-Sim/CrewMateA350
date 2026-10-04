@@ -12,7 +12,6 @@ import type { Telemetry } from "@/store/telemetryStore"
  * via the "telemetry_data" event at the requested interval.
  */
 const SIM_VARS: { key: string; expression: string }[] = [
-  { key: "timeOfDay", expression: "(E:TIME OF DAY,Enum)" },
   { key: "ias", expression: "(A:AIRSPEED INDICATED,Knots)" },
   { key: "alt", expression: "(A:INDICATED ALTITUDE,Feet)" },
   { key: "radioAlt", expression: "(A:PLANE ALT ABOVE GROUND,Feet)" },
@@ -39,19 +38,9 @@ const SIM_VARS: { key: string; expression: string }[] = [
   { key: "iniFlexTemperature", expression: "(L:INI_FLEX_TEMPERATURE)" },
   { key: "iniThrustFlexN1", expression: "(L:INI_THRUST_FLEX_N1)" },
   { key: "iniThrustTogaN1", expression: "(L:INI_THRUST_TOGA_N1)" },
-  { key: "iniFdOn", expression: "(L:INI_FD_ON)" },
   { key: "autopilotEngaged", expression: "(L:INI_AP1_BUTTON,Bool)" },
-  { key: "efisQnhUnitSelectorLeft", expression: "(A:EFIS_QNH_UNIT_SELECTOR_LEFT, Bool)" },
   { key: "captAltimeterSettingMB", expression: "(A:KOHLSMAN SETTING MB:1, Millibars)" },
   { key: "captAltimeterSettingHG", expression: "(A:KOHLSMAN SETTING HG:1, inHg)" },
-  { key: "foAltimeterSettingMB", expression: "(A:KOHLSMAN SETTING MB:2, Millibars)" },
-  { key: "foAltimeterSettingHG", expression: "(A:KOHLSMAN SETTING HG:2, inHg)" },
-  { key: "totalFuelQuantityWeight", expression: "(A:FUEL TOTAL QUANTITY WEIGHT, Pounds)" },
-  { key: "iniEngAntiIce1State", expression: "(L:INI_ENG_ANTI_ICE1_STATE)" },
-  { key: "iniEngAntiIce2State", expression: "(L:INI_ENG_ANTI_ICE2_STATE)" },
-  { key: "iniWingAntiIce1State", expression: "(L:INI_WING_ANTI_ICE1_STATE)" },
-  { key: "iniAirPack1Button", expression: "(L:INI_AIR_PACK1_BUTTON, Bool)" },
-  { key: "iniAirPack2Button", expression: "(L:INI_AIR_PACK2_BUTTON, Bool)" },
   { key: "ignitionKnob", expression: "(L:INI_IGNITION_KNOB)" },
   { key: "flapsIndex", expression: "(A:FLAPS HANDLE INDEX,Number)" },
   { key: "mixture1", expression: "(L:INI_MIXTURE_RATIO1_HANDLE)" },
@@ -60,21 +49,18 @@ const SIM_VARS: { key: string; expression: string }[] = [
   { key: "fcuAlt", expression: "(L:INI_ALTITUDE_MEM_DIAL)" },
   { key: "cptBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_1)" },
   { key: "foBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_2)" },
-  { key: "stbBaro", expression: "(L:XMLVAR_BARO_Selector_HPA_3)" },
   { key: "linkedInstruments", expression: "(L:INI_LINKED_INSTRUMENTS)" },
   { key: "arrRunwayHdg", expression: "(L:INI_ARR_RUNWAY_HDG)" },
-  { key: "foShowAirports", expression: "(L:INI_SHOW_AIRPORTS2)" },
-  { key: "foShowConstraints", expression: "(L:INI_SHOW_CONSTRAINTS2)" },
-  { key: "foVor1Active", expression: "(L:INI_FO_VOR1_ACTIVE)" },
-  { key: "foVor2Active", expression: "(L:INI_FO_VOR2_ACTIVE)" },
-  { key: "foTerrOn", expression: "(L:INI_TERR_ON_FO)" },
-  { key: "foWxr2On", expression: "(L:INI_WXR2_ON)" },
   { key: "autobrakeLevel", expression: "(L:INI_AUTOBRAKE_LEVEL)" },
   { key: "thrustLeverClb", expression: "(L:INI_LEVER_IN_CL)" },
-  { key: "takeoffFlapsConf", expression: "(L:TO_FLAPS_CONF)" },
   { key: "foChrono", expression: "(L:INI_FO_CHRONO)" },
   { key: "baroMode", expression: "(L:XMLVAR_Baro1_Mode)" },
-  { key: "brakeFanFitted", expression: "(L:INI_OPTION_BRAKE_FANS)" }
+  { key: "pitchDegrees", expression: "(A:PLANE PITCH DEGREES,Degrees)" },
+  { key: "bankDegrees", expression: "(A:PLANE BANK DEGREES,Degrees)" },
+  { key: "speedTarget", expression: "(A:AUTOPILOT AIRSPEED HOLD VAR,Knots)" },
+  { key: "locDeviation", expression: "(L:INI_LOC_DEV)" },
+  { key: "glideDeviation", expression: "(L:INI_GS_DEV)" },
+  { key: "locValid", expression: "(L:INI_LOC_VALID)" }
 ]
 
 const RETRY_INTERVAL_MS = 5000
