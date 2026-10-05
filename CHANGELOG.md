@@ -8,6 +8,7 @@
 - Back from the walkaround, the FO now reports worn tyres and brakes by gear and asks for maintenance, or says all is good - @marxio09dio
 - The FO now sets the parking brake during the preliminary cockpit preparation, before the walkaround - @marxio09dio
 - At 10,000 ft in the climb the FO switched the ND from terrain to weather radar - the FO now keeps terrain, as the FCOM has WX on the PF side and TERR on the PM side - @marxio09dio
+- During the flight controls check the FO called "full up", "full left" and the others as soon as the stick passed halfway - the FO now waits until the surface reaches its stop - @marxio09dio
 
 ## [1.0.1] - 2026-10-03
 
