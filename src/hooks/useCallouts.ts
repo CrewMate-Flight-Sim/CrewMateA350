@@ -264,7 +264,7 @@ export function useCallouts(vrSpeed: number) {
 
   // When each deviation call last played, or null while it is armed
   const deviationCalledAt = useRef(newDeviationState())
-  // Go-around pitch and climb would trip the approach limits, so the calls wait until the next approach
+  // Takeoff and go-around pitch and climb would trip the approach limits, so the calls wait until the next approach
   const deviationInhibited = useRef(false)
 
   // Re-arm positive-climb callout on go-around
@@ -464,7 +464,8 @@ export function useCallouts(vrSpeed: number) {
     }
 
     // Approach deviation calls
-    if (t.radioAlt > DEVIATION_MAX_RA || t.onGround) deviationInhibited.current = false
+    if (t.onGround) deviationInhibited.current = true
+    else if (t.radioAlt > DEVIATION_MAX_RA) deviationInhibited.current = false
 
     const inDeviationWindow =
       useSettingsStore.getState().deviationCallsEnabled &&
