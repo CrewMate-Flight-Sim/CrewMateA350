@@ -33,6 +33,8 @@ interface LandingSequenceState {
   wasAirborne: boolean
   phase: LandingPhase
   phaseStartTime: number | null
+  readySince: number | null
+  pauseMs: number
   done: boolean
 }
 
@@ -72,9 +74,15 @@ const crossedUp = (prev: number, curr: number, threshold: number) => prev < thre
 
 const crossedDown = (prev: number, curr: number, threshold: number) => prev > threshold && curr <= threshold
 
+const CALL_PAUSE = { MIN: 500, MAX: 1200 }
+
+const randomPause = () => CALL_PAUSE.MIN + Math.random() * (CALL_PAUSE.MAX - CALL_PAUSE.MIN)
+
 const advancePhase = (ls: LandingSequenceState, next: LandingPhase, now: number) => {
   ls.phase = next
   ls.phaseStartTime = now
+  ls.readySince = null
+  ls.pauseMs = randomPause()
 }
 
 const completeLanding = (ls: LandingSequenceState) => {
@@ -86,7 +94,18 @@ const completeLanding = (ls: LandingSequenceState) => {
 const resetLanding = (ls: LandingSequenceState) => {
   ls.phase = "idle"
   ls.phaseStartTime = null
+  ls.readySince = null
   ls.done = false
+}
+
+// The FO speaks a moment after seeing the indication and finishing the last call, not on the same frame
+const sawIndication = (ls: LandingSequenceState, indication: boolean, now: number) => {
+  if (!indication) {
+    ls.readySince = null
+    return false
+  }
+  ls.readySince ??= now
+  return now - ls.readySince >= ls.pauseMs
 }
 
 // ─── Landing phase handlers ──────────────────────────────────────────────────
@@ -95,21 +114,22 @@ const SPOILER_TIMEOUT = 3000
 const REVERSER_TIMEOUT = 3000
 const DECEL_TIMEOUT = 10000
 
+// Timeouts only fire while nothing was seen, so a late indication still in its pause isn't called missing
 function handleSpoilersPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) {
-  if (t.spoilersHandlePosition > 0.1) {
+  if (sawIndication(ls, t.spoilersHandlePosition > 0.1, now)) {
     playSound("spoilers.ogg")
     advancePhase(ls, "reverser", now)
-  } else if (elapsed >= SPOILER_TIMEOUT) {
+  } else if (ls.readySince === null && elapsed >= SPOILER_TIMEOUT) {
     playSound("no_spoilers.ogg")
     advancePhase(ls, "reverser", now)
   }
 }
 
 function handleReverserPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) {
-  if (isReverseSelected(t)) {
+  if (sawIndication(ls, isReverseSelected(t), now)) {
     playSound("reverse_green.ogg")
     advancePhase(ls, "autobrake", now)
-  } else if (elapsed >= REVERSER_TIMEOUT) {
+  } else if (ls.readySince === null && elapsed >= REVERSER_TIMEOUT) {
     playSound("no_reverse_engine_1_and_2.ogg")
     advancePhase(ls, "autobrake", now)
   }
@@ -120,17 +140,22 @@ const AUTOBRAKE_BTV = 1
 const AUTOBRAKE_MED = 3
 
 function handleAutobrakePhase(ls: LandingSequenceState, t: Telemetry, _elapsed: number, now: number) {
-  if (t.autobrakeLevel === AUTOBRAKE_BTV) playSound("BTV.ogg")
-  else if (t.autobrakeLevel === AUTOBRAKE_MED) playSound("brake_med.ogg")
-  advancePhase(ls, "decel", now)
+  const sound =
+    t.autobrakeLevel === AUTOBRAKE_BTV ? "BTV.ogg" : t.autobrakeLevel === AUTOBRAKE_MED ? "brake_med.ogg" : null
+  if (sound === null) {
+    advancePhase(ls, "decel", now)
+  } else if (sawIndication(ls, true, now)) {
+    playSound(sound)
+    advancePhase(ls, "decel", now)
+  }
 }
 
-function handleDecelPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number) {
+function handleDecelPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) {
   const brakesApplied = t.brakeLeftPosition > 0.1 || t.brakeRightPosition > 0.1
-  if (brakesApplied && t.ias > 40) {
+  if (sawIndication(ls, brakesApplied && t.ias > 40, now)) {
     playSound("decel.ogg")
     completeLanding(ls)
-  } else if (elapsed >= DECEL_TIMEOUT) {
+  } else if (ls.readySince === null && elapsed >= DECEL_TIMEOUT) {
     completeLanding(ls)
   }
 }
@@ -244,6 +269,8 @@ export function useCallouts(vrSpeed: number) {
     wasAirborne: false,
     phase: "idle",
     phaseStartTime: null,
+    readySince: null,
+    pauseMs: CALL_PAUSE.MIN,
     done: false
   })
 
@@ -531,8 +558,10 @@ export function useCallouts(vrSpeed: number) {
       }
     }
 
-    // Waits for the previous call to finish so the sequence never overlaps
-    if (ls.phase !== "idle" && !(await isSoundPlaying())) {
+    // Waits for the previous call to finish so the sequence never overlaps; the pause counts from its end
+    if (ls.phase !== "idle" && (await isSoundPlaying())) {
+      ls.readySince = null
+    } else if (ls.phase !== "idle") {
       const elapsed = ls.phaseStartTime ? now - ls.phaseStartTime : 0
       const handler = (PHASE_HANDLERS as Record<string, (...args: unknown[]) => unknown>)[ls.phase]
       if (typeof handler === "function") {
