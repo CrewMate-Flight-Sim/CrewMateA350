@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0]
+## [1.1.0] - 2026-10-15
 
 - The FO now calls approach deviations between 1,000 ft and 50 ft: "speed", "sink rate", "bank", "pitch", "localizer" and "glide", at the FCOM limits. They can be switched off in Settings - @marxio09dio
 - On the landing roll with BTV selected, the FO now announces "BTV" between "reverse green" and "decel" - @marxio09dio
