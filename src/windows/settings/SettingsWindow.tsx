@@ -40,6 +40,8 @@ export function SettingsWindow() {
 
   const postLandingShutdownEnabled = useSettingsStore((s) => s.postLandingShutdownEnabled)
   const setPostLandingShutdownEnabled = useSettingsStore((s) => s.setPostLandingShutdownEnabled)
+  const deviationCallsEnabled = useSettingsStore((s) => s.deviationCallsEnabled)
+  const setDeviationCallsEnabled = useSettingsStore((s) => s.setDeviationCallsEnabled)
 
   const holdOnIncorrect = useSettingsStore((s) => s.holdOnIncorrect)
   const setHoldOnIncorrect = useSettingsStore((s) => s.setHoldOnIncorrect)
@@ -339,6 +341,17 @@ export function SettingsWindow() {
             id="postLandingShutdownEnabled"
             checked={postLandingShutdownEnabled}
             onCheckedChange={(checked) => setPostLandingShutdownEnabled(checked === true)}
+          />
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+          <Label htmlFor="deviationCallsEnabled" className="text-sm text-slate-300 cursor-pointer">
+            Approach deviation calls
+          </Label>
+          <Checkbox
+            id="deviationCallsEnabled"
+            checked={deviationCallsEnabled}
+            onCheckedChange={(checked) => setDeviationCallsEnabled(checked === true)}
           />
         </div>
 

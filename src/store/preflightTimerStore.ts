@@ -9,6 +9,7 @@ export interface TimelineEvent {
   type: "flow" | "reminder" | "sound"
   flowId?: string
   sound?: string
+  brakesReport?: boolean
 }
 
 interface PreflightTimerStore {

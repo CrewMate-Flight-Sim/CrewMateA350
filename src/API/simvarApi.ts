@@ -8,12 +8,7 @@ export async function simvarGet(variableString: string): Promise<number | null> 
   return invoke<number | null>("simvar_get", { variableString })
 }
 
-/**
- * Write a value to an LVar, logging instead of throwing — a failed write means
- * the FO's action simply did not happen, which is never worth crashing a command.
- * `label` is the human name used in the log. Returns whether the write succeeded,
- * so callers can skip a follow-up acknowledgement sound.
- */
+// Logs instead of throwing: a failed write only means the FO's action didn't happen; the result lets callers skip the acknowledgement
 export async function setLvar(value: number, name: string, label: string): Promise<boolean> {
   try {
     await simvarSet(`${value} (>L:${name})`)

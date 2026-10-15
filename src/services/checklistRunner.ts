@@ -192,8 +192,7 @@ async function findPassingRule(
     return ok ? bestMatch : null
   }
 
-  // No response matched — try always/store rules in order (handles silent mode
-  // and items with no response-based validations)
+  // Silent mode and items without response rules land here
   for (const rule of validations) {
     const w = rule.when
     const conditionMet = (w.store && getStoreValue(w.store.path) === w.store.equals) || w.always === true
@@ -277,7 +276,6 @@ class ChecklistRunner {
   }
 
   // ── Silent-mode item iteration ────────────────────────────────────────────
-  // No speech is expected; each item is judged purely on always/store rules.
 
   private async runSilentItems(items: ChecklistItem[], signal: AbortSignal): Promise<boolean> {
     let allPassed = true
@@ -371,9 +369,7 @@ class ChecklistRunner {
   }
 
   // ── Normal interactive phase (challenge → speech response → confirmations) ─
-  // Note: unlike a plain pass/fail item, a validated response here still falls
-  // through to play takeoff/baro confirmation audio afterward — validation
-  // success does not short-circuit the rest of the item.
+  // A validated response still goes on to the takeoff/baro confirmation audio
 
   // Returns true if the item ended because the checklist was aborted.
   private async runInteractiveItem(item: ChecklistItem, signal: AbortSignal): Promise<boolean> {
@@ -421,8 +417,7 @@ class ChecklistRunner {
     return false
   }
 
-  // Waits for a spoken response, filtering out takeoff-speed and baro/feet
-  // confirmations that don't yet contain the required content.
+  // A takeoff or baro readback missing its numbers is ignored, so the PF can say it again
   private async waitForValidResponse(
     item: ChecklistItem,
     responseList: string[],

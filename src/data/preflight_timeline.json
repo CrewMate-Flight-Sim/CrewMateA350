@@ -22,7 +22,7 @@
     "minuteMark": 35,
     "label": "PM back from walkaround and cockpit preparation",
     "type": "flow",
-    "sound": "walkaround_completed.ogg",
+    "brakesReport": true,
     "flowId": "cockpit_prep"
   },
   {

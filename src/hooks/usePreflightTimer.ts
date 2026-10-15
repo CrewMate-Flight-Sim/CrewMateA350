@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react"
 
+import { reportBrakesAndTyres } from "@/services/brakesReport"
 import { executeFlow } from "@/services/flowRunner"
 import { playSound } from "@/services/playSounds"
 import { useFlowStore } from "@/store/flowStore"
@@ -34,6 +35,10 @@ export function usePreflightTimer() {
 
     if (event.sound) {
       playSound(event.sound)
+    }
+
+    if (event.brakesReport) {
+      void reportBrakesAndTyres()
     }
   }, [])
 

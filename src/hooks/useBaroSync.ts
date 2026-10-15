@@ -5,16 +5,7 @@ import { useTelemetryStore } from "@/store/telemetryStore"
 
 const COOLDOWN_MS = 500
 
-/**
- * Keeps the FO baro unit selector (inHg / hPa) in sync with the Captain's
- * when the aircraft's linked-instruments setting is off (linkedInstruments = 0).
- *
- * When linkedInstruments >= 1 the aircraft's own sync is active and we do
- * nothing.
- *
- * Note: the actual baro pressure value is read-only via SimConnect, so only
- * the unit selector LVAR (XMLVAR_BARO_Selector_HPA_2) is written.
- */
+// Only with linked instruments off (the aircraft syncs them otherwise); the pressure itself is read-only, so just the inHg/hPa unit follows the Captain
 export function useBaroSync() {
   const lastWriteRef = useRef<number>(0)
 

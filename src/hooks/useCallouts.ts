@@ -10,7 +10,7 @@ import { useSettingsStore } from "@/store/settingsStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 import type { Telemetry } from "@/store/telemetryStore"
 
-type LandingPhase = "idle" | "spoilers" | "reverser" | "decel"
+type LandingPhase = "idle" | "spoilers" | "reverser" | "autobrake" | "decel"
 
 interface SpeedCalloutFlags {
   calledThrustSet: boolean
@@ -33,6 +33,8 @@ interface LandingSequenceState {
   wasAirborne: boolean
   phase: LandingPhase
   phaseStartTime: number | null
+  readySince: number | null
+  pauseMs: number
   done: boolean
 }
 
@@ -72,9 +74,15 @@ const crossedUp = (prev: number, curr: number, threshold: number) => prev < thre
 
 const crossedDown = (prev: number, curr: number, threshold: number) => prev > threshold && curr <= threshold
 
+const CALL_PAUSE = { MIN: 500, MAX: 1200 }
+
+const randomPause = () => CALL_PAUSE.MIN + Math.random() * (CALL_PAUSE.MAX - CALL_PAUSE.MIN)
+
 const advancePhase = (ls: LandingSequenceState, next: LandingPhase, now: number) => {
   ls.phase = next
   ls.phaseStartTime = now
+  ls.readySince = null
+  ls.pauseMs = randomPause()
 }
 
 const completeLanding = (ls: LandingSequenceState) => {
@@ -86,7 +94,18 @@ const completeLanding = (ls: LandingSequenceState) => {
 const resetLanding = (ls: LandingSequenceState) => {
   ls.phase = "idle"
   ls.phaseStartTime = null
+  ls.readySince = null
   ls.done = false
+}
+
+// The FO speaks a moment after seeing the indication and finishing the last call, not on the same frame
+const sawIndication = (ls: LandingSequenceState, indication: boolean, now: number) => {
+  if (!indication) {
+    ls.readySince = null
+    return false
+  }
+  ls.readySince ??= now
+  return now - ls.readySince >= ls.pauseMs
 }
 
 // ─── Landing phase handlers ──────────────────────────────────────────────────
@@ -95,32 +114,45 @@ const SPOILER_TIMEOUT = 3000
 const REVERSER_TIMEOUT = 3000
 const DECEL_TIMEOUT = 10000
 
+// Timeouts only fire while nothing was seen, so a late indication still in its pause isn't called missing
 function handleSpoilersPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) {
-  if (t.spoilersHandlePosition > 0.1) {
+  if (sawIndication(ls, t.spoilersHandlePosition > 0.1, now)) {
     playSound("spoilers.ogg")
     advancePhase(ls, "reverser", now)
-  } else if (elapsed >= SPOILER_TIMEOUT) {
+  } else if (ls.readySince === null && elapsed >= SPOILER_TIMEOUT) {
     playSound("no_spoilers.ogg")
     advancePhase(ls, "reverser", now)
   }
 }
 
 function handleReverserPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) {
-  if (isReverseSelected(t)) {
+  if (sawIndication(ls, isReverseSelected(t), now)) {
     playSound("reverse_green.ogg")
-    advancePhase(ls, "decel", now)
-  } else if (elapsed >= REVERSER_TIMEOUT) {
+    advancePhase(ls, "autobrake", now)
+  } else if (ls.readySince === null && elapsed >= REVERSER_TIMEOUT) {
     playSound("no_reverse_engine_1_and_2.ogg")
+    advancePhase(ls, "autobrake", now)
+  }
+}
+
+// FCOM PRO-NOR-SOP-210: with BTV the PM announces it between REVERSE GREEN and DECEL
+const AUTOBRAKE_BTV = 1
+
+function handleAutobrakePhase(ls: LandingSequenceState, t: Telemetry, _elapsed: number, now: number) {
+  if (t.autobrakeLevel !== AUTOBRAKE_BTV) {
+    advancePhase(ls, "decel", now)
+  } else if (sawIndication(ls, true, now)) {
+    playSound("BTV.ogg")
     advancePhase(ls, "decel", now)
   }
 }
 
-function handleDecelPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number) {
+function handleDecelPhase(ls: LandingSequenceState, t: Telemetry, elapsed: number, now: number) {
   const brakesApplied = t.brakeLeftPosition > 0.1 || t.brakeRightPosition > 0.1
-  if (brakesApplied && t.ias > 40) {
+  if (sawIndication(ls, brakesApplied && t.ias > 40, now)) {
     playSound("decel.ogg")
     completeLanding(ls)
-  } else if (elapsed >= DECEL_TIMEOUT) {
+  } else if (ls.readySince === null && elapsed >= DECEL_TIMEOUT) {
     completeLanding(ls)
   }
 }
@@ -131,13 +163,12 @@ const PHASE_HANDLERS: Record<
 > = {
   spoilers: handleSpoilersPhase,
   reverser: handleReverserPhase,
+  autobrake: handleAutobrakePhase,
   decel: handleDecelPhase
 }
 
 // ─── Rejected takeoff ────────────────────────────────────────────────────────
-// Triggered by the pilot calling "stop". FCOM PRO-ABN-ABN-00: the F/O calls
-// REVERSE GREEN, then DECEL or NO DECEL. There is no spoilers call, and nothing
-// is said about reverse when it was never selected.
+// FCOM PRO-ABN-ABN-00: REVERSE GREEN, then DECEL or NO DECEL; no spoilers call, and nothing about a reverse never selected
 
 const RTO_ARM_MIN_IAS = 40
 const RTO_END_IAS = 30
@@ -171,6 +202,48 @@ function handleRto(rto: RtoState, t: Telemetry, prevSpeed: number, now: number) 
   }
 }
 
+// ─── Approach deviation calls ────────────────────────────────────────────────
+// FCOM PRO-NOR-SCO "Flight parameters, approach"; re-armed at most every 5 s so a value on the limit doesn't chatter
+
+type DeviationCall = "speed" | "sinkRate" | "bank" | "pitch" | "loc" | "glide"
+
+const DEVIATION_MIN_RA = 50
+const DEVIATION_MAX_RA = 1000
+const DEVIATION_REARM_MS = 5000
+const DOTS_LIMIT = 0.5
+
+const DEVIATION_SOUNDS: Record<DeviationCall, string> = {
+  speed: "speed.ogg",
+  sinkRate: "sink_rate.ogg",
+  bank: "bank.ogg",
+  pitch: "pitch.ogg",
+  loc: "loc.ogg",
+  glide: "glide.ogg"
+}
+
+function exceededDeviations(t: Telemetry): Record<DeviationCall, boolean> {
+  // The sim reports nose up as negative pitch
+  const pitchUp = -t.pitchDegrees
+  const lsValid = t.locValid > 0.5
+  return {
+    speed: t.speedTarget > 0 && (t.ias < t.speedTarget - 5 || t.ias > t.speedTarget + 10),
+    sinkRate: t.vs < -1000,
+    bank: Math.abs(t.bankDegrees) > 6,
+    pitch: pitchUp > 10 || pitchUp < 0,
+    loc: lsValid && Math.abs(t.locDeviation) > DOTS_LIMIT,
+    glide: lsValid && Math.abs(t.glideDeviation) > DOTS_LIMIT
+  }
+}
+
+const newDeviationState = (): Record<DeviationCall, number | null> => ({
+  speed: null,
+  sinkRate: null,
+  bank: null,
+  pitch: null,
+  loc: null,
+  glide: null
+})
+
 export function useCallouts(vrSpeed: number) {
   const speed = useRef<SpeedCalloutFlags>({
     calledThrustSet: false,
@@ -193,6 +266,8 @@ export function useCallouts(vrSpeed: number) {
     wasAirborne: false,
     phase: "idle",
     phaseStartTime: null,
+    readySince: null,
+    pauseMs: CALL_PAUSE.MIN,
     done: false
   })
 
@@ -211,6 +286,11 @@ export function useCallouts(vrSpeed: number) {
   const vrSpeedRef = useRef(vrSpeed)
   vrSpeedRef.current = vrSpeed
 
+  // When each deviation call last played, or null while it is armed
+  const deviationCalledAt = useRef(newDeviationState())
+  // Takeoff and go-around pitch and climb would trip the approach limits, so the calls wait until the next approach
+  const deviationInhibited = useRef(false)
+
   // Re-arm positive-climb callout on go-around
   const goAroundCount = useRef(useGoAroundStore.getState().count)
   useEffect(() => {
@@ -218,12 +298,12 @@ export function useCallouts(vrSpeed: number) {
       if (s.count !== goAroundCount.current) {
         goAroundCount.current = s.count
         altitude.current.positiveClimb = false
+        deviationInhibited.current = true
       }
     })
   }, [])
 
-  // Rejected takeoff: armed only by the pilot calling "stop", and only on the
-  // ground above 40 kt so a stray call at the gate or in the cruise does nothing
+  // Only on the ground above 40 kt, so a stray "stop" at the gate or in the cruise does nothing
   const rto = useRef<RtoState>({
     active: false,
     startedAt: null,
@@ -298,19 +378,15 @@ export function useCallouts(vrSpeed: number) {
       sp.vrInhibit = true
     }
 
-    // 100 knots callout
     if (t.onGround && crossedUp(p.speed, t.ias, 100) && !sp.called100) {
       playSound("100_knots.ogg")
       sp.called100 = true
     }
 
-    // 70 knots callout
     if (t.onGround && crossedDown(p.speed, t.ias, 70) && !sp.called70) {
       playSound("70_knots.ogg")
       sp.called70 = true
-      // 5 seconds after the 70-knot callout, press the chrono button and start the
-      // post-landing timer. The chrono counts up in seconds; when it reaches 300
-      // (5 minutes) the announcement plays.
+      // The FO chrono times the 5 minute engine cool down; the announcement plays when it reaches 300 s
       setTimeout(() => {
         if (useSettingsStore.getState().postLandingShutdownEnabled) {
           void simvarSet("1 (>L:INI_FO_CHRONO_BUTTON)")
@@ -318,7 +394,6 @@ export function useCallouts(vrSpeed: number) {
       }, 5000)
     }
 
-    // Thrust set callout
     if (
       t.onGround &&
       t.ias < 80 &&
@@ -331,18 +406,15 @@ export function useCallouts(vrSpeed: number) {
       sp.calledThrustSet = true
     }
 
-    // Cabin ready
     if (t.onGround && p.cabinIsReady === 0 && cabinIsReady === 1) {
       playSound("cabin_ready.ogg")
     }
 
-    // Positive climb
     if (!t.onGround && t.vs > 120 && t.radioAlt > 30 && !al.positiveClimb) {
       playSound("positive_climb.ogg")
       al.positiveClimb = true
     }
 
-    // Ten thousand feet
     if (!t.onGround && t.vs > 100 && !al.tenThousandClimb && crossedUp(p.alt, t.alt, 10000)) {
       playSound(t.transitionAltitude < 10000 ? "fl_100.ogg" : "ten_thousand.ogg")
       al.tenThousandClimb = true
@@ -353,7 +425,6 @@ export function useCallouts(vrSpeed: number) {
       al.tenThousandDescent = true
     }
 
-    // One to go
     if (!t.onGround && t.vs > 100 && !al.oneToGo && fcuAlt > 0 && crossedUp(p.alt, t.alt, fcuAlt - 1000)) {
       playSound("one_to_go.ogg")
       al.oneToGo = true
@@ -364,8 +435,7 @@ export function useCallouts(vrSpeed: number) {
       al.oneToGo = true
     }
 
-    // Transition altitude / level — both calls prompt an altimeter change, so they
-    // are skipped when it has already been made. XMLVAR_Baro1_Mode: 3 = STD.
+    // Both calls prompt an altimeter change, so they are skipped once it is made (XMLVAR_Baro1_Mode 3 = STD)
     const baroMode = t.baroMode ?? -1
     const onStandard = baroMode === 3
     const baroKnown = baroMode >= 0
@@ -395,14 +465,13 @@ export function useCallouts(vrSpeed: number) {
     // Passing altitude "now" callout
     const passingAltStore = usePassingAltitudeStore.getState()
     if (passingAltStore.targetAltitude !== null && !passingAltStore.hasCalled) {
-      // Check BOTH indicated and pressure altitude (use whichever is higher after setting standard)
+      // Pressure altitude too, because the indicated one jumps when standard is set
       const altReached = t.alt >= passingAltStore.targetAltitude
       const pAltReached = t.pAlt >= passingAltStore.targetAltitude
 
       if (altReached || pAltReached) {
         playSound("now_at.ogg")
         passingAltStore.markCalled()
-        // Clear state
         setTimeout(() => {
           passingAltStore.reset()
         }, 500)
@@ -415,8 +484,39 @@ export function useCallouts(vrSpeed: number) {
       sp.calledVr = false
       sp.called100 = false
       sp.vrInhibit = false
-      // Reset passing altitude state
       usePassingAltitudeStore.getState().reset()
+    }
+
+    // Approach deviation calls
+    if (t.onGround) deviationInhibited.current = true
+    else if (t.radioAlt > DEVIATION_MAX_RA) deviationInhibited.current = false
+
+    const inDeviationWindow =
+      useSettingsStore.getState().deviationCallsEnabled &&
+      !deviationInhibited.current &&
+      !t.onGround &&
+      t.landingGear > 0.5 &&
+      t.radioAlt >= DEVIATION_MIN_RA &&
+      t.radioAlt <= DEVIATION_MAX_RA
+
+    if (inDeviationWindow) {
+      const exceeded = exceededDeviations(t)
+      const calledAt = deviationCalledAt.current
+      const pending = (Object.keys(exceeded) as DeviationCall[]).filter((call) => {
+        if (!exceeded[call]) {
+          if (calledAt[call] !== null && now - calledAt[call] >= DEVIATION_REARM_MS) calledAt[call] = null
+          return false
+        }
+        return calledAt[call] === null
+      })
+
+      // One call per tick so they never talk over each other or the other callouts
+      if (pending.length > 0 && !(await isSoundPlaying())) {
+        playSound(DEVIATION_SOUNDS[pending[0]])
+        calledAt[pending[0]] = now
+      }
+    } else {
+      deviationCalledAt.current = newDeviationState()
     }
 
     // Landing sequence
@@ -426,7 +526,6 @@ export function useCallouts(vrSpeed: number) {
       ls.wasAirborne = true
     }
 
-    // Arm: landing (was airborne → now on ground)
     if (t.onGround && ls.wasAirborne && ls.phase === "idle" && !ls.done) {
       advancePhase(ls, "spoilers", now)
       ls.wasAirborne = false
@@ -456,8 +555,10 @@ export function useCallouts(vrSpeed: number) {
       }
     }
 
-    // Process landing phases (skip if idle or audio still playing)
-    if (ls.phase !== "idle" && !(await isSoundPlaying())) {
+    // Waits for the previous call to finish so the sequence never overlaps; the pause counts from its end
+    if (ls.phase !== "idle" && (await isSoundPlaying())) {
+      ls.readySince = null
+    } else if (ls.phase !== "idle") {
       const elapsed = ls.phaseStartTime ? now - ls.phaseStartTime : 0
       const handler = (PHASE_HANDLERS as Record<string, (...args: unknown[]) => unknown>)[ls.phase]
       if (typeof handler === "function") {
@@ -469,7 +570,6 @@ export function useCallouts(vrSpeed: number) {
       }
     }
 
-    // Update previous values
     p.speed = t.ias
     p.alt = t.alt
     p.onGround = t.onGround

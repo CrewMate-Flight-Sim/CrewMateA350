@@ -34,7 +34,7 @@ function enginesOff(t: Telemetry | null): boolean {
   return m1 < 0.5 && m2 < 0.5 && n1 < N1_IDLE_MAX && n2 < N1_IDLE_MAX
 }
 
-export type ResolveVoiceHintsArgs = {
+type ResolveVoiceHintsArgs = {
   telemetry: Telemetry | null
   lastCompletedChecklistId: string | null
   lastCompletedFlowId: string | null

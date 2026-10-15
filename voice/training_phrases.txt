@@ -194,6 +194,7 @@ advised
 signaled
 stop
 medium
+brake medium
 go around flaps
 continue
 land

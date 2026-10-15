@@ -617,6 +617,7 @@
       <item>advised<tag>out.pid="advised";</tag></item>
       <item>signaled<tag>out.pid="signaled";</tag></item>
       <item>medium<tag>out.pid="medium";</tag></item>
+      <item>brake medium<tag>out.pid="medium";</tag></item>
       <item>btv<tag>out.pid="btv";</tag></item>
       <item>engines on<tag>out.pid="engines_on";</tag></item>
       <item>engines on wings on<tag>out.pid="engines_on_wings_on";</tag></item>

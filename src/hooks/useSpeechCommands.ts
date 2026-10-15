@@ -72,9 +72,7 @@ export function useSpeechCommands({ voiceEnabled }: UseSpeechCommandsOptions) {
         return
       }
 
-      // While a checklist is running, only allow explicit abort commands through.
-      // All other voice commands are suppressed — the checklist runner handles
-      // speech directly. We still display the text so the user sees their response.
+      // The checklist runner takes the speech itself, so only abort gets through; the text still shows
       const checklistRunning = useChecklistStore.getState().executionState === "running"
       const isAbortCommand = commandType === "discrete" && CHECKLIST_ABORT_COMMANDS.has(payload?.command as string)
 

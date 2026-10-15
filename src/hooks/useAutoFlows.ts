@@ -6,10 +6,7 @@ import { useFlowStore } from "@/store/flowStore"
 import { useGoAroundStore } from "@/store/goAroundStore"
 import { useTelemetryStore } from "@/store/telemetryStore"
 
-/**
- * Tracks which auto-triggered flows have already fired this phase.
- * Reset selectively on ground↔airborne transitions.
- */
+// Auto flows fire once per phase; the ground/airborne transitions re-arm them
 interface TriggeredFlags {
   afterStart: boolean
   packsOn: boolean
@@ -74,8 +71,7 @@ export function useAutoFlows() {
     const t = useTelemetryStore.getState().telemetry
     if (!t || t.isSlewActive) return
 
-    // First tick: seed previous values from live telemetry so we don't
-    // detect false edges (e.g. ignitionKnob already 1 on app start).
+    // Seeded from live telemetry, or a switch already on at app start (e.g. ignition) would look like an edge
     if (!primed.current) {
       primed.current = true
       prev.current.ignitionKnob = t.ignitionKnob ?? 0

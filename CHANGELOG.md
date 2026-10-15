@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.0] - 2026-10-15
+
+- The FO now calls approach deviations between 1,000 ft and 50 ft: "speed", "sink rate", "bank", "pitch", "localizer" and "glide", at the FCOM limits. They can be switched off in Settings - @marxio09dio
+- On the landing roll with BTV selected, the FO now announces "BTV" between "reverse green" and "decel" - @marxio09dio
+- On the landing roll the FO called spoilers, reverse green and decel back to back - each call now comes a moment after the FO sees the indication - @marxio09dio
+- The Auto Brake item of the Approach checklist now checks your answer against the FMA, and also accepts "brake medium" - @marxio09dio
+- Back from the walkaround, the FO now reports worn tyres and brakes by gear and asks for maintenance, or says all is good - @marxio09dio
+- The FO now sets the parking brake during the preliminary cockpit preparation, before the walkaround - @marxio09dio
+- At 10,000 ft in the climb the FO switched the ND from terrain to weather radar - the FO now keeps terrain, as the FCOM has WX on the PF side and TERR on the PM side - @marxio09dio
+- During the flight controls check the FO called "full up", "full left" and the others as soon as the stick passed halfway - the FO now waits until the surface reaches its stop - @marxio09dio
+
 ## [1.0.1] - 2026-10-03
 
 - A go-around altitude with hundreds (e.g. 3500) was read back as "go around altitude set" with no number - the FO now reads it in full, "three thousand five hundred feet set" - @marxio09dio

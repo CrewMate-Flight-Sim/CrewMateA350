@@ -30,8 +30,21 @@
     },
     {
       "challenge": "auto_brake.ogg",
-      "response": ["medium", "BTV", "set and checked"],
-      "label": "Auto Brake"
+      "response": ["medium", "brake medium", "BTV", "set and checked"],
+      "label": "Auto Brake",
+      "validations": [
+        {
+          "when": { "responses": ["BTV"] },
+          "checks": [{ "type": "simvar", "var": "(L:INI_AUTOBRAKE_LEVEL)", "expected": 1 }]
+        },
+        {
+          "when": { "responses": ["medium", "brake medium"] },
+          "checks": [{ "type": "simvar", "var": "(L:INI_AUTOBRAKE_LEVEL)", "expected": 3 }]
+        },
+        {
+          "when": { "responses": ["set and checked"] }
+        }
+      ]
     }
   ],
   "completion": "approach_checklist_completed.ogg"

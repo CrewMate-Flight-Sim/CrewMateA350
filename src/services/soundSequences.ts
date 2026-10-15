@@ -1,14 +1,5 @@
-/**
- * Builders for multi-file callouts played through `playSoundSequence`.
- * Every pack carries the digits 0-9, "thousand" and "ten thousand", so numbers
- * are spelled out from those rather than recorded per value.
- */
+// Numbers are spelled out from the digit recordings every pack has, rather than recorded per value
 
-/**
- * Build audio sequence for "standard crosschecked, passing FL XXX"
- * @param targetAlt Target altitude in feet
- * @returns Array of audio filenames to play in sequence
- */
 export const buildPassingAltitudeSequence = (targetAlt: number): string[] => {
   const sequence: string[] = ["standard_cross_checked.ogg", "passing_flight_level.ogg"]
 
