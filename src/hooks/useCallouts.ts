@@ -135,17 +135,14 @@ function handleReverserPhase(ls: LandingSequenceState, t: Telemetry, elapsed: nu
   }
 }
 
-// FCOM PRO-NOR-SOP-210: the PM announces the autobrake mode on the FMA between REVERSE GREEN and DECEL
+// FCOM PRO-NOR-SOP-210: with BTV the PM announces it between REVERSE GREEN and DECEL
 const AUTOBRAKE_BTV = 1
-const AUTOBRAKE_MED = 3
 
 function handleAutobrakePhase(ls: LandingSequenceState, t: Telemetry, _elapsed: number, now: number) {
-  const sound =
-    t.autobrakeLevel === AUTOBRAKE_BTV ? "BTV.ogg" : t.autobrakeLevel === AUTOBRAKE_MED ? "brake_med.ogg" : null
-  if (sound === null) {
+  if (t.autobrakeLevel !== AUTOBRAKE_BTV) {
     advancePhase(ls, "decel", now)
   } else if (sawIndication(ls, true, now)) {
-    playSound(sound)
+    playSound("BTV.ogg")
     advancePhase(ls, "decel", now)
   }
 }

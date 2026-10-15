@@ -3,7 +3,7 @@
 ## [1.1.0]
 
 - The FO now calls approach deviations between 1,000 ft and 50 ft: "speed", "sink rate", "bank", "pitch", "localizer" and "glide", at the FCOM limits. They can be switched off in Settings - @marxio09dio
-- On the landing roll the FO now announces the autobrake mode, "BTV" or "brake med", between "reverse green" and "decel" - @marxio09dio
+- On the landing roll with BTV selected, the FO now announces "BTV" between "reverse green" and "decel" - @marxio09dio
 - On the landing roll the FO called spoilers, reverse green and decel back to back - each call now comes a moment after the FO sees the indication - @marxio09dio
 - The Auto Brake item of the Approach checklist now checks your answer against the FMA, and also accepts "brake medium" - @marxio09dio
 - Back from the walkaround, the FO now reports worn tyres and brakes by gear and asks for maintenance, or says all is good - @marxio09dio
