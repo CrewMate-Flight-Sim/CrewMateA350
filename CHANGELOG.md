@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Voice commands did nothing and the microphone list only showed "Default" when Windows had the English (UK) or another non-US English speech pack, with "The language for the grammar does not match the language of the speech recognizer." in the log - any English speech pack now works - @marxio09dio
+
 ## [1.1.0] - 2026-10-15
 
 - The FO now calls approach deviations between 1,000 ft and 50 ft: "speed", "sink rate", "bank", "pitch", "localizer" and "glide", at the FCOM limits. They can be switched off in Settings - @marxio09dio
