@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] - 2026-11-01
+
+- Fix voice recongiton engine not working if English (UK) or another non-US English speech pack were used - @marxio09dio
+- Fix the TO FLAPs mapping. FO will say "check flaps" instead of moving them when PERF TO has no flaps - @marxio09dio
+
 ## [1.1.0] - 2026-10-15
 
 - The FO now calls approach deviations between 1,000 ft and 50 ft: "speed", "sink rate", "bank", "pitch", "localizer" and "glide", at the FCOM limits. They can be switched off in Settings - @marxio09dio

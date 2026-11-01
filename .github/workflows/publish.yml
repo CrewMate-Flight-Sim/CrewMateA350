@@ -22,7 +22,7 @@ jobs:
           cache: npm
 
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
 
       - name: Prepare release notes from changelog
         id: release-notes

@@ -318,10 +318,18 @@ class FlowRunner {
       return
     }
 
+    const expectedValue = toNumber(step.expect)
+    // An unresolved target, like takeoff flaps with PERF TO not set up, gives the FO nothing to set
+    if (Number.isNaN(expectedValue)) {
+      console.warn(`[FlowRunner] Step "${step.label}" has no target value, not executed`)
+      setStepStatus(index, "failed")
+      if (step.flaps_lever) await this.playSyncSound("check_flaps.ogg", signal)
+      return
+    }
+
     const currentValue = await readSimvar(step.read)
     this.checkAbort(signal)
 
-    const expectedValue = toNumber(step.expect)
     console.log(`[FlowRunner] Step "${step.label}": read=${currentValue}, expect=${expectedValue}`)
 
     if (simvarMatchesExpected(currentValue, expectedValue)) {
