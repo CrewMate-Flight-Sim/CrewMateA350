@@ -21,8 +21,11 @@ import curtains_close from "@/data/flows/curtains_close.json"
 import curtains_open from "@/data/flows/curtains_open.json"
 import table_close from "@/data/flows/table_close.json"
 import table_open from "@/data/flows/table_open.json"
+import { delay } from "@/lib/utils"
 import { usePerformanceStore } from "@/store/performanceStore"
 import type { Flow, FlowStep } from "@/types/flow"
+
+const REREAD_DELAY_MS = 300
 
 export const ALL_FLOWS: Flow[] = [
   prelimCockpitPrep,
@@ -57,10 +60,15 @@ async function getTemplateVars(): Promise<Record<string, string>> {
   const { takeoff, landing } = usePerformanceStore.getState()
   const vars: Record<string, string> = {}
 
-  // TO_FLAPS_CONF mapping: 2 → flaps 1, 3 → flaps 2, 5 → flaps 3
-  const TO_FLAPS_MAP: Record<number, string> = { 2: "1", 3: "2", 5: "3" }
+  // The FMS PERF TO flaps since iniBuilds 1.2.6: 5 → flaps 1, 2 → flaps 2, 3 → flaps 3
+  const TO_FLAPS_MAP: Record<number, string> = { 5: "1", 2: "2", 3: "3" }
   try {
-    const toFlapsConf = await simvarGet("(L:TO_FLAPS_CONF)")
+    let toFlapsConf = await simvarGet("(L:TO_FLAPS_CONF)")
+    // The first read of a variable only registers it and comes back empty
+    if (toFlapsConf === null) {
+      await delay(REREAD_DELAY_MS)
+      toFlapsConf = await simvarGet("(L:TO_FLAPS_CONF)")
+    }
     vars["flaps"] = toFlapsConf !== null ? (TO_FLAPS_MAP[toFlapsConf] ?? "") : ""
   } catch {
     vars["flaps"] = ""
@@ -134,7 +142,7 @@ async function resolveStep(step: FlowStep, vars?: Record<string, string>): Promi
     read: resolveString(step.read, templateVars),
     on: resolveString(step.on, templateVars),
     release: step.release ? resolveString(step.release, templateVars) : undefined,
-    expect: typeof step.expect === "string" ? parseFloat(resolveString(step.expect, templateVars)) || 0 : step.expect,
+    expect: typeof step.expect === "string" ? parseFloat(resolveString(step.expect, templateVars)) : step.expect,
     only_if: resolvedOnlyIf
   }
 }
