@@ -1,6 +1,6 @@
 import { listen } from "@tauri-apps/api/event"
 
-import { simvarGet, simvarSet } from "@/API/simvarApi"
+import { simvarGet } from "@/API/simvarApi"
 import { delay } from "@/lib/utils"
 import { getChecklistById } from "@/services/checklistLoader"
 import { playSound, playSoundSequence, waitForSoundFinished } from "@/services/playSounds"
@@ -240,8 +240,6 @@ class ChecklistRunner {
     const silent = checklist.mode === "silent"
 
     try {
-      await this.triggerChecklistMenu()
-
       if (silent) {
         const allPassed = await this.runSilentItems(checklist.items, signal)
         if (allPassed) {
@@ -267,12 +265,6 @@ class ChecklistRunner {
     } finally {
       this.abortController = null
     }
-  }
-
-  // ── MCDU integration ──────────────────────────────────────────────────────
-
-  private async triggerChecklistMenu(): Promise<void> {
-    await simvarSet(`1 (>L:INI_MCDU2_CL_MENU)`)
   }
 
   // ── Silent-mode item iteration ────────────────────────────────────────────

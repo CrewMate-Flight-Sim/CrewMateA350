@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.2] - XXXXXXX
+
+- Dome light went off at the end of the After Start flow - the FO now turns it off on "clear left" - @marxio09dio
+- Every checklist switched the FO MFD to the CL menu - it now stays on the page the PF selected - @marxio09dio
+
 ## [1.1.1] - 2026-11-01
 
 - Fix voice recongiton engine not working if English (UK) or another non-US English speech pack were used - @marxio09dio
