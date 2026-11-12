@@ -25,12 +25,6 @@
         "option": "takeoff.antiIce",
         "one_of": ["off"]
       }
-    },
-    {
-      "label": "Dome off",
-      "read": "(L:INI_CKPT_LT_DOME)",
-      "on": "0 (>L:INI_CKPT_LT_DOME)",
-      "expect": 0
     }
   ]
 }
