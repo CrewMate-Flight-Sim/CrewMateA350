@@ -1,9 +1,10 @@
 # Changelog
 
-## [1.1.2] - XXXXXXX
+## [1.1.2] - 2026-11-12
 
 - Dome light went off at the end of the After Start flow - the FO now turns it off on "clear left" - @marxio09dio
 - Every checklist switched the FO MFD to the CL menu - it now stays on the page the PF selected - @marxio09dio
+- Cockpit door is no longer opened on the shutdown flow - @marxio09dio
 
 ## [1.1.1] - 2026-11-01
 
